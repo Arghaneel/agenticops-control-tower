@@ -16,7 +16,7 @@ class Contract(BaseModel):
 class ConfigScope(Contract):
     agent_id: AgentId
     environment: str | None = None
-    capability: str | None = None
+    capability: AgentId
 
 
 class ConfigPatch(Contract):
@@ -33,7 +33,7 @@ class Operator(Contract):
 
 class Configuration(Contract):
     agent_id: AgentId
-    capability: str = Field(min_length=1)
+    capability: AgentId
     authority: Literal["tower", "mirrored", "unsupported"] = "unsupported"
     values: dict[str, JsonValue] = Field(default_factory=dict)
     enabled: bool | None = None
@@ -59,6 +59,7 @@ class ActionPreview(Contract):
     expires_at: AwareDatetime
     status: Literal["pending", "approved", "denied", "executed", "revoked"] = "pending"
     approved_by: str | None = None
+    decided_by: str | None = None
 
 
 class ApprovalRequest(Contract):

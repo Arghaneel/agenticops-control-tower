@@ -216,3 +216,48 @@ def test_cli_approval_flow(service, tmp_path, capsys):
     assert json.loads(capsys.readouterr().out)["values"] == {"limit": 5}
     main(["--token", "w", "audit", "a"], client=client)
     assert json.loads(capsys.readouterr().out)[-1]["event"] == "action.executed"
+
+
+def test_target_schema_and_empty_environment(service):
+    from pydantic import ValidationError
+
+    for target in (
+        {"agent_id": "a"},
+        {"agent_id": "a", "capability": ""},
+        {"agent_id": "a", "capability": "namespace/routing"},
+    ):
+        with pytest.raises(ValidationError):
+            ActionRequest(target=target, operation="config.update")
+    action_request = request()
+    action_request.target.environment = ""
+    with pytest.raises(ConfigurationError):
+        service.preview(action_request, WRITER)
+    agent = service.registry.get("a")
+    agent.environment = ""
+    service.registry.register(AgentRegistrationPayload.model_validate(agent.model_dump()))
+    action = service.preview(action_request, WRITER)
+    service.approve(action.action_id, True, APPROVER)
+    agent.environment = "production"
+    service.registry.register(AgentRegistrationPayload.model_validate(agent.model_dump()))
+    with pytest.raises(ConfigurationError):
+        service.execute(action.action_id, WRITER)
+
+
+def test_denial_attribution(service):
+    action = service.preview(request(), WRITER)
+    denied = service.approve(action.action_id, False, APPROVER)
+    assert denied.approved_by is None
+    assert denied.decided_by == APPROVER.operator_id
+
+
+def test_reads_do_not_reserve_sqlite_writer_lock(service):
+    import sqlite3
+
+    competitor = sqlite3.connect(service._path, timeout=0)
+    try:
+        with service._transaction(write=False) as db:
+            db.execute("SELECT body FROM tower_config").fetchall()
+            competitor.execute("BEGIN IMMEDIATE")
+            competitor.rollback()
+    finally:
+        competitor.close()

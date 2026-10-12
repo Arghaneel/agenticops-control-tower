@@ -88,11 +88,11 @@ class ConfigurationService:
             db.execute("CREATE TABLE IF NOT EXISTS tower_audit (id INTEGER PRIMARY KEY, body TEXT)")
 
     @contextmanager
-    def _transaction(self) -> Iterator[sqlite3.Connection]:
+    def _transaction(self, *, write: bool = True) -> Iterator[sqlite3.Connection]:
         with self._lock:
             db = sqlite3.connect(self._path) if self._path else self._memory
             try:
-                db.execute("BEGIN IMMEDIATE")
+                db.execute("BEGIN IMMEDIATE" if write else "BEGIN")
                 yield db
                 db.commit()
             except BaseException:
@@ -116,7 +116,7 @@ class ConfigurationService:
         return Configuration(agent_id=agent_id, capability=capability)
 
     def get(self, agent_id: str, capability: str) -> Configuration:
-        with self._transaction() as db:
+        with self._transaction(write=False) as db:
             return self._get(db, agent_id, capability)
 
     @staticmethod
@@ -172,7 +172,10 @@ class ConfigurationService:
             raise ConfigurationError("An explicit capability target is required")
         with self._transaction() as db:
             agent = self.registry.get(agent_id)
-            if request.target.environment and request.target.environment != agent.environment:
+            if (
+                request.target.environment is not None
+                and request.target.environment != agent.environment
+            ):
                 raise ConfigurationError("Target environment does not match deployment")
             before = self._get(db, agent_id, capability)
             if before.authority != "tower":
@@ -220,7 +223,7 @@ class ConfigurationService:
         return ActionPreview.model_validate_json(row[0])
 
     def action(self, action_id: str) -> ActionPreview:
-        with self._transaction() as db:
+        with self._transaction(write=False) as db:
             return self._action(db, action_id)
 
     @audited
@@ -233,7 +236,8 @@ class ConfigurationService:
             if operator.operator_id == action.proposed_by:
                 raise ConfigurationError("Approval requires a different operator")
             action.status = "approved" if approved else "denied"
-            action.approved_by = operator.operator_id
+            action.approved_by = operator.operator_id if approved else None
+            action.decided_by = operator.operator_id
             self._save_action(db, action)
             self._audit(
                 db, operator, action.request.target.agent_id, f"action.{action.status}", action_id
@@ -267,7 +271,7 @@ class ConfigurationService:
             if (
                 current != action.before
                 or current.revision != action.expected_revision
-                or (target.environment and target.environment != agent.environment)
+                or (target.environment is not None and target.environment != agent.environment)
             ):
                 raise ConfigurationError(
                     "Approval no longer matches current configuration or target"
@@ -288,7 +292,7 @@ class ConfigurationService:
 
     def audit(self, agent_id: str) -> list[AuditRecord]:
         self.registry.get(agent_id)
-        with self._transaction() as db:
+        with self._transaction(write=False) as db:
             records = [
                 AuditRecord.model_validate_json(row[0])
                 for row in db.execute("SELECT body FROM tower_audit ORDER BY id")

@@ -54,7 +54,9 @@ approval consumption and success audit commit together; any storage exception
 rolls them back and propagates. There is no local partial success. Rejected domain
 commands for known targets are audited with generic details; malformed requests,
 invalid credentials and unknown actions are rejected before domain audit.
-Audit and previews include settings; avoid storing secrets in configuration.
+Previews include settings; audit records contain lifecycle metadata, not setting
+values. Avoid storing secrets in configuration. Capability identifiers use the
+same URL-safe syntax as agent IDs and are required in action targets.
 
 The execution result explicitly states that remote application is unverified.
 `failed`/`partial_failure`, rollback and reconciliation fields are reserved for
