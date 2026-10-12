@@ -87,3 +87,8 @@ per role, with no overlap period, per-user revocation, expiry or tenant isolatio
 Do not put tokens in URLs, tracked files, Docker images or shared logs. Use HTTPS
 for remote browser/API traffic. See [the hosting guide](hosting.md) for local,
 private-network and cloud access.
+
+## v0.4 controlled configuration
+
+See [configuration and approvals](configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
+Runtime settings remain mirrored or unsupported without an adapter.

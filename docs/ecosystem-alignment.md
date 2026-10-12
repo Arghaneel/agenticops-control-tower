@@ -127,3 +127,8 @@ issuer/harness and requires Sidecar's configured acknowledgement callbacks.
 No dependency-floor change is needed for native JSON readback: the existing
 optional Sidecar extra permits 0.7.0; v0.7 APIs require the v0.7 checkout until
 that package is published.
+
+## v0.4 controlled configuration
+
+See [configuration and approvals](configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
+Runtime settings remain mirrored or unsupported without an adapter.

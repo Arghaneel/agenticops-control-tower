@@ -40,20 +40,22 @@ wheels = [
 
 [[package]]
 name = "agentic-sidecar"
-version = "0.2.0"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
+    { name = "rich" },
+    { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/a8/b30e425234b65c2420049a58829871a5cf2fd249bde06b1d284ebdb0dd7c/agentic_sidecar-0.2.0.tar.gz", hash = "sha256:6c7d583980a7f86c122ee249f058817869b683d702dea82081a8ec8594a68a22", size = 238282, upload-time = "2026-08-15T20:53:16.707Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/a8/3b4365938fe622b45bced69b87b8193d9e6faed3bce8d4451d354d3e8e9c/agentic_sidecar-0.7.0.tar.gz", hash = "sha256:345acfe2d7561fcccd0ecbb3dd322dbcb624350405bc06a6d5d7453e9970c4da", size = 884243, upload-time = "2026-10-12T05:31:59.653Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cd/e8/a070ab689c5a8ce3f01c01483839cd4e46add66b99bd1de562f4dce99bf9/agentic_sidecar-0.2.0-py3-none-any.whl", hash = "sha256:bb051a316adb99a73b764b2d7ac5c22b5e22f836b92fa0e902541b4950aa78d7", size = 38337, upload-time = "2026-08-15T20:53:15.32Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/99/1aecc3073d34eeb7e5f59fbf67eb8f33a65fce14b8d61a7aaa27eb4753ed/agentic_sidecar-0.7.0-py3-none-any.whl", hash = "sha256:700e03cdeb1babc89580afa785d9d5b6d5c94aef700da0add4c9bad8b8c49c7a", size = 79899, upload-time = "2026-10-12T05:31:58.082Z" },
 ]
 
 [[package]]
 name = "agenticlens"
-version = "0.4.6"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -63,14 +65,14 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/52/0d/e22cd7138f72c1a3b5e0d23bc2e5fc3b7743daea3acf814d81b5d3576fc3/agenticlens-0.4.6.tar.gz", hash = "sha256:72752ff62990d84827c500d516d3a7519231ecc456418de388f5fb11841487ab", size = 1857547, upload-time = "2026-08-16T04:13:19.994Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/ad/639b89b42a250260452fd26e99ea86abdbb3772cf5a9e83d352270d6327f/agenticlens-0.5.0.tar.gz", hash = "sha256:230476db723efd8d76db14a61d4c9c397866d9b7eedd977516659a246e3361ed", size = 1909706, upload-time = "2026-09-13T05:41:24.764Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/8e/38afee93ec7e5cd935cf6fe239f69911170ae1a53fb832dd65b8a648c3e7/agenticlens-0.4.6-py3-none-any.whl", hash = "sha256:186370f20a19845e5d53fe85995d2b460ec5535b31e8662567d10cbf08950510", size = 105356, upload-time = "2026-08-16T04:13:18.728Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/02/b3042ea74d20ada38af491f631573615bc0742197712347907237bbbcf4d/agenticlens-0.5.0-py3-none-any.whl", hash = "sha256:9666e222233bea32839e2ae48f05520cd4f80def08960eee6d9cb810db70b333", size = 131196, upload-time = "2026-09-13T05:41:23.59Z" },
 ]
 
 [[package]]
 name = "agenticops-control-tower"
-version = "0.3.1"
+version = "0.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "packaging" },
@@ -112,12 +114,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agentic-chaos", marker = "extra == 'agentic-chaos'", specifier = ">=0.1" },
+    { name = "agentic-chaos", marker = "extra == 'agentic-chaos'", specifier = ">=0.4,<1" },
     { name = "agentic-evals", marker = "extra == 'agentic-evals'", specifier = ">=0.7,<1" },
-    { name = "agentic-sidecar", marker = "extra == 'agentic-sidecar'", specifier = ">=0.0.1" },
-    { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.1.3" },
+    { name = "agentic-sidecar", marker = "extra == 'agentic-sidecar'", specifier = ">=0.7,<1" },
+    { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.5,<1" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
-    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.2.0" },
+    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.1,<1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'api'", specifier = ">=0.27,<1" },
@@ -756,7 +758,7 @@ wheels = [
 
 [[package]]
 name = "deep-agentic-core-mcp"
-version = "0.2.0"
+version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -764,9 +766,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "referencing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7e/ed/ab9c29a33be5978e47d18a7662c5d37e06ac75294df1ffca431912dc2d21/deep_agentic_core_mcp-0.2.0.tar.gz", hash = "sha256:2cb34f94218e632a6213866fe5f11e6cf50c7a69fbbbdaa7fa8e8bd6ff5adf4b", size = 160604, upload-time = "2026-08-09T07:53:38.842Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/0d/bae6ca072e00c8ea82dc5361f92b59ad0f491e26d9c29fc53e3047063d92/deep_agentic_core_mcp-0.3.1.tar.gz", hash = "sha256:1db4fd510acc7639fc890df892c5f978f9ed1c1fb913e7759a406e192874d068", size = 253101, upload-time = "2026-10-12T05:48:38.146Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/98/d0/37da7875650c6198109c698648d0c3de896103ed309e26b7a45ebf9479cb/deep_agentic_core_mcp-0.2.0-py3-none-any.whl", hash = "sha256:573a301f7ce7a6dafd3a4db0f54f700bbf7b9c70743f648bd778fae7c9e40410", size = 28369, upload-time = "2026-08-09T07:53:37.332Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/50/0ac182ad5a0e1aa5f075d18e8c328fe8f8ec235443e47de4dd0ad7983cc2/deep_agentic_core_mcp-0.3.1-py3-none-any.whl", hash = "sha256:47f657fc2544e742c23c61e150cc0c55e81663f68acdd587cb9aa1a2aaf2b2df", size = 48579, upload-time = "2026-10-12T05:48:36.534Z" },
 ]
 
 [[package]]
@@ -1743,15 +1745,16 @@ wheels = [
 
 [[package]]
 name = "rich"
-version = "15.0.0"
+version = "13.9.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py" },
     { name = "pygments" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c0/8f/0722ca900cc807c13a6a0c696dacf35430f72e0ec571c4275d2371fca3e9/rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36", size = 230680, upload-time = "2026-04-12T08:24:00.75Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/3a/0316b28d0761c6734d6bc14e770d85506c986c85ffb239e688eeaab2c2bc/rich-13.9.4.tar.gz", hash = "sha256:439594978a49a09530cff7ebc4b5c7103ef57baf48d5ea3184f21d9a2befa098", size = 223149, upload-time = "2024-11-01T16:43:57.873Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/3b/64d4899d73f91ba49a8c18a8ff3f0ea8f1c1d75481760df8c68ef5235bf5/rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb", size = 310654, upload-time = "2026-04-12T08:24:02.83Z" },
+    { url = "https://files.pythonhosted.org/packages/19/71/39c7c0d87f8d4e6c020a393182060eaefeeae6c01dab6a84ec346f2567df/rich-13.9.4-py3-none-any.whl", hash = "sha256:6049d5e6ec054bf2779ab3358186963bac2ea89175919d699e378b99738c2a90", size = 242424, upload-time = "2024-11-01T16:43:55.817Z" },
 ]
 
 [[package]]
@@ -2146,7 +2149,7 @@ wheels = [
 
 [[package]]
 name = "twine"
-version = "7.0.0"
+version = "6.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "id" },
@@ -2159,9 +2162,9 @@ dependencies = [
     { name = "rich" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/3c/58f808a359700f39a967dffede33efeac809262c03303fa3eec6afff8f49/twine-7.0.0.tar.gz", hash = "sha256:85cdb29c518efef867360ae4acd4b0dfd61c8654a22fca08e6f8539f05022177", size = 215032, upload-time = "2026-07-27T15:59:00.825Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/a8/949edebe3a82774c1ec34f637f5dd82d1cf22c25e963b7d63771083bbee5/twine-6.2.0.tar.gz", hash = "sha256:e5ed0d2fd70c9959770dce51c8f39c8945c574e18173a7b81802dab51b4b75cf", size = 172262, upload-time = "2025-09-04T15:43:17.255Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/08/ddcdc06225eaad6de0e48e1002b06d919dbde20582d0662c7af51308e5d6/twine-7.0.0-py3-none-any.whl", hash = "sha256:b854164df26db268af05f49aa5c0344b10e27a494343ff05b1e0bad3b135f5a7", size = 43204, upload-time = "2026-07-27T15:58:59.26Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/7a/882d99539b19b1490cac5d77c67338d126e4122c8276bf640e411650c830/twine-6.2.0-py3-none-any.whl", hash = "sha256:418ebf08ccda9a8caaebe414433b0ba5e25eb5e4a927667122fbe8f829f985d8", size = 42727, upload-time = "2025-09-04T15:43:15.994Z" },
 ]
 
 [[package]]

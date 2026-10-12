@@ -13,3 +13,8 @@ The workflows live under [`.github/workflows/`](.github/workflows/).
 
 For the human pre-release flow around those checks, see
 [`PRE_RELEASE.md`](PRE_RELEASE.md).
+
+## v0.4 controlled configuration
+
+See [configuration and approvals](docs/configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
+Runtime settings remain mirrored or unsupported without an adapter.

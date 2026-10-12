@@ -1,7 +1,7 @@
 # agenticops-control-tower — Roadmap & Architecture
 
-**Current package version: 0.3.1.** This patch preserves Sidecar v0.7 decision
-identity and adds native journal export readback; v0.4 remains the next feature stage.
+**Current package version: 0.4.0.** This release adds controlled desired
+configuration and approval contracts while preserving native Sidecar evidence.
 
 ## Product Vision: AI-Native Operations Command Center
 
@@ -48,7 +48,7 @@ unsupported explanation as an exact RCA.
 - **v0.2** ✅ Implemented and published — HTTP and snapshot CLI, shared health rollups,
   capability coverage and version inventory, and agent filters
 - **v0.3** ✅ Implemented and published — AgenticOps Console (read-only dashboard)
-- **v0.4** 🚧 Planned — Configuration Model and Controlled Write Operations
+- **v0.4** ✅ Implemented — Configuration Model and Controlled Write Operations
 - **v0.5** 🏗️ Partial — Lens, Evals, Sidecar, and Chaos artifact readers; remote collection and operator surfaces remain planned
 - **v0.6** 🚧 Planned — Agentic MCP Connector and Investigation Copilot
 - **v0.6.x** 🚧 Planned — First Approved Incident-to-Recovery Scenario
@@ -58,10 +58,9 @@ unsupported explanation as an exact RCA.
 - **v1.0** 🚧 Planned — Stable Control Plane and Published Capability Contract
 
 v0.1 and v0.2 share a tested Python control model, optional SQLite registry,
-authenticated HTTP API and operator CLI. The read-only console ships in v0.3. Later milestones remain planned or partial:
-configuration, ecosystem adapters, MCP connector, bulk operations, and incident
-workflows. These capabilities are available in the published
-[v0.3.1 release](https://github.com/DeepAgentLabs/agenticops-control-tower/releases/tag/v0.3.1).
+authenticated HTTP API and operator CLI. The read-only console ships in v0.3; controlled desired configuration ships in
+v0.4. Remote ecosystem adapters, MCP connector, bulk operations and incident
+workflows remain planned or partial.
 
 ## Implementation Evidence and Operational Limits
 
@@ -72,6 +71,7 @@ The implementation lives under `src/agenticops_control_tower/`:
 | Registry, discovery and persistence | `registry/service.py`, `discovery/service.py` | `tests/test_registry.py`, `tests/test_milestones.py` |
 | Shared status, HTTP API and CLI | `status/service.py`, `api/surface.py`, `api/http.py`, `cli/main.py`, `snapshot.py` | `tests/test_http_api.py`, `tests/test_cli.py` |
 | Read-only console and minimum-version assessments | `console/static/`, `models/version.py`, `ControlTowerAPI.assess_versions` | `tests/test_console.py` |
+| Desired configuration, approvals and audit | `config/service.py`, `config/models.py` | `tests/test_configuration.py` |
 | Native producer evidence and Sidecar journal readback | `adapters/evidence.py`, `models/evidence.py`, `examples/inspect_sidecar_journal.py` | `tests/test_ecosystem_alignment.py`, `tests/test_sibling_artifacts.py`, `tests/test_sidecar_journal_example.py` |
 
 Tests cover restart durability, concurrent heartbeats, detached registry reads,
@@ -85,7 +85,7 @@ file. Authentication uses deployment-configured reader/writer bearer tokens;
 per-agent identities and tenant isolation are not implemented. Without tokens,
 the API allows anonymous local development. Health is agent-reported;
 timeout-based health, automatic package detection and distributed storage remain
-planned. Remote evidence collection, incident timelines, configuration writes,
+planned. Remote evidence collection, incident timelines, remote configuration application,
 MCP/copilot operations, bulk actions, runbook execution and recovery verification
 also remain planned.
 
@@ -363,6 +363,19 @@ Success criteria:
 - the dashboard does not introduce write-side behavior the API cannot do
 
 ## Phase 4: Configuration and Safe Write Operations (`v0.4`)
+
+Status: **implemented for Tower-owned desired configuration**. See
+[configuration.md](docs/configuration.md), `config/service.py` and
+`tests/test_configuration.py`. API/CLI expose previews, separate approver
+credentials, denial, expiry, revocation, revision checks and atomic one-use writes.
+SQLite persists configuration, actions and audit across restarts. Local atomic
+writes cannot partially commit. The reusable result contract explicitly carries
+failure, rollback and reconciliation fields for later adapters.
+
+Runtime configuration remains mirrored/unsupported without a writable adapter.
+Remote stop/revoke and task-scope transport are deferred; Python operator scopes
+bound configuration actions to deployment IDs. No generic sibling toggle is claimed.
+
 
 Goals:
 

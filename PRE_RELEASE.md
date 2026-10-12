@@ -1,30 +1,30 @@
 # Pre-Release Checklist
 
-Current target: `v0.3.1`. Keep this checklist aligned with the current API and
+Current target: `v0.4.0`. Keep this checklist aligned with the current API and
 release procedure in [AGENTS.md](AGENTS.md#release).
 
 ## Scope and metadata
 
 - Match `pyproject.toml`, `src/agenticops_control_tower/__init__.py` and `uv.lock`.
-- Use a plain `## 0.3.1` changelog heading with the release date in its body.
+- Use a plain `## 0.4.0` changelog heading with the release date in its body.
 - Align README/roadmap with implemented registry, SQLite persistence,
-  authenticated API/CLI and read-only console. Native evidence readers preserve
+  authenticated API/CLI, controlled configuration approvals and read-only console. Native evidence readers preserve
   producer outcomes independently of fleet health.
 - Remote event collection and operator remediation remain planned. Sidecar
-  remains optional; this patch requires no sibling package for Tower startup.
+  remains optional; this release requires no sibling package for Tower startup.
 
 ## Validation
 
 ```bash
 make check
 uv run --with agentic-sidecar==0.7.0 python -m pytest tests/test_sibling_artifacts.py -k sidecar
-uv run python -m build --outdir /tmp/tower-0.3.1-dist
-uv run twine check /tmp/tower-0.3.1-dist/*
+uv run python -m build --outdir /tmp/tower-0.4.0-dist
+uv run twine check /tmp/tower-0.4.0-dist/*
 # Install and test the built wheel outside the editable checkout.
 tower_checkout="$PWD"
 tower_smoke_dir="$(mktemp -d)"
 uv venv "$tower_smoke_dir/venv"
-uv pip install --python "$tower_smoke_dir/venv/bin/python" "/tmp/tower-0.3.1-dist/agenticops_control_tower-0.3.1-py3-none-any.whl[api]"
+uv pip install --python "$tower_smoke_dir/venv/bin/python" "/tmp/tower-0.4.0-dist/agenticops_control_tower-0.4.0-py3-none-any.whl[api]"
 cd "$tower_smoke_dir"
 "$tower_smoke_dir/venv/bin/agenticops-control-tower" --help
 "$tower_smoke_dir/venv/bin/agenticops-control-tower" --snapshot "$tower_checkout/examples/sample_fleet_snapshot.json" agents list
@@ -35,7 +35,7 @@ from importlib.resources import files
 from agenticops_control_tower import __version__
 from agenticops_control_tower.adapters import summarize_evidence
 from agenticops_control_tower.models.evidence import EvidenceLink
-assert __version__ == "0.3.1"
+assert __version__ == "0.4.0"
 assert files("agenticops_control_tower.console").joinpath("static/index.html").is_file()
 link = EvidenceLink(agent_id="smoke", source="agentic-sidecar", source_version="0.7.0",
                     artifact_type="decision", artifact_ref="decision:smoke",
@@ -62,11 +62,11 @@ that merge commit. Extract the matching changelog section into a temporary file:
 uv run python - <<'PY'
 from pathlib import Path
 text = Path("CHANGELOG.md").read_text()
-section = text.split("## 0.3.1\n", 1)[1].split("\n## ", 1)[0].strip()
-Path("/tmp/tower-0.3.1-release-notes.md").write_text(section + "\n")
+section = text.split("## 0.4.0\n", 1)[1].split("\n## ", 1)[0].strip()
+Path("/tmp/tower-0.4.0-release-notes.md").write_text(section + "\n")
 PY
-git tag -a v0.3.1 -F /tmp/tower-0.3.1-release-notes.md --cleanup=verbatim
-git push origin v0.3.1
+git tag -a v0.4.0 -F /tmp/tower-0.4.0-release-notes.md --cleanup=verbatim
+git push origin v0.4.0
 ```
 
 The release workflow builds artifacts, publishes to PyPI through Trusted
@@ -77,5 +77,5 @@ Do not manually create a second release or publish unrelated tags.
 
 - Confirm publishing and GitHub release jobs succeeded.
 - Verify both wheel and source distribution on PyPI.
-- Install `agenticops-control-tower[api]==0.3.1` in a fresh environment and smoke
+- Install `agenticops-control-tower[api]==0.4.0` in a fresh environment and smoke
   the CLI/offline snapshot and native evidence reader.

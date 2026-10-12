@@ -16,3 +16,8 @@ boundary and milestone order.
 
 Deployment and operator setup: [hosting](hosting.md) and
 [customer-managed authentication](authentication.md).
+
+## v0.4 controlled configuration
+
+See [configuration and approvals](configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
+Runtime settings remain mirrored or unsupported without an adapter.

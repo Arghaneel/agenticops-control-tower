@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agenticops-control-tower"
-version = "0.3.1"
+version = "0.4.0"
 description = "Unified control plane and operations console for the DeepAgentLabs ecosystem."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -33,16 +33,16 @@ agentic-evals = [
 # Producer packages are optional. Native JSON artifact readers do not import
 # siblings; these extras let callers generate artifacts in the same environment.
 agenticlens = [
-  "agenticlens>=0.1.3",
+  "agenticlens>=0.5,<1",
 ]
 agentic-sidecar = [
-  "agentic-sidecar>=0.0.1",
+  "agentic-sidecar>=0.7,<1",
 ]
 agentic-chaos = [
-  "agentic-chaos>=0.1",
+  "agentic-chaos>=0.4,<1",
 ]
 deep-agentic-core-mcp = [
-  "deep-agentic-core-mcp>=0.2.0",
+  "deep-agentic-core-mcp>=0.3.1,<1",
 ]
 # HTTP API server (v0.1) and CLI (v0.2) -- optional so the base package
 # stays a dependency-free control model. `pip install
