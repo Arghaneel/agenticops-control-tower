@@ -40,6 +40,8 @@ class _Gate(BaseModel):
 
 
 class _Decision(BaseModel):
+    decision_id: str | None = Field(default=None, min_length=1)
+    trigger_details: dict[str, Any] | None = None
     status: Literal["ALLOW", "WARN", "BLOCK", "CHALLENGE", "REPLAN", "PAUSE", "ESCALATE"]
     risk: Literal["LOW", "MEDIUM", "HIGH"] | None
     reason: str
