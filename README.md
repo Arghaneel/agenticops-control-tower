@@ -7,7 +7,7 @@
 
 ## Status
 
-**v0.1–v0.3 implemented; release publication is separate.** The registry,
+**Current version: 0.3.1. v0.1–v0.3 are implemented.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 The read-only web console is served at `/console/`. See [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md)

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## 0.3.1
+
+Released 2026-10-12.
+
 ### Fixed
 
 - Journal readback accepts direct native JSON export arrays in addition to
