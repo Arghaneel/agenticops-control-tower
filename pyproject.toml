@@ -74,7 +74,11 @@ Repository = "https://github.com/DeepAgentLabs/agenticops-control-tower"
 Issues = "https://github.com/DeepAgentLabs/agenticops-control-tower/issues"
 Changelog = "https://github.com/DeepAgentLabs/agenticops-control-tower/blob/main/CHANGELOG.md"
 
+[tool.hatch.build.targets.sdist]
+core-metadata-version = "2.4"
+
 [tool.hatch.build.targets.wheel]
+core-metadata-version = "2.4"
 packages = ["src/agenticops_control_tower"]
 
 [tool.ruff]

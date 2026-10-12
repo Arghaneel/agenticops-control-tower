@@ -18,3 +18,6 @@ For the human pre-release flow around those checks, see
 
 See [configuration and approvals](docs/configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
 Runtime settings remain mirrored or unsupported without an adapter.
+
+Wheel and sdist use core metadata 2.4 for compatibility with the locked
+Python 3.10-compatible Twine verifier.
