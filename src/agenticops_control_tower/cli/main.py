@@ -126,6 +126,27 @@ def _cmd_status(args: argparse.Namespace, client: httpx.Client) -> int:
     return 0
 
 
+def _cmd_configuration(args: argparse.Namespace, client: httpx.Client) -> int:
+    if args.command == "config":
+        response = client.get(f"/agents/{args.agent_id}/config/{args.capability}")
+    elif args.command == "audit":
+        response = client.get(f"/agents/{args.agent_id}/audit")
+    elif args.action_command == "preview":
+        response = client.post("/actions/preview", json=_load_payload(args.payload_file))
+    elif args.action_command == "get":
+        response = client.get(f"/actions/{args.action_id}")
+    elif args.action_command in ("approve", "deny"):
+        response = client.post(
+            f"/actions/{args.action_id}/approval",
+            json={"approved": args.action_command == "approve"},
+        )
+    else:
+        response = client.post(f"/actions/{args.action_id}/{args.action_command}")
+    _raise_for_status(response)
+    _print_json(response.json())
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="agenticops-control-tower")
     parser.add_argument(
@@ -185,6 +206,19 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     status.add_argument("--environment")
     status.set_defaults(handler=_cmd_status, needs_client=True)
+    config = subparsers.add_parser("config", help="Read configuration ownership and values")
+    config.add_argument("agent_id")
+    config.add_argument("capability")
+    config.set_defaults(handler=_cmd_configuration, needs_client=True)
+    audit = subparsers.add_parser("audit", help="Read configuration action audit")
+    audit.add_argument("agent_id")
+    audit.set_defaults(handler=_cmd_configuration, needs_client=True)
+    actions = subparsers.add_parser("actions", help="Preview, approve and execute bounded actions")
+    action_sub = actions.add_subparsers(dest="action_command", required=True)
+    for operation in ("preview", "get", "approve", "deny", "revoke", "execute"):
+        command = action_sub.add_parser(operation)
+        command.add_argument("payload_file" if operation == "preview" else "action_id")
+        command.set_defaults(handler=_cmd_configuration, needs_client=True)
     return parser
 
 
@@ -202,7 +236,7 @@ def main(argv: list[str] | None = None, *, client: httpx.Client | None = None) -
         from agenticops_control_tower.models import AgentStatus
         from agenticops_control_tower.snapshot import load_snapshot
 
-        if args.command == "serve" or (
+        if args.command in ("serve", "config", "audit", "actions") or (
             args.command == "agents" and args.agents_command in ("register", "heartbeat")
         ):
             parser.error("--snapshot supports read commands only")

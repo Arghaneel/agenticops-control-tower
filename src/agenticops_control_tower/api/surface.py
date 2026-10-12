@@ -8,6 +8,7 @@ from typing import Any
 from packaging.version import InvalidVersion, Version
 
 from agenticops_control_tower.adapters.evidence import summarize_evidence
+from agenticops_control_tower.config.service import ConfigurationService
 from agenticops_control_tower.discovery import CapabilityDiscoveryService
 from agenticops_control_tower.models import (
     AgentRecord,
@@ -31,7 +32,9 @@ class ControlTowerAPI:
         registry: AgentRegistry,
         discovery: CapabilityDiscoveryService,
         status_service: StatusService | None = None,
+        configuration_service: ConfigurationService | None = None,
     ) -> None:
+        self.config = configuration_service or ConfigurationService(registry)
         self._registry = registry
         self._discovery = discovery
         self._status_service = status_service or StatusService(discovery)
