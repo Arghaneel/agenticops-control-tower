@@ -1,4 +1,4 @@
-"""Example readback supports demo JSON and single/multiple-event JSONL."""
+"""Example readback supports demo JSON, native export arrays and single/multiple-event JSONL."""
 
 import json
 import runpy
@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 
-@pytest.mark.parametrize("format", ["recording", "single-jsonl", "multiple-jsonl"])
+@pytest.mark.parametrize("format", ["recording", "export-array", "single-jsonl", "multiple-jsonl"])
 def test_journal_example_reads_decisions_without_changing_health(
     tmp_path, monkeypatch, capsys, format
 ):
@@ -27,6 +27,8 @@ def test_journal_example_reads_decisions_without_changing_health(
     }
     if format == "recording":
         content = json.dumps({"events": [event]})
+    elif format == "export-array":
+        content = json.dumps([{"kind": "completed"}, event])
     elif format == "single-jsonl":
         content = json.dumps(event) + "\n"
     else:

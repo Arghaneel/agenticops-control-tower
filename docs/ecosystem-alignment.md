@@ -105,7 +105,7 @@ There is no new write-side runtime orchestration.
 The native decision reader preserves `decision_id`, `trigger_details` and
 `causal_link` alongside verdict/risk fields. Older native decisions without the
 new optional fields remain supported. Sidecar v0.7 emits decision snapshots as
-`event["payload"]["decision"]`; extract that object from a trusted journal or
+`event["payload"]["decision"]`; extract that object from a trusted journal, direct JSON export array or
 recording and attribute it to a registered deployment through EvidenceLink.
 The journal task_id is producer correlation, not a Tower deployment ID.
 

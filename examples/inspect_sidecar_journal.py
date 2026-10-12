@@ -24,7 +24,7 @@ def main() -> None:
     except json.JSONDecodeError:
         events = [json.loads(line) for line in content.splitlines() if line.strip()]
     else:
-        events = recording.get("events", [recording])
+        events = recording if isinstance(recording, list) else recording.get("events", [recording])
     api = create_api()
     api.register_agent(
         AgentRegistrationPayload(
