@@ -1,119 +1,53 @@
 # Pre-Release Checklist
 
-This checklist is for preparing a release candidate or first published
-pre-release of `agenticops-control-tower`.
+Current target: `v0.3.1`. Keep this checklist aligned with the current API and
+release procedure in [AGENTS.md](AGENTS.md#release).
 
-Current target: `v0.2.0`
+## Scope and metadata
 
-## Scope Check
+- Match `pyproject.toml`, `src/agenticops_control_tower/__init__.py` and `uv.lock`.
+- Use a plain `## 0.3.1` changelog heading with the release date in its body.
+- Align README/roadmap with implemented registry, SQLite persistence,
+  authenticated API/CLI and read-only console. Native evidence readers preserve
+  producer outcomes independently of fleet health.
+- Remote event collection and operator remediation remain planned. Sidecar
+  remains optional; this patch requires no sibling package for Tower startup.
 
-- Confirm the version is aligned in:
-  - `pyproject.toml`
-  - `src/agenticops_control_tower/__init__.py`
-  - `CHANGELOG.md`
-- Confirm `README.md`, `ROADMAP.md`, and `AGENTS.md` describe the same shipped
-  milestone and do not overclaim future surfaces.
-- Confirm examples reflect the current milestone behavior:
-  - registration payload examples
-  - fleet snapshot example
-  - CLI command examples
-
-## Quality Gates
-
-Run the full local validation suite:
+## Validation
 
 ```bash
 make check
+uv run --with agentic-sidecar==0.7.0 python -m pytest tests/test_sibling_artifacts.py -k sidecar
+uv run python -m build --outdir /tmp/tower-0.3.1-dist
+uv run twine check /tmp/tower-0.3.1-dist/*
+uv run agenticops-control-tower --help
+uv run agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json agents list
+uv run agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json capabilities list
+uv run agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json status
 ```
 
-This must cover:
+Verify wheel/sdist name and version metadata, installed entry point, and packaged
+console assets. The CLI/API need the optional `api` extra; base Python evidence
+readers remain standalone. Missing optional producer tests skip honestly; run
+Sidecar checks explicitly against its published package.
 
-- `ruff check src tests`
-- `ruff format --check src tests`
-- `mypy`
-- `pytest`
+## Tag and publish
 
-If the environment does not yet have dev dependencies installed:
+Prepare version/changelog changes on a branch, merge the reviewed PR, then tag
+that merge commit. Extract the matching changelog section into a temporary file:
 
 ```bash
-make install
-make check
+git tag -a v0.3.1 -F /tmp/tower-0.3.1-release-notes.md --cleanup=verbatim
+git push origin v0.3.1
 ```
 
-## Packaging Checks
+The release workflow builds artifacts, publishes to PyPI through Trusted
+Publishing and creates the GitHub release using the same changelog section.
+Do not manually create a second release or publish unrelated tags.
 
-Build the distribution artifacts:
+## Post-publication
 
-```bash
-make build
-```
-
-Expected outputs:
-
-- `dist/*.whl`
-- `dist/*.tar.gz`
-
-Validate the built metadata:
-
-```bash
-uv run twine check dist/*
-```
-
-## CLI Smoke Tests
-
-Verify the published entry point shape before tagging:
-
-```bash
-PYTHONPATH=src python3 -m agenticops_control_tower.cli.main --help
-PYTHONPATH=src python3 -m agenticops_control_tower.cli.main --snapshot examples/sample_fleet_snapshot.json agents list
-PYTHONPATH=src python3 -m agenticops_control_tower.cli.main --snapshot examples/sample_fleet_snapshot.json capabilities list
-PYTHONPATH=src python3 -m agenticops_control_tower.cli.main --snapshot examples/sample_fleet_snapshot.json status
-PYTHONPATH=src python3 -m agenticops_control_tower.cli.main --snapshot examples/sample_fleet_snapshot.json status support-agent
-```
-
-Also verify the installed console script after a local package install if
-release confidence needs to be higher:
-
-```bash
-uv pip install dist/*.whl
-deepagent --help
-```
-
-## Release Notes Check
-
-- Confirm the top `CHANGELOG.md` entry matches the actual feature set.
-- Confirm the release notes mention the current limitations:
-  - no HTTP server yet
-  - no web console yet
-  - snapshot-backed CLI, not a persistent control-plane service
-
-## Tagging and Publish
-
-Once the tree is clean and checks are green:
-
-```bash
-git status --short
-git commit -am "release: v0.2.0"
-git tag -a v0.2.0 -m "Release v0.2.0"
-git push origin main --tags
-```
-
-If using a GitHub Release instead of tag-only publishing, use the latest
-`CHANGELOG.md` section as the release body.
-
-## Post-Tag Verification
-
-- Confirm the release workflow started.
-- Confirm PyPI Trusted Publishing completed successfully.
-- Confirm the package page shows version `0.2.0`.
-- Confirm installation works from a clean environment.
-- Confirm `deepagent --help` works from the published package.
-
-## Known `v0.2.0` Limits
-
-These are expected and should not block release unless the milestone changes:
-
-- in-memory control model only
-- no HTTP API server yet
-- no read-only console yet
-- no write-side operations yet
+- Confirm publishing and GitHub release jobs succeeded.
+- Verify both wheel and source distribution on PyPI.
+- Install `agenticops-control-tower[api]==0.3.1` in a fresh environment and smoke
+  the CLI/offline snapshot and native evidence reader.

@@ -1,5 +1,8 @@
 # agenticops-control-tower — Roadmap & Architecture
 
+**Current package version: 0.3.1.** This patch preserves Sidecar v0.7 decision
+identity and adds native journal export readback; v0.4 remains the next feature stage.
+
 > **Audit note:** [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md) is an evidence-based
 > review of what in this roadmap is actually implemented versus aspirational.
 > Read it alongside this document.
