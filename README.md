@@ -425,3 +425,9 @@ NODE_PATH=/tmp/tower-console-qa/node_modules node tests/console_ui.cjs
 ```
 
 This is a test-only dependency; serving the packaged console requires no Node.
+
+## Operational safety roadmap
+
+See [planned safety acceptance criteria](ROADMAP.md#operational-safety-coordination-planned) for responsibilities and
+dependencies. These additions do not claim implemented end-to-end containment
+or integrity protection.

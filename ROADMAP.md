@@ -554,3 +554,27 @@ agent failures, investigate live evidence, explain supported causes, approve
 remediation, execute bounded runbooks and verify recovery across environments.
 Fleet inventory and configuration are the foundation of this unified operations
 workflow; the incident-to-recovery loop is a first-class product outcome.
+
+## Operational safety coordination (planned)
+
+Added 2026-10-11. Extend existing write/incident milestones. The current console
+is read-only; registry/configuration access is not agent termination.
+
+- [ ] v0.4: define authenticated operator roles and task/deployment-scoped stop/revoke
+      contracts with command IDs, expiry and idempotency. Emergency stop must not
+      depend on LLM approval or cooperation from the agent being stopped.
+- [ ] v0.6.x: demonstrate emergency braking through Sidecar stop plus MCP access
+      revocation using supported adapters; define explicit operator-controlled restart.
+- [ ] Report requested, acknowledged, failed and unsupported outcomes separately.
+      Claim containment only after dispatch blocking and revocation are confirmed;
+      expose in-flight calls, unreachable targets and unsupported downstream credentials.
+- [ ] v0.7: bulk stop/revoke with per-target results and bounded acknowledgement
+      times; test partial failure/disconnection without assuming fleet atomicity.
+- [ ] v0.8: join operator commands, policy decisions and actual execution evidence
+      in incident timelines; show Lens integrity/coverage status separately from health.
+- [ ] Validate with Chaos attacks and Evals zero-violation gates, including queued
+      calls, retries, denied tools and revocation races.
+
+Tower coordinates; Sidecar enforces runtime decisions; MCP enforces its access
+boundary; credential issuers own downstream revocation. Coordinate shared
+command/event semantics with AI Operations Specification.
