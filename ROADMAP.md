@@ -578,3 +578,12 @@ is read-only; registry/configuration access is not agent termination.
 Tower coordinates; Sidecar enforces runtime decisions; MCP enforces its access
 boundary; credential issuers own downstream revocation. Coordinate shared
 command/event semantics with AI Operations Specification.
+
+### Sidecar v0.7 compatibility update (2026-10-11)
+
+Native decision readback preserves decision IDs, trigger details and causal
+links from Sidecar v0.7 runtime journals. Optional actual-producer tests cover
+all seven outcomes and unchanged deployment health. This extends the existing
+read-only evidence contract; remote event collection, journal integrity checking
+and operator stop/revoke coordination remain planned. See
+[ecosystem alignment](docs/ecosystem-alignment.md#sidecar-v07-runtime-journal-readback).

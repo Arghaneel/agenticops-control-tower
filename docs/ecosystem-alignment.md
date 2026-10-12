@@ -99,3 +99,31 @@ Remote discovery/collection, persisted evidence history, HTTP/CLI posture views,
 console integration, full artifact validation, AIOS mapping/conformance, and
 producer-specific unavailable/unsupported diagnostics remain future work.
 There is no new write-side runtime orchestration.
+
+## Sidecar v0.7 runtime journal readback
+
+The native decision reader preserves `decision_id`, `trigger_details` and
+`causal_link` alongside verdict/risk fields. Older native decisions without the
+new optional fields remain supported. Sidecar v0.7 emits decision snapshots as
+`event["payload"]["decision"]`; extract that object from a trusted journal or
+recording and attribute it to a registered deployment through EvidenceLink.
+The journal task_id is producer correlation, not a Tower deployment ID.
+
+The optional local-producer tests check all seven v0.7 outcomes, decision IDs,
+parent links and unchanged deployment health. Run without adding a required
+Sidecar dependency:
+
+```bash
+uv run --with ../agentic-sidecar python -m pytest tests/test_sibling_artifacts.py -k sidecar
+uv run python examples/inspect_sidecar_journal.py \
+  ../agentic-sidecar/tests/validation/v0_7_lifecycle.json --source-version 0.7.0
+```
+
+This reads producer-supplied decision evidence. It does not verify a journal's
+hash chain, infer tool completion, collect runtime events remotely or send
+operator controls. Sidecar owns its authenticated task-level Control Room;
+Tower's fleet console remains read-only. Credential revocation stays with its
+issuer/harness and requires Sidecar's configured acknowledgement callbacks.
+No dependency-floor change is needed for native JSON readback: the existing
+optional Sidecar extra permits 0.7.0; v0.7 APIs require the v0.7 checkout until
+that package is published.

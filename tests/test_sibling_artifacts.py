@@ -102,3 +102,47 @@ def test_chaos_native_report() -> None:
     assert result.availability == "available"
     assert result.details["event_count"] == 1
     assert result.details["completed"] is False
+
+
+@pytest.mark.parametrize(
+    "status", ["ALLOW", "WARN", "BLOCK", "CHALLENGE", "REPLAN", "PAUSE", "ESCALATE"]
+)
+def test_sidecar_v07_runtime_journal_native_decision(status):
+    sidecar = pytest.importorskip("agentic_sidecar")
+    if not hasattr(sidecar, "TaskRuntime"):
+        pytest.skip("Sidecar v0.7 runtime is not installed")
+    from agenticops_control_tower.models import AgentRegistrationPayload
+    from agenticops_control_tower.snapshot import create_api
+
+    runtime = sidecar.Sidecar(on_sidecar_failure="fail_closed", mode="govern")
+    runtime.before_tool_call(
+        lambda context: sidecar.Decision(status=status, risk=None, reason="Fixture")
+    )
+    decision = runtime.evaluate(
+        sidecar.DecisionContext(tool_name="read", parent_decision_id="plan")
+    )
+    artifact = runtime.runtime.journal.export()[-1]["payload"]["decision"]
+    api = create_api()
+    api.register_agent(
+        AgentRegistrationPayload(
+            agent_id="a",
+            name="A",
+            environment="test",
+            runtime="custom",
+            framework="custom",
+            status="healthy",
+        )
+    )
+    link = EvidenceLink(
+        agent_id="a",
+        source="agentic-sidecar",
+        source_version=sidecar.__version__,
+        artifact_type="decision",
+        artifact_ref="decision:" + decision.decision_id,
+        observed_at=datetime.now(timezone.utc),
+    )
+    result = api.summarize_evidence(link, artifact)
+    assert result.details["decision_id"] == decision.decision_id
+    assert result.details["causal_link"] == "plan"
+    assert result.details["status"] == status
+    assert api.get_status().healthy_agents == 1

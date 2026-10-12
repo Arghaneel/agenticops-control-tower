@@ -431,3 +431,13 @@ This is a test-only dependency; serving the packaged console requires no Node.
 See [planned safety acceptance criteria](ROADMAP.md#operational-safety-coordination-planned) for responsibilities and
 dependencies. These additions do not claim implemented end-to-end containment
 or integrity protection.
+
+### Sidecar v0.7 evidence compatibility
+
+Native decision summaries retain decision IDs, trigger details and approval/plan
+causal links from Sidecar runtime journals. All seven governance outcomes remain
+separate from fleet health. See
+[the journal readback example](examples/inspect_sidecar_journal.py) and
+[compatibility scope](docs/ecosystem-alignment.md#sidecar-v07-runtime-journal-readback).
+Sidecar's local Control Room owns task controls; this does not add remote
+operator writes to Tower or require a sibling package.

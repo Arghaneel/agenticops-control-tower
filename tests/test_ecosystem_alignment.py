@@ -101,3 +101,26 @@ def test_evaluation_gate_is_preserved_without_recomputation() -> None:
     gate = dict(passed=False, reasons=["source policy failed"], observed={"pass_rate": 0})
     assert summarize_evidence(eval_link, report, gate=gate).details["gate"] == gate
     assert summarize_evidence(eval_link, report, gate={}).availability == "unavailable"
+
+
+def test_sidecar_decision_identity_and_trigger_survive_readback():
+    artifact = {
+        "decision_id": "decision-1",
+        "status": "ALLOW",
+        "risk": "LOW",
+        "reason": "Approved once",
+        "causal_link": "paused-decision",
+        "trigger_details": {"tool_name": "refund", "arguments": {"amount": 120}},
+    }
+    result = summarize_evidence(link(source_version="0.7.0"), artifact)
+    assert result.availability == "available"
+    assert result.details["decision_id"] == "decision-1"
+    assert result.details["causal_link"] == "paused-decision"
+    assert result.details["trigger_details"] == artifact["trigger_details"]
+
+
+def test_invalid_sidecar_decision_identity_is_unavailable():
+    result = summarize_evidence(
+        link(), {"decision_id": "", "status": "BLOCK", "risk": None, "reason": "Denied"}
+    )
+    assert result.availability == "unavailable"

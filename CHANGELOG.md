@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Native Sidecar decision summaries preserve optional decision IDs and trigger
+  details alongside causal links. Legacy artifacts remain compatible.
+- Added Sidecar v0.7 journal readback examples and actual-producer tests for all
+  seven outcomes, causal identity and deployment-health separation.
+
 ### Documentation
 
 - Expanded the command-center roadmap with evidence-backed copilot investigation,
