@@ -7,12 +7,26 @@
 
 ## Status
 
-**Current version: 0.3.1. v0.1–v0.3 are implemented.** The registry,
+**Current version: 0.4.0. v0.1–v0.4 are implemented.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 The read-only web console is served at `/console/`. See [ROADMAP.md](ROADMAP.md) for published milestone status,
 [implementation evidence and operational limits](ROADMAP.md#implementation-evidence-and-operational-limits),
 and the build plan.
+
+## Controlled configuration (v0.4)
+
+Tower-owned desired configuration supports preview → independent approval →
+execution, with expiry, revision checks, revocation, deployment scopes and durable
+SQLite audit records. Runtime-owned settings stay mirrored or unsupported;
+changing desired settings does not claim to reconfigure a sibling runtime.
+
+See [configuration and approval guide](docs/configuration.md) and run
+`uv run python examples/controlled_configuration.py` for a complete Python flow.
+Use `config AGENT CAPABILITY`, `actions preview REQUEST.json`, `actions get ID`,
+`actions approve|deny|revoke|execute ID`, and `audit AGENT` from the CLI.
+HTTP writes require a writer token and approvals require a separate
+`AGENTICOPS_APPROVAL_TOKEN`. The console remains read-only.
 
 ## Read-only console (v0.3)
 
@@ -31,7 +45,7 @@ is your policy, not an inferred latest release. Refresh is manual.
 Select an agent to inspect details and incident/evidence readiness. Evidence is
 currently unavailable because the service does not collect or persist artifacts;
 native readers remain accessible through the Python API. Incident detection,
-RCA, approval and remediation are planned.
+RCA and remote remediation are planned. Configuration approvals are available through API/CLI.
 
 The public HTML shell contains no fleet data. Every data request uses the same
 reader/writer bearer authorization as API and CLI reads. Credentials are retained
@@ -209,7 +223,7 @@ dashboard is only one interface to the underlying control plane.
 - **Not the full architecture yet.** The concept doc describes a broader end
   state than what's built so far — see [Status](#status) for what's real
   today (registry, discovery, HTTP API, CLI, read-only console) versus [ROADMAP.md](ROADMAP.md)
-  for the narrowed build order still ahead (configuration, MCP connector,
+  for the narrowed build order still ahead (remote configuration, MCP connector,
   bulk operations).
 
 ## Architecture

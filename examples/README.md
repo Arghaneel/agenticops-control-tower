@@ -53,3 +53,8 @@ your own hostname and existing certificates.
 
 See [authentication](../docs/authentication.md) for PowerShell, role semantics,
 client variables and rotation.
+
+## v0.4 controlled configuration
+
+See [configuration and approvals](../docs/configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
+Runtime settings remain mirrored or unsupported without an adapter.

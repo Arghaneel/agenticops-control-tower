@@ -51,7 +51,7 @@ approval, runbook execution and verified recovery.
 
 ### Current Roadmap Focus
 
-The current build focus is the completed v0.3 read-only console. Work in
+The current build focus is the completed v0.4 controlled configuration model. Work in
 this repo should now strengthen operator inventory views, shared status
 semantics, and the console-ready read surface before attempting write-side
 orchestration or bulk actions.
@@ -68,7 +68,7 @@ orchestration or bulk actions.
 
 ## Status
 
-The v0.1–v0.3 milestones are **implemented**. Package layout, docs, tests, and
+The v0.1–v0.4 milestones are **implemented**. Package layout, docs, tests, and
 CI/release workflows exist; a registry with optional SQLite persistence,
 discovery, HTTP API, and CLI exist today — see
 [ROADMAP.md](ROADMAP.md) for published milestone status, implementation evidence,

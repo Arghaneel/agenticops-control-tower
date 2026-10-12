@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## 0.4.0
+
+Released 2026-10-12.
+
+### Added
+
+- Tower-owned desired configuration with explicit mirrored/unsupported ownership.
+- Bounded action previews, independent approvals, denial, expiry, revocation,
+  revision matching and one-use execution; deployment-scoped Python operators.
+- Transactional SQLite configuration, action state and audit persistence,
+  including rejected commands; concurrent stale actions cannot overwrite state.
+- Configuration/action/audit HTTP and CLI surfaces with separate approval tokens.
+- Configuration examples, safety regression tests and updated optional sibling
+  dependency floors for Lens 0.5, Sidecar 0.7, Chaos 0.4 and MCP 0.3.1.
+
+### Limits
+
+- Desired settings are local to Tower. Runtime reconfiguration, stop/revoke
+  transport, remote partial-failure reconciliation and console writes remain planned.
+- Local writes are atomic: storage errors roll back settings, approval consumption
+  and success audit together. Result contracts reserve remote failure/rollback states.
+
 ## 0.3.1
 
 Released 2026-10-12.
