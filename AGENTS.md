@@ -71,8 +71,8 @@ orchestration or bulk actions.
 The v0.1–v0.3 milestones are **implemented**. Package layout, docs, tests, and
 CI/release workflows exist; a registry with optional SQLite persistence,
 discovery, HTTP API, and CLI exist today — see
-[ROADMAP_AUDIT.md](ROADMAP_AUDIT.md) for the evidence-based status and
-[ROADMAP.md](ROADMAP.md) for the actual build order. Reader/writer bearer authorization is available; read-only console at `/console/`.
+[ROADMAP.md](ROADMAP.md) for published milestone status, implementation evidence,
+operational limits and the actual build order. Reader/writer bearer authorization is available; read-only console at `/console/`.
 
 ## Build and Run
 

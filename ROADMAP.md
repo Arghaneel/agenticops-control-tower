@@ -3,10 +3,6 @@
 **Current package version: 0.3.1.** This patch preserves Sidecar v0.7 decision
 identity and adds native journal export readback; v0.4 remains the next feature stage.
 
-> **Audit note:** [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md) is an evidence-based
-> review of what in this roadmap is actually implemented versus aspirational.
-> Read it alongside this document.
-
 ## Product Vision: AI-Native Operations Command Center
 
 **OPERATE:** A central control plane for discovering, monitoring, configuring,
@@ -47,11 +43,11 @@ unsupported explanation as an exact RCA.
 
 ## Release Status
 
-- **v0.1** ✅ Implemented locally (merge/release pending) — registration, heartbeat, metadata, capability discovery,
+- **v0.1** ✅ Implemented and published — registration, heartbeat, metadata, capability discovery,
   HTTP API, optional SQLite persistence, and reader/writer bearer authorization
-- **v0.2** ✅ Implemented locally (merge/release pending) — HTTP and snapshot CLI, shared health rollups,
+- **v0.2** ✅ Implemented and published — HTTP and snapshot CLI, shared health rollups,
   capability coverage and version inventory, and agent filters
-- **v0.3** ✅ Implemented locally (merge/release pending) — AgenticOps Console (read-only dashboard)
+- **v0.3** ✅ Implemented and published — AgenticOps Console (read-only dashboard)
 - **v0.4** 🚧 Planned — Configuration Model and Controlled Write Operations
 - **v0.5** 🏗️ Partial — Lens, Evals, Sidecar, and Chaos artifact readers; remote collection and operator surfaces remain planned
 - **v0.6** 🚧 Planned — Agentic MCP Connector and Investigation Copilot
@@ -64,7 +60,42 @@ unsupported explanation as an exact RCA.
 v0.1 and v0.2 share a tested Python control model, optional SQLite registry,
 authenticated HTTP API and operator CLI. The read-only console ships in v0.3. Later milestones remain planned or partial:
 configuration, ecosystem adapters, MCP connector, bulk operations, and incident
-workflows. See [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md) for implementation evidence.
+workflows. These capabilities are available in the published
+[v0.3.1 release](https://github.com/DeepAgentLabs/agenticops-control-tower/releases/tag/v0.3.1).
+
+## Implementation Evidence and Operational Limits
+
+The implementation lives under `src/agenticops_control_tower/`:
+
+| Capability | Implementation | Acceptance tests |
+| --- | --- | --- |
+| Registry, discovery and persistence | `registry/service.py`, `discovery/service.py` | `tests/test_registry.py`, `tests/test_milestones.py` |
+| Shared status, HTTP API and CLI | `status/service.py`, `api/surface.py`, `api/http.py`, `cli/main.py`, `snapshot.py` | `tests/test_http_api.py`, `tests/test_cli.py` |
+| Read-only console and minimum-version assessments | `console/static/`, `models/version.py`, `ControlTowerAPI.assess_versions` | `tests/test_console.py` |
+| Native producer evidence and Sidecar journal readback | `adapters/evidence.py`, `models/evidence.py`, `examples/inspect_sidecar_journal.py` | `tests/test_ecosystem_alignment.py`, `tests/test_sibling_artifacts.py`, `tests/test_sidecar_journal_example.py` |
+
+Tests cover restart durability, concurrent heartbeats, detached registry reads,
+authorization, unknown-agent errors, filters, coverage, snapshots and console
+asset serving. Native readers preserve producer outcomes independently of fleet
+health; v0.3.1 preserves Sidecar decision IDs, trigger details and causal links.
+The console's public shell carries no inventory and exposes read-only controls.
+
+Optional SQLite persistence supports a single host with a shared local database
+file. Authentication uses deployment-configured reader/writer bearer tokens;
+per-agent identities and tenant isolation are not implemented. Without tokens,
+the API allows anonymous local development. Health is agent-reported;
+timeout-based health, automatic package detection and distributed storage remain
+planned. Remote evidence collection, incident timelines, configuration writes,
+MCP/copilot operations, bulk actions, runbook execution and recovery verification
+also remain planned.
+
+Run `make check` for lint, formatting, strict typing and tests. Run
+`make test-ecosystem` against local sibling checkouts, or the published Sidecar
+checks documented in [PRE_RELEASE.md](PRE_RELEASE.md). Optional producer tests
+skip when siblings are absent. The release checklist also verifies wheel/sdist
+metadata, installed CLI, packaged console assets and standalone evidence reads.
+Console DOM checks documented in README verify behavior; they do not replace
+visual browser QA.
 
 ## Design Constraints
 
@@ -233,7 +264,7 @@ Deliverables:
 
 ## Phase 1: Registry and Discovery Core (`v0.1`)
 
-Status: **implemented locally** (merge/release pending) — see [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md#v01-registry-and-discovery-core).
+Status: **implemented and published** — see [implementation evidence](#implementation-evidence-and-operational-limits).
 
 Goals:
 
@@ -275,7 +306,7 @@ Delivered in `v0.1`:
 
 ## Phase 2: CLI and Status Model (`v0.2`)
 
-Status: **implemented locally** (merge/release pending) — see [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md#v02-cli-and-status-model).
+Status: **implemented and published** — see [implementation evidence](#implementation-evidence-and-operational-limits).
 
 Goals:
 
@@ -311,7 +342,7 @@ Delivered in `v0.2`:
 
 ## Phase 3: Read-Only Console (`v0.3`)
 
-Status: **implemented locally** (merge/release pending). `/console/` is served
+Status: **implemented and published**. `/console/` is served
 by the optional HTTP app with packaged HTML/CSS/JS. It consumes authenticated
 read APIs for health, filtered inventory, capability coverage, explicit minimum
 version assessments and agent details. The evidence-readiness view states that

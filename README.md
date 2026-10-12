@@ -10,8 +10,9 @@
 **Current version: 0.3.1. v0.1–v0.3 are implemented.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
-The read-only web console is served at `/console/`. See [ROADMAP_AUDIT.md](ROADMAP_AUDIT.md)
-for milestone evidence and [ROADMAP.md](ROADMAP.md) for the build plan.
+The read-only web console is served at `/console/`. See [ROADMAP.md](ROADMAP.md) for published milestone status,
+[implementation evidence and operational limits](ROADMAP.md#implementation-evidence-and-operational-limits),
+and the build plan.
 
 ## Read-only console (v0.3)
 
