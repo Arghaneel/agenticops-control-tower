@@ -18,6 +18,7 @@ import contextlib
 import json
 import os
 import sys
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -326,13 +327,31 @@ def _build_parser() -> argparse.ArgumentParser:
         command.add_argument("payload_file" if operation == "preview" else "action_id")
         command.set_defaults(handler=_cmd_configuration, needs_client=True)
 
-    from agenticops_control_tower.evidence import DEFAULT_STALE_AFTER_SECONDS
+    from agenticops_control_tower.evidence import (
+        DEFAULT_STALE_AFTER_SECONDS,
+        MAX_HISTORY_LIMIT,
+        MAX_STALE_AFTER_SECONDS,
+    )
     from agenticops_control_tower.models import EVIDENCE_SOURCES
+
+    def bounded(maximum: int) -> Callable[[str], int]:
+        """Apply the HTTP bounds in both server and --snapshot modes."""
+
+        def parse(value: str) -> int:
+            try:
+                number = int(value)
+            except ValueError:
+                raise argparse.ArgumentTypeError(f"invalid integer: {value!r}") from None
+            if not 1 <= number <= maximum:
+                raise argparse.ArgumentTypeError(f"must be between 1 and {maximum}")
+            return number
+
+        return parse
 
     def stale_after_option(command: argparse.ArgumentParser) -> None:
         command.add_argument(
             "--stale-after-seconds",
-            type=int,
+            type=bounded(MAX_STALE_AFTER_SECONDS),
             default=DEFAULT_STALE_AFTER_SECONDS,
             help="Evidence observed earlier than this is reported as stale (default: 1 day)",
         )
@@ -366,7 +385,7 @@ def _build_parser() -> argparse.ArgumentParser:
     history = evidence_sub.add_parser("history", help="Newest evidence records first")
     history.add_argument("agent_id")
     history.add_argument("--source", choices=EVIDENCE_SOURCES)
-    history.add_argument("--limit", type=int, default=50)
+    history.add_argument("--limit", type=bounded(MAX_HISTORY_LIMIT), default=50)
     agent_posture = evidence_sub.add_parser("posture", help="Per-source posture for one agent")
     agent_posture.add_argument("agent_id")
     stale_after_option(agent_posture)

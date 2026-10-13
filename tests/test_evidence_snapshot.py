@@ -48,3 +48,30 @@ def test_snapshot_evidence_for_unknown_deployment_fails_to_load(tmp_path: Path) 
     path.write_text(json.dumps(data))
     with pytest.raises(SnapshotLoadError, match="absent"):
         load_snapshot(path)
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["evidence", "history", "payment-agent", "--limit", "-1"],
+        ["evidence", "history", "payment-agent", "--limit", "501"],
+        ["evidence", "posture", "payment-agent", "--stale-after-seconds", "0"],
+        ["posture", "--stale-after-seconds", "2592001"],
+        ["posture", "--stale-after-seconds", "soon"],
+    ],
+)
+def test_snapshot_cli_applies_http_bounds(argv: list[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        main(["--snapshot", str(SAMPLE), *argv])
+    assert exc.value.code == 2
+
+
+def test_service_rejects_out_of_range_windows_and_limits() -> None:
+    api = load_snapshot(SAMPLE)
+    with pytest.raises(ValueError):
+        api.evidence_history("payment-agent", limit=0)
+    with pytest.raises(ValueError):
+        api.agent_posture("payment-agent", stale_after_seconds=0)
+    with pytest.raises(ValueError):
+        api.fleet_posture(stale_after_seconds=-5)
+    assert len(api.evidence_history("payment-agent", limit=None)) == 4

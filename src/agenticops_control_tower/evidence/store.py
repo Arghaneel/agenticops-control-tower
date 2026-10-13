@@ -26,6 +26,7 @@ from agenticops_control_tower.models.evidence import (
 from agenticops_control_tower.registry import AgentRegistry
 
 MAX_FUTURE_SKEW = timedelta(minutes=5)
+MAX_HISTORY_LIMIT = 500
 
 
 class EvidenceIngestError(AgenticOpsControlTowerError, ValueError):
@@ -131,7 +132,12 @@ class EvidenceStore:
         since: datetime | None = None,
         limit: int | None = 50,
     ) -> list[EvidenceRecord]:
-        """Newest observation first; ties keep the most recently ingested first."""
+        """Newest observation first; ties keep the most recently ingested first.
+
+        `limit=None` is unbounded and intended for trusted Python callers only.
+        """
+        if limit is not None and not 1 <= limit <= MAX_HISTORY_LIMIT:
+            raise ValueError(f"limit must be between 1 and {MAX_HISTORY_LIMIT}")
         self.registry.get(agent_id)
         query = "SELECT body FROM tower_evidence WHERE agent_id=?"
         params: list[Any] = [agent_id]

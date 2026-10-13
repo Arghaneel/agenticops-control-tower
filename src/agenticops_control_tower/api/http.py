@@ -20,6 +20,8 @@ from agenticops_control_tower.discovery import CapabilityDiscoveryService
 from agenticops_control_tower.errors import AgentNotFoundError
 from agenticops_control_tower.evidence import (
     DEFAULT_STALE_AFTER_SECONDS,
+    MAX_HISTORY_LIMIT,
+    MAX_STALE_AFTER_SECONDS,
     EvidenceIngestError,
     EvidenceStore,
 )
@@ -40,7 +42,6 @@ from agenticops_control_tower.models.version import VersionAssessment
 from agenticops_control_tower.registry import AgentRegistry
 
 MAX_EVIDENCE_BYTES = 1024 * 1024
-MAX_STALE_AFTER_SECONDS = 30 * 24 * 60 * 60
 
 
 def create_app(
@@ -205,7 +206,7 @@ def create_app(
     def agent_evidence_history(
         agent_id: str,
         source: EvidenceSource | None = None,
-        limit: int = Query(50, ge=1, le=500),
+        limit: int = Query(50, ge=1, le=MAX_HISTORY_LIMIT),
     ) -> list[EvidenceRecord]:
         try:
             return control_api.evidence_history(agent_id, source=source, limit=limit)

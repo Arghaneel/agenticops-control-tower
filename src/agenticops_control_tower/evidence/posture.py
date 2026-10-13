@@ -25,6 +25,13 @@ from agenticops_control_tower.models.evidence import (
 from .store import EvidenceStore, as_utc
 
 DEFAULT_STALE_AFTER_SECONDS = 24 * 60 * 60
+MAX_STALE_AFTER_SECONDS = 30 * 24 * 60 * 60
+
+
+def validate_window(stale_after_seconds: int) -> None:
+    if not 1 <= stale_after_seconds <= MAX_STALE_AFTER_SECONDS:
+        raise ValueError(f"stale_after_seconds must be between 1 and {MAX_STALE_AFTER_SECONDS}")
+
 
 _LENS_STATUSES = ("running", "succeeded", "failed")
 _SIDECAR_STATUSES = ("ALLOW", "WARN", "BLOCK", "CHALLENGE", "REPLAN", "PAUSE", "ESCALATE")
@@ -133,6 +140,7 @@ class PostureService:
         now: datetime | None = None,
         stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS,
     ) -> AgentEvidencePosture:
+        validate_window(stale_after_seconds)
         now = now or datetime.now(timezone.utc)
         return AgentEvidencePosture(
             agent_id=agent.agent_id,
@@ -156,6 +164,7 @@ class PostureService:
         now: datetime | None = None,
         stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS,
     ) -> FleetEvidencePosture:
+        validate_window(stale_after_seconds)
         now = now or datetime.now(timezone.utc)
         fleet = {source: FleetSourcePosture(source=source) for source in EVIDENCE_SOURCES}
         for agent in agents:
