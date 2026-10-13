@@ -39,6 +39,8 @@ Ingestion rules:
 - `observed_at` more than five minutes in the future is rejected (`422`).
   Naive timestamps are treated as UTC.
 - HTTP bodies need a `Content-Length` (`411`) and are limited to 1 MiB (`413`).
+  ASGI middleware enforces this before the body is parsed or authorized, and
+  also counts streamed bytes.
 - Invalid or unsupported artifacts are stored as `unavailable`, with a reason
   that names the failing native field without echoing producer values.
 - Only the projection is stored. Raw artifacts, Lens span inputs/outputs and
@@ -59,6 +61,11 @@ Each deployment gets one entry per producer:
   (default 86400 seconds, maximum 30 days over HTTP), `stale` when it is older,
   `missing` when nothing was recorded. Missing evidence is never treated as healthy
   or as a failed check.
+Each agent or fleet posture is read from one store transaction, so concurrent
+ingestion or pruning cannot make it internally inconsistent. History limits
+(1–500) and windows (1 second to 30 days) are validated in Python, HTTP and CLI,
+including `--snapshot` mode.
+
 - `latest`: the newest record by `observed_at`, including an `unavailable` one,
   so a broken producer feed stays visible.
 - `recent_records` / `recent_unavailable`: counts inside the window.
