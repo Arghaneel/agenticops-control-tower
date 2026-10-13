@@ -9,7 +9,7 @@ version and validate against its schemas and semantic rules.
 
 | Package | Owns | Tower consumes |
 | --- | --- | --- |
-| agenticlens | Observability, tracing, operational analysis | Native Run identity and execution outcome |
+| agenticlens | Observability, tracing, operational analysis | Native Run identity, outcome, trace/timing and failed-span correlation |
 | agentic-evals | Output scoring and release-gate computation | EvaluationReport summaries and existing GateDecision |
 | agentic-sidecar | Decision supervision, risk, intent and intervention | Native Decision outcome, risk, rationale and provenance |
 | agentic-chaos | Fault injection and resilience experiments | ChaosReport identity, timing and event count |
@@ -50,14 +50,18 @@ registry record is not automatically an AIOS Run or Agent occurrence.
 
 Call `ControlTowerAPI.summarize_evidence(link, artifact, gate=...)` for a registered
 deployment, or the standalone adapter for a projection without registry checks.
-Both return `EvidenceSummary`. No evidence is stored and no registration,
-heartbeat, health bucket or capability installation claim is changed.
+Both return `EvidenceSummary` without storing it. To record history and posture,
+use `ControlTowerAPI.ingest_evidence(...)`, `POST /evidence` or the CLI `evidence`
+commands described in [evidence posture](evidence-posture.md). In both cases no
+registration, heartbeat, health bucket or capability installation claim is changed.
 
 `available` means the native fields used by the reader validated, not that the
 artifact passed full producer-schema validation or its claims were verified.
 Unconsumed fields are ignored, allowing additive producer changes. Unknown Lens
 or Evals schema versions, unsupported outcomes, missing required fields,
 source/type mismatches and absent artifacts yield `unavailable` with a reason.
+Validation reasons name the first failing native field and the number of further
+errors, without echoing producer values.
 An unregistered deployment raises `AgentNotFoundError` through the API facade.
 
 Evals `gate` must be the producer's existing decision for that report. The caller
@@ -80,9 +84,10 @@ Source versions are recorded provenance, not a compatibility allowlist.
 ## Compatibility checks and remaining work
 
 The optional `tests/test_sibling_artifacts.py` tests serialize models from actual
-installed producers and exercise each reader. Checked local package versions:
-Lens 0.5.0, Evals 0.7.0, Sidecar 0.6.0 and Chaos 0.4.0. Example inventory versions
-match these checkouts; they are illustrations, not minimum supported versions.
+installed producers and exercise each reader. Checked local package versions for
+v0.5.0: Lens 0.6.1, Evals 0.7.1, Sidecar 0.7.0 and Chaos 0.5.1. The Lens run
+reader accepts older runs without spans or timing fields. Example versions are
+illustrations, not minimum supported versions.
 
 From this repository, run the full local-producer checks with:
 
@@ -94,11 +99,12 @@ uv run --with ../agenticlens --with ../agentic-evals \
 Base `make check` tests contract safety; absent optional siblings skip the actual
 producer tests. This does not mean those integration tests passed.
 
-Phase v0.5 is partial: local artifact readers and attribution are implemented.
-Remote discovery/collection, persisted evidence history, HTTP/CLI posture views,
-console integration, full artifact validation, AIOS mapping/conformance, and
-producer-specific unavailable/unsupported diagnostics remain future work.
-There is no new write-side runtime orchestration.
+Phase v0.5 is implemented with push-based collection: attributed evidence is
+persisted (memory or SQLite) and shown as posture in the Python API, HTTP, CLI,
+offline snapshots and console. Unavailable results now name the failing field.
+Pull collection from producer services, full artifact validation and AIOS
+mapping/conformance remain future work. There is no write-side runtime
+orchestration.
 
 ## Sidecar v0.7 runtime journal readback
 
@@ -107,6 +113,9 @@ The native decision reader preserves `decision_id`, `trigger_details` and
 new optional fields remain supported. Sidecar v0.7 emits decision snapshots as
 `event["payload"]["decision"]`; extract that object from a trusted journal, direct JSON export array or
 recording and attribute it to a registered deployment through EvidenceLink.
+`agenticops_control_tower.adapters.sidecar_journal_decisions()` performs this
+extraction for JSON objects, export arrays and JSONL, and
+`evidence ingest-sidecar-journal` pushes each decision to a running Tower.
 The journal task_id is producer correlation, not a Tower deployment ID.
 
 The optional local-producer tests check all seven v0.7 outcomes, decision IDs,
