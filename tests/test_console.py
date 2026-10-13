@@ -42,6 +42,8 @@ def test_public_shell_has_no_inventory_and_assets_are_served(console_client: Tes
     assert response.status_code == 200
     assert response.url.path == "/console/"
     assert "Fleet inventory" in response.text
+    assert "Ecosystem evidence posture" in response.text
+    assert "Read-only · v0.5" in response.text
     assert "default-src 'self'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
     assert "0.4.9" not in response.text
@@ -49,6 +51,8 @@ def test_public_shell_has_no_inventory_and_assets_are_served(console_client: Tes
     script = console_client.get("/console/assets/console.js")
     assert script.status_code == 200
     assert 'method: "GET"' in script.text
+    assert "posture?" in script.text
+    assert "POST" not in script.text
     assert "localStorage" not in script.text
     assert console_client.get("/console/assets/../../api/http.py").status_code == 404
 
