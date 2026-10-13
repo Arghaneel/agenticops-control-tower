@@ -1,8 +1,10 @@
 # agenticops-control-tower — Roadmap & Architecture
 
-**Current package version: 0.5.0.** This release persists pushed Lens, Evals,
+**Current package version: 0.5.1.** v0.5 persists pushed Lens, Evals,
 Sidecar and Chaos evidence and surfaces its freshness and native outcomes as
 posture across the Python API, HTTP, CLI, offline snapshots and console.
+0.5.1 adds AgenticLens 0.7.0 diagnosis reports as native Lens evidence
+(faulty step and agent, attribution outcome, failure categories).
 
 ## Product Vision: AI-Native Operations Command Center
 
