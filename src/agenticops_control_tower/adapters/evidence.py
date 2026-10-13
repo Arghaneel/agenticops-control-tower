@@ -66,6 +66,14 @@ _ARTIFACT_TYPES = {
 }
 
 
+def _diagnostic(error: ValidationError) -> str:
+    """Name the first failing native field without echoing producer values."""
+    first = error.errors(include_input=False)[0]
+    location = ".".join(str(part) for part in first["loc"]) or "artifact"
+    extra = f" (+{error.error_count() - 1} more)" if error.error_count() > 1 else ""
+    return f"{location}: {first['msg']}{extra}"
+
+
 def summarize_evidence(
     link: EvidenceLink,
     artifact: dict[str, Any] | None,
@@ -112,10 +120,10 @@ def summarize_evidence(
                 "event_count": len(chaos.chaos_events),
                 "completed": chaos.end_time is not None,
             }
-    except ValidationError:
+    except ValidationError as exc:
         return EvidenceSummary(
             link=link,
             availability="unavailable",
-            reason="Invalid or unsupported producer artifact",
+            reason=f"Invalid or unsupported producer artifact: {_diagnostic(exc)}",
         )
     return EvidenceSummary(link=link, availability="available", details=details)

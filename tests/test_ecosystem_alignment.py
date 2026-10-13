@@ -124,3 +124,15 @@ def test_invalid_sidecar_decision_identity_is_unavailable():
         link(), {"decision_id": "", "status": "BLOCK", "risk": None, "reason": "Denied"}
     )
     assert result.availability == "unavailable"
+
+
+def test_unavailable_reason_names_the_failing_native_field_without_values() -> None:
+    result = summarize_evidence(
+        link(), {"status": "MAYBE", "risk": "secret-value", "reason": "Denied"}
+    )
+    assert result.availability == "unavailable"
+    assert result.reason is not None
+    assert result.reason.startswith("Invalid or unsupported producer artifact: ")
+    assert "status" in result.reason
+    assert "(+1 more)" in result.reason
+    assert "secret-value" not in result.reason
