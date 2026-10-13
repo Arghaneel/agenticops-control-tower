@@ -103,17 +103,15 @@ class PostureService:
     def __init__(self, store: EvidenceStore) -> None:
         self.store = store
 
-    def source(
-        self,
-        agent_id: str,
+    @staticmethod
+    def _source(
         source: EvidenceSource,
+        latest: EvidenceRecord | None,
+        recent: list[EvidenceRecord],
         *,
-        now: datetime,
+        cutoff: datetime,
         stale_after_seconds: int,
     ) -> SourcePosture:
-        latest = next(iter(self.store.history(agent_id, source=source, limit=1)), None)
-        cutoff = now - timedelta(seconds=stale_after_seconds)
-        recent = self.store.history(agent_id, source=source, since=cutoff, limit=None)
         posture = SourcePosture(
             source=source,
             freshness="missing",
@@ -142,19 +140,32 @@ class PostureService:
     ) -> AgentEvidencePosture:
         validate_window(stale_after_seconds)
         now = now or datetime.now(timezone.utc)
-        return AgentEvidencePosture(
-            agent_id=agent.agent_id,
-            environment=agent.environment,
-            reported_health=agent.status,
-            evaluated_at=now,
-            stale_after_seconds=stale_after_seconds,
-            sources=[
-                self.source(
-                    agent.agent_id, source, now=now, stale_after_seconds=stale_after_seconds
-                )
-                for source in EVIDENCE_SOURCES
-            ],
-        )
+        return self._agents([agent], now, stale_after_seconds)[0]
+
+    def _agents(
+        self, agents: list[AgentRecord], now: datetime, stale_after_seconds: int
+    ) -> list[AgentEvidencePosture]:
+        cutoff = now - timedelta(seconds=stale_after_seconds)
+        views = self.store.source_views([agent.agent_id for agent in agents], cutoff)
+        return [
+            AgentEvidencePosture(
+                agent_id=agent.agent_id,
+                environment=agent.environment,
+                reported_health=agent.status,
+                evaluated_at=now,
+                stale_after_seconds=stale_after_seconds,
+                sources=[
+                    self._source(
+                        source,
+                        *views[(agent.agent_id, source)],
+                        cutoff=cutoff,
+                        stale_after_seconds=stale_after_seconds,
+                    )
+                    for source in EVIDENCE_SOURCES
+                ],
+            )
+            for agent in agents
+        ]
 
     def fleet(
         self,
@@ -167,13 +178,13 @@ class PostureService:
         validate_window(stale_after_seconds)
         now = now or datetime.now(timezone.utc)
         fleet = {source: FleetSourcePosture(source=source) for source in EVIDENCE_SOURCES}
-        for agent in agents:
-            posture = self.agent(agent, now=now, stale_after_seconds=stale_after_seconds)
+        # One store snapshot for the whole fleet keeps every agent's posture consistent.
+        for posture in self._agents(agents, now, stale_after_seconds):
             for item in posture.sources:
                 target = fleet[item.source]
-                getattr(target, f"{item.freshness}_agents").append(agent.agent_id)
+                getattr(target, f"{item.freshness}_agents").append(posture.agent_id)
                 if item.latest is not None and item.latest.summary.availability == "unavailable":
-                    target.latest_unavailable_agents.append(agent.agent_id)
+                    target.latest_unavailable_agents.append(posture.agent_id)
                 target.summary = _merge(target.summary, item.summary)
         for source in EVIDENCE_SOURCES:
             if not fleet[source].summary:

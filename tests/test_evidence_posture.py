@@ -221,3 +221,25 @@ def test_fleet_posture_groups_agents_and_merges_tallies() -> None:
     )
     assert staging.environment == "staging"
     assert staging.total_agents == 2
+
+
+def test_posture_reads_one_consistent_store_snapshot() -> None:
+    registry, store, posture = setup()
+    push(store, "a", "agenticlens", "r1", run("failed"))
+    calls: list[bool] = []
+    original = store._transaction
+
+    def counting(*, write: bool = True):
+        calls.append(write)
+        return original(write=write)
+
+    store._transaction = counting  # type: ignore[method-assign]
+    fleet = posture.fleet(registry.list_agents(), now=NOW)
+    assert calls == [False]
+    calls.clear()
+    agent = posture.agent(registry.get("a"), now=NOW)
+    assert calls == [False]
+    lens = next(s for s in agent.sources if s.source == "agenticlens")
+    assert lens.latest is not None
+    assert lens.recent_records == 1
+    assert next(s for s in fleet.sources if s.source == "agenticlens").fresh_agents == ["a"]

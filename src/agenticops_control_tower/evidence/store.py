@@ -18,6 +18,7 @@ from typing import Any
 from agenticops_control_tower.adapters.evidence import summarize_evidence
 from agenticops_control_tower.errors import AgenticOpsControlTowerError
 from agenticops_control_tower.models.evidence import (
+    EVIDENCE_SOURCES,
     EvidenceIngestRequest,
     EvidenceIngestResult,
     EvidenceRecord,
@@ -153,6 +154,40 @@ class EvidenceStore:
             params.append(limit)
         with self._transaction(write=False) as db:
             return [EvidenceRecord.model_validate_json(row[0]) for row in db.execute(query, params)]
+
+    def source_views(
+        self, agent_ids: list[str], since: datetime
+    ) -> dict[tuple[str, str], tuple[EvidenceRecord | None, list[EvidenceRecord]]]:
+        """Latest record and records since `since` per (agent, source), from one snapshot.
+
+        Reading every view in one transaction keeps a posture internally consistent
+        with concurrent ingestion or pruning.
+        """
+        views: dict[tuple[str, str], tuple[EvidenceRecord | None, list[EvidenceRecord]]] = {}
+        order = " ORDER BY observed_at DESC, seq DESC"
+        with self._transaction(write=False) as db:
+            for agent_id in agent_ids:
+                for source in EVIDENCE_SOURCES:
+                    key = (agent_id, source)
+                    latest_row = db.execute(
+                        "SELECT body FROM tower_evidence WHERE agent_id=? AND source=?"
+                        + order
+                        + " LIMIT 1",
+                        key,
+                    ).fetchone()
+                    recent = [
+                        EvidenceRecord.model_validate_json(row[0])
+                        for row in db.execute(
+                            "SELECT body FROM tower_evidence WHERE agent_id=? AND source=? "
+                            "AND observed_at>=?" + order,
+                            (*key, _sort_key(since)),
+                        )
+                    ]
+                    latest = (
+                        EvidenceRecord.model_validate_json(latest_row[0]) if latest_row else None
+                    )
+                    views[key] = (latest, recent)
+        return views
 
     def prune(self, before: datetime) -> int:
         """Delete observations older than `before`; returns the number removed."""
