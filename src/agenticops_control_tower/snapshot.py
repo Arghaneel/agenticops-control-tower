@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from agenticops_control_tower.api import ControlTowerAPI
 from agenticops_control_tower.discovery import CapabilityDiscoveryService
-from agenticops_control_tower.errors import SnapshotLoadError
+from agenticops_control_tower.errors import AgenticOpsControlTowerError, SnapshotLoadError
 from agenticops_control_tower.models import (
     AgentRegistrationPayload,
     FleetSnapshot,
@@ -31,8 +31,8 @@ def create_api() -> ControlTowerAPI:
     )
 
 
-def load_snapshot(snapshot_path: str | Path) -> ControlTowerAPI:
-    """Build an in-memory control-plane API from a snapshot artifact."""
+def read_snapshot(snapshot_path: str | Path) -> FleetSnapshot:
+    """Parse and validate a snapshot artifact without building an API."""
 
     snapshot_file = Path(snapshot_path)
     try:
@@ -43,7 +43,17 @@ def load_snapshot(snapshot_path: str | Path) -> ControlTowerAPI:
         raise SnapshotLoadError(str(snapshot_file), f"invalid JSON at line {exc.lineno}") from exc
     except ValidationError as exc:
         raise SnapshotLoadError(str(snapshot_file), exc.errors()[0]["msg"]) from exc
+    return snapshot
 
+
+def load_snapshot(snapshot_path: str | Path) -> ControlTowerAPI:
+    """Build an in-memory control-plane API from a snapshot artifact.
+
+    Snapshot evidence is ingested as of `captured_at`; evaluate its posture with
+    `now=snapshot.captured_at` so offline freshness does not drift with wall time.
+    """
+
+    snapshot = read_snapshot(snapshot_path)
     api = create_api()
     for registration in snapshot.registrations:
         api.register_agent(
@@ -71,4 +81,9 @@ def load_snapshot(snapshot_path: str | Path) -> ControlTowerAPI:
                 package_metadata=event.heartbeat.package_metadata,
             ),
         )
+    for request in snapshot.evidence:
+        try:
+            api.evidence.ingest(request, ingested_by="snapshot", now=snapshot.captured_at)
+        except AgenticOpsControlTowerError as exc:
+            raise SnapshotLoadError(str(snapshot_path), str(exc)) from exc
     return api

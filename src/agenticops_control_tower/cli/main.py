@@ -392,14 +392,35 @@ def main(argv: list[str] | None = None, *, client: httpx.Client | None = None) -
 
     if args.snapshot:
         from agenticops_control_tower.models import AgentStatus
-        from agenticops_control_tower.snapshot import load_snapshot
+        from agenticops_control_tower.snapshot import load_snapshot, read_snapshot
 
-        if args.command in ("serve", "config", "audit", "actions", "evidence", "posture") or (
-            args.command == "agents" and args.agents_command in ("register", "heartbeat")
+        if (
+            args.command in ("serve", "config", "audit", "actions")
+            or (args.command == "agents" and args.agents_command in ("register", "heartbeat"))
+            or (args.command == "evidence" and args.evidence_command.startswith("ingest"))
         ):
             parser.error("--snapshot supports read commands only")
         api = load_snapshot(args.snapshot)
-        if args.command == "status":
+        # Offline posture is evaluated as of capture time, not the current wall clock.
+        captured_at = read_snapshot(args.snapshot).captured_at
+        if args.command == "posture":
+            _print_json(
+                api.fleet_posture(
+                    environment=args.environment,
+                    stale_after_seconds=args.stale_after_seconds,
+                    now=captured_at,
+                ).model_dump(mode="json")
+            )
+        elif args.command == "evidence" and args.evidence_command == "history":
+            history = api.evidence_history(args.agent_id, source=args.source, limit=args.limit)
+            _print_json([record.model_dump(mode="json") for record in history])
+        elif args.command == "evidence":
+            _print_json(
+                api.agent_posture(
+                    args.agent_id, stale_after_seconds=args.stale_after_seconds, now=captured_at
+                ).model_dump(mode="json")
+            )
+        elif args.command == "status":
             _print_json(api.get_status(environment=args.environment).model_dump(mode="json"))
         elif args.command == "capabilities":
             _print_json(api.list_all_capabilities())
