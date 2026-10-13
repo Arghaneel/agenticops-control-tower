@@ -20,7 +20,7 @@ api.register_agent(
 link = EvidenceLink(
     agent_id="payment-agent",
     source="agentic-sidecar",
-    source_version="0.6.0",
+    source_version="0.7.0",
     artifact_type="decision",
     artifact_ref="decision:payment-run:tool-1",
     observed_at=datetime.now(timezone.utc),
