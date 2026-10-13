@@ -21,3 +21,10 @@ Runtime settings remain mirrored or unsupported without an adapter.
 
 Wheel and sdist use core metadata 2.4 for compatibility with the locked
 Python 3.10-compatible Twine verifier.
+
+## v0.5 evidence posture
+
+`make check` covers evidence storage, posture, HTTP/CLI, snapshot and example
+tests. `make test-ecosystem` also runs the optional actual-producer reader tests
+against local sibling checkouts. Console DOM checks run separately with Node
+(see README).

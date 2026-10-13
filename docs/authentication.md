@@ -57,8 +57,8 @@ agenticops-control-tower status
 
 | Variable | Set on | Purpose |
 | --- | --- | --- |
-| `AGENTICOPS_READ_TOKEN` | Server | Authorizes inventory, status, version and evidence-readiness reads |
-| `AGENTICOPS_WRITE_TOKEN` | Server | Authorizes reads plus agent registration and heartbeats |
+| `AGENTICOPS_READ_TOKEN` | Server | Authorizes inventory, status, version, evidence history and posture reads |
+| `AGENTICOPS_WRITE_TOKEN` | Server | Authorizes reads plus agent registration, heartbeats and evidence ingestion |
 | `AGENTICOPS_TOKEN` | CLI client | Sends a configured reader or writer value to the server |
 | `AGENTICOPS_API_URL` | CLI client | Selects the server, e.g. `https://tower.example.com` |
 
@@ -92,3 +92,10 @@ private-network and cloud access.
 
 See [configuration and approvals](configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
 Runtime settings remain mirrored or unsupported without an adapter.
+
+## v0.5 evidence ingestion
+
+`POST /evidence` and the CLI `evidence ingest*` commands require the writer
+token. Producers and pipelines share that deployment credential; per-producer
+credentials are not implemented. Evidence history and posture reads accept the
+reader token. See [evidence posture](evidence-posture.md).
