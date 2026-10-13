@@ -1,0 +1,9 @@
+{
+  "passed": false,
+  "reasons": [
+    "pass_rate 0.90 below configured minimum 0.95"
+  ],
+  "observed": {
+    "pass_rate": 0.9
+  }
+}

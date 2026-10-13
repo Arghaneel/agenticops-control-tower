@@ -1,0 +1,51 @@
+{
+  "entries": [
+    {
+      "link": {
+        "agent_id": "payment-agent",
+        "source": "agenticlens",
+        "source_version": "0.6.1",
+        "artifact_type": "run",
+        "artifact_ref": "lens:run:pay-0815-01",
+        "observed_at": "2026-08-15T11:40:00Z",
+        "run_id": "pay-0815-01"
+      },
+      "artifact_path": "lens_run.json"
+    },
+    {
+      "link": {
+        "agent_id": "payment-agent",
+        "source": "agentic-sidecar",
+        "source_version": "0.7.0",
+        "artifact_type": "decision",
+        "artifact_ref": "sidecar:decision:pay-0815-01:1",
+        "observed_at": "2026-08-15T11:39:59Z",
+        "run_id": "pay-0815-01"
+      },
+      "artifact_path": "sidecar_decision.json"
+    },
+    {
+      "link": {
+        "agent_id": "payment-agent",
+        "source": "agentic-evals",
+        "source_version": "0.7.1",
+        "artifact_type": "evaluation_report",
+        "artifact_ref": "evals:payments-regression:2026-08-15",
+        "observed_at": "2026-08-15T09:00:00Z"
+      },
+      "artifact_path": "evals_report.json",
+      "gate_path": "evals_gate.json"
+    },
+    {
+      "link": {
+        "agent_id": "payment-agent",
+        "source": "agentic-chaos",
+        "source_version": "0.5.1",
+        "artifact_type": "chaos_report",
+        "artifact_ref": "chaos:payments-dependency-outage:2026-08-10",
+        "observed_at": "2026-08-10T15:00:00Z"
+      },
+      "artifact_path": "chaos_report.json"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "chaos-0810",
+  "name": "payments dependency outage",
+  "start_time": "2026-08-10T14:50:00Z",
+  "end_time": "2026-08-10T15:00:00Z",
+  "chaos_events": [
+    {
+      "fault": "connection_refused"
+    },
+    {
+      "fault": "timeout"
+    }
+  ]
+}
