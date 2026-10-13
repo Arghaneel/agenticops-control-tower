@@ -73,7 +73,7 @@ including `--snapshot` mode.
 
 | Source | Native tallies |
 | --- | --- |
-| agenticlens | `status_counts` (running/succeeded/failed), `failed_tool_names` from failed spans |
+| agenticlens | `status_counts` (running/succeeded/failed; runs and diagnosis reports), `attribution_counts` (attributed/recovered/unattributed/no_failure), `faulty_agents`, `failed_tool_names` from failed spans |
 | agentic-evals | `gate_counts`: producer gate passed/failed, or `not_supplied` when no gate was paired |
 | agentic-sidecar | `status_counts` for all seven outcomes, `risk_counts` (null risk is `unclassified`, never LOW), `escalations_required` |
 | agentic-chaos | `experiments`, `completed`/`incomplete` by report end time, `fault_events` |
@@ -87,6 +87,15 @@ Lens runs now also project `trace_id`, timing, `task_success`, `error_type`,
 `span_count`, `tool_names` and `failed_spans` (span ID, name, type, tool and
 error type). These link a failed run to the failing tool dependency. Lens has
 no native prompt-version field, so Tower does not infer one.
+
+Since 0.5.1 Tower also reads AgenticLens 0.7.0 diagnosis reports
+(`artifact_type: diagnosis_report`, produced by `agenticlens diagnose --save`).
+The projection keeps the run ID, trace ID, run status, task success, taxonomy
+and engine versions, the diagnosis summary (counts, unrecovered, highest
+severity, categories) and Lens's attribution (status, faulty step and agent,
+category, confidence). Individual diagnoses, span evidence and the timeline
+stay in Lens; Tower shows Lens's verdict and never re-diagnoses.
+`evidence ingest` detects a diagnosis report from its `engine_version` field.
 
 ## Storage and retention
 

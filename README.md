@@ -29,7 +29,9 @@ change reported health, and Tower never recomputes a verdict.
 ```bash
 agenticops-control-tower evidence ingest-manifest examples/evidence/manifest.json
 agenticops-control-tower evidence ingest payment-agent agenticlens run.json \
-  --source-version 0.6.1 --artifact-ref lens:run:r1 --run-id r1
+  --source-version 0.7.0 --artifact-ref lens:run:r1 --run-id r1
+agenticops-control-tower evidence ingest payment-agent agenticlens diagnosis.json \
+  --source-version 0.7.0 --artifact-ref lens:diagnosis:r1 --run-id r1
 agenticops-control-tower evidence ingest-sidecar-journal payment-agent journal.json --source-version 0.7.0
 agenticops-control-tower evidence posture payment-agent
 agenticops-control-tower evidence history payment-agent --source agentic-sidecar
@@ -148,7 +150,7 @@ agenticops-control-tower serve --database registry.sqlite --port 8000
 export AGENTICOPS_TOKEN='paste-your-generated-writer-token-here'
 # Register an agent, send a heartbeat, and inspect the fleet
 agenticops-control-tower agents register examples/sample_agent_registration.json
-echo '{"status":"healthy","capabilities":{"agenticlens":"0.5.0"}}' > heartbeat.json
+echo '{"status":"healthy","capabilities":{"agenticlens":"0.7.0"}}' > heartbeat.json
 agenticops-control-tower agents heartbeat payment-agent heartbeat.json
 agenticops-control-tower agents list
 agenticops-control-tower capabilities list
@@ -458,7 +460,9 @@ concept doc first and the roadmap second.
 
 ## Ecosystem evidence alignment
 
-Control Tower has thin Python readers for native Lens Runs, Evals reports and
+Control Tower has thin Python readers for native Lens Runs and diagnosis
+reports (AgenticLens 0.7.0: faulty step and agent, attribution confidence,
+failure categories), Evals reports and
 gate decisions, Sidecar Decisions, and Chaos Reports. Supply an explicit
 `EvidenceLink` to `ControlTowerAPI.summarize_evidence()` to attribute an artifact
 to an existing registered deployment. The result preserves producer outcomes
