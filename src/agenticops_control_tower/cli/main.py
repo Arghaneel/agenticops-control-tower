@@ -147,6 +147,112 @@ def _cmd_configuration(args: argparse.Namespace, client: httpx.Client) -> int:
     return 0
 
 
+def _post_evidence(client: httpx.Client, body: dict[str, Any]) -> dict[str, Any]:
+    response = client.post("/evidence", json=body)
+    _raise_for_status(response)
+    result: dict[str, Any] = response.json()
+    return result
+
+
+def _link(args: argparse.Namespace, source: str, artifact_ref: str, observed_at: str) -> Any:
+    from agenticops_control_tower.adapters.evidence import ARTIFACT_TYPES
+
+    link = {
+        "agent_id": args.agent_id,
+        "source": source,
+        "source_version": args.source_version,
+        "artifact_type": ARTIFACT_TYPES[source],
+        "artifact_ref": artifact_ref,
+        "observed_at": observed_at,
+    }
+    for key in ("run_id", "runtime_agent_id"):
+        if getattr(args, key, None):
+            link[key] = getattr(args, key)
+    return link
+
+
+def _now() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _cmd_evidence(args: argparse.Namespace, client: httpx.Client) -> int:
+    from pathlib import Path
+
+    command = args.evidence_command
+    if command == "ingest":
+        body = {
+            "link": _link(args, args.source, args.artifact_ref, args.observed_at or _now()),
+            "artifact": _load_payload(args.artifact_file),
+            "gate": _load_payload(args.gate) if args.gate else None,
+        }
+        _print_json(_post_evidence(client, body))
+    elif command == "ingest-manifest":
+        # Paths are read by this client relative to the manifest; the server never opens files.
+        manifest_path = Path(args.manifest_file)
+        entries = _load_payload(str(manifest_path)).get("entries", [])
+        results = []
+        for entry in entries:
+            body = {"link": entry["link"], "artifact": None, "gate": None}
+            for key in ("artifact", "gate"):
+                if entry.get(f"{key}_path"):
+                    body[key] = _load_payload(str(manifest_path.parent / entry[f"{key}_path"]))
+            results.append(_post_evidence(client, body))
+        _print_evidence_results(results)
+    elif command == "ingest-sidecar-journal":
+        from agenticops_control_tower.adapters import sidecar_journal_decisions
+
+        results = []
+        content = Path(args.journal_file).read_text(encoding="utf-8")
+        for entry in sidecar_journal_decisions(content):
+            reference = entry.decision.get("decision_id") or f"{entry.task_id}:{entry.sequence}"
+            link = _link(
+                args, "agentic-sidecar", f"decision:{reference}", entry.recorded_at.isoformat()
+            )
+            results.append(_post_evidence(client, {"link": link, "artifact": entry.decision}))
+        _print_evidence_results(results)
+    elif command == "history":
+        params: dict[str, Any] = {"limit": args.limit}
+        if args.source:
+            params["source"] = args.source
+        response = client.get(f"/agents/{args.agent_id}/evidence/history", params=params)
+        _raise_for_status(response)
+        _print_json(response.json())
+    else:
+        response = client.get(
+            f"/agents/{args.agent_id}/evidence",
+            params={"stale_after_seconds": args.stale_after_seconds},
+        )
+        _raise_for_status(response)
+        _print_json(response.json())
+    return 0
+
+
+def _print_evidence_results(results: list[dict[str, Any]]) -> None:
+    records = [result["record"] for result in results]
+    _print_json(
+        {
+            "submitted": len(results),
+            "created": sum(1 for result in results if result["created"]),
+            "unavailable": sum(
+                1 for record in records if record["summary"]["availability"] == "unavailable"
+            ),
+            "records": records,
+        }
+    )
+
+
+def _cmd_posture(args: argparse.Namespace, client: httpx.Client) -> int:
+    params: dict[str, Any] = {"stale_after_seconds": args.stale_after_seconds}
+    if args.environment:
+        params["environment"] = args.environment
+    response = client.get("/posture", params=params)
+    _raise_for_status(response)
+    _print_json(response.json())
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="agenticops-control-tower")
     parser.add_argument(
@@ -219,6 +325,58 @@ def _build_parser() -> argparse.ArgumentParser:
         command = action_sub.add_parser(operation)
         command.add_argument("payload_file" if operation == "preview" else "action_id")
         command.set_defaults(handler=_cmd_configuration, needs_client=True)
+
+    from agenticops_control_tower.evidence import DEFAULT_STALE_AFTER_SECONDS
+    from agenticops_control_tower.models import EVIDENCE_SOURCES
+
+    def stale_after_option(command: argparse.ArgumentParser) -> None:
+        command.add_argument(
+            "--stale-after-seconds",
+            type=int,
+            default=DEFAULT_STALE_AFTER_SECONDS,
+            help="Evidence observed earlier than this is reported as stale (default: 1 day)",
+        )
+
+    evidence = subparsers.add_parser(
+        "evidence", help="Push native producer evidence and read history/posture"
+    )
+    evidence_sub = evidence.add_subparsers(dest="evidence_command", required=True)
+    ingest = evidence_sub.add_parser("ingest", help="Push one native artifact (writer)")
+    ingest.add_argument("agent_id")
+    ingest.add_argument("source", choices=EVIDENCE_SOURCES)
+    ingest.add_argument("artifact_file", help="Native producer JSON artifact")
+    ingest.add_argument("--source-version", required=True)
+    ingest.add_argument("--artifact-ref", required=True, help="Caller-owned stable reference")
+    ingest.add_argument("--observed-at", help="ISO 8601 observation time (default: now)")
+    ingest.add_argument("--run-id")
+    ingest.add_argument("--runtime-agent-id")
+    ingest.add_argument("--gate", help="Existing Evals GateDecision JSON for this report")
+    manifest = evidence_sub.add_parser(
+        "ingest-manifest", help="Push every entry of a collection manifest (writer)"
+    )
+    manifest.add_argument("manifest_file")
+    journal = evidence_sub.add_parser(
+        "ingest-sidecar-journal", help="Push decisions from a Sidecar journal export (writer)"
+    )
+    journal.add_argument("agent_id")
+    journal.add_argument("journal_file")
+    journal.add_argument("--source-version", required=True)
+    journal.add_argument("--run-id")
+    journal.add_argument("--runtime-agent-id")
+    history = evidence_sub.add_parser("history", help="Newest evidence records first")
+    history.add_argument("agent_id")
+    history.add_argument("--source", choices=EVIDENCE_SOURCES)
+    history.add_argument("--limit", type=int, default=50)
+    agent_posture = evidence_sub.add_parser("posture", help="Per-source posture for one agent")
+    agent_posture.add_argument("agent_id")
+    stale_after_option(agent_posture)
+    for command in (ingest, manifest, journal, history, agent_posture):
+        command.set_defaults(handler=_cmd_evidence, needs_client=True)
+
+    posture = subparsers.add_parser("posture", help="Fleet evidence posture by producer")
+    posture.add_argument("--environment")
+    stale_after_option(posture)
+    posture.set_defaults(handler=_cmd_posture, needs_client=True)
     return parser
 
 
@@ -236,7 +394,7 @@ def main(argv: list[str] | None = None, *, client: httpx.Client | None = None) -
         from agenticops_control_tower.models import AgentStatus
         from agenticops_control_tower.snapshot import load_snapshot
 
-        if args.command in ("serve", "config", "audit", "actions") or (
+        if args.command in ("serve", "config", "audit", "actions", "evidence", "posture") or (
             args.command == "agents" and args.agents_command in ("register", "heartbeat")
         ):
             parser.error("--snapshot supports read commands only")
