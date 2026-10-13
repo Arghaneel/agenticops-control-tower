@@ -73,7 +73,7 @@ class _Chaos(BaseModel):
     chaos_events: list[dict[str, Any]]
 
 
-_ARTIFACT_TYPES = {
+ARTIFACT_TYPES: dict[str, str] = {
     "agenticlens": "run",
     "agentic-evals": "evaluation_report",
     "agentic-sidecar": "decision",
@@ -115,7 +115,7 @@ def summarize_evidence(
     """
     if artifact is None:
         return EvidenceSummary(link=link, availability="unavailable", reason="No artifact supplied")
-    if link.artifact_type != _ARTIFACT_TYPES[link.source]:
+    if link.artifact_type != ARTIFACT_TYPES[link.source]:
         return EvidenceSummary(link=link, availability="unavailable", reason="Source/type mismatch")
     if link.spec_version is not None:
         return EvidenceSummary(
