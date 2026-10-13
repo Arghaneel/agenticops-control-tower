@@ -32,6 +32,38 @@ class _Run(BaseModel):
     spans: list[_Span] = Field(default_factory=list)
 
 
+class _DiagnosisTotals(BaseModel):
+    total_diagnoses: int = Field(ge=0)
+    unrecovered: int = Field(ge=0)
+    highest_severity: Literal["low", "medium", "high", "critical"] | None = None
+    categories: dict[str, int] = Field(default_factory=dict)
+    failed_spans: int = Field(default=0, ge=0)
+
+
+class _Attribution(BaseModel):
+    status: Literal["attributed", "recovered", "unattributed", "no_failure"]
+    faulty_span_id: str | None = None
+    faulty_step: str | None = None
+    faulty_agent: str | None = None
+    category: str | None = None
+    confidence: float = Field(default=0.0, ge=0, le=1)
+
+
+class _Diagnosis(BaseModel):
+    """AgenticLens 0.7.0+ `DiagnosisReport`; diagnoses, evidence and timeline stay in Lens."""
+
+    schema_version: Literal["1.0"]
+    taxonomy_version: str
+    engine_version: str
+    run_id: str = Field(min_length=1)
+    trace_id: str
+    application_name: str
+    run_status: Literal["running", "succeeded", "failed"]
+    task_success: bool | None = None
+    summary: _DiagnosisTotals
+    attribution: _Attribution
+
+
 class _EvaluationTotals(BaseModel):
     total_cases: int = Field(ge=0)
     passed_cases: int = Field(ge=0)
@@ -79,6 +111,20 @@ ARTIFACT_TYPES: dict[str, str] = {
     "agentic-sidecar": "decision",
     "agentic-chaos": "chaos_report",
 }
+"""Default native artifact type per source."""
+
+ACCEPTED_ARTIFACT_TYPES: dict[str, tuple[str, ...]] = {
+    **{source: (artifact_type,) for source, artifact_type in ARTIFACT_TYPES.items()},
+    "agenticlens": ("run", "diagnosis_report"),
+}
+"""Every native artifact type Tower reads per source."""
+
+
+def artifact_type_for(source: str, artifact: dict[str, Any] | None) -> str:
+    """The native type of `artifact`: Lens diagnosis reports carry `engine_version`."""
+    if source == "agenticlens" and isinstance(artifact, dict) and "engine_version" in artifact:
+        return "diagnosis_report"
+    return ARTIFACT_TYPES[source]
 
 
 def _run_details(run: _Run) -> dict[str, Any]:
@@ -115,7 +161,7 @@ def summarize_evidence(
     """
     if artifact is None:
         return EvidenceSummary(link=link, availability="unavailable", reason="No artifact supplied")
-    if link.artifact_type != ARTIFACT_TYPES[link.source]:
+    if link.artifact_type not in ACCEPTED_ARTIFACT_TYPES[link.source]:
         return EvidenceSummary(link=link, availability="unavailable", reason="Source/type mismatch")
     if link.spec_version is not None:
         return EvidenceSummary(
@@ -125,7 +171,14 @@ def summarize_evidence(
         )
     try:
         details: dict[str, Any]
-        if link.source == "agenticlens":
+        if link.source == "agenticlens" and link.artifact_type == "diagnosis_report":
+            diagnosis = _Diagnosis.model_validate(artifact)
+            if link.run_id is not None and link.run_id != diagnosis.run_id:
+                return EvidenceSummary(
+                    link=link, availability="unavailable", reason="Run ID mismatch"
+                )
+            details = diagnosis.model_dump(mode="json")
+        elif link.source == "agenticlens":
             run = _Run.model_validate(artifact)
             if link.run_id is not None and link.run_id != run.run_id:
                 return EvidenceSummary(
