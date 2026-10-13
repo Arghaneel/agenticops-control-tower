@@ -40,5 +40,13 @@ def test_malformed_decision_events_are_skipped() -> None:
         "not-an-event",
     ]
     assert sidecar_journal_decisions(json.dumps(events)) == []
+    invalid_types = [
+        {**decision_event(1), "timestamp": "not-a-time"},
+        {**decision_event(2), "sequence": "two"},
+        {**decision_event(3), "task_id": 3},
+        decision_event(4),
+    ]
+    decisions = sidecar_journal_decisions(json.dumps(invalid_types))
+    assert [entry.decision["decision_id"] for entry in decisions] == ["d4"]
     assert sidecar_journal_decisions(json.dumps({"events": "bad"})) == []
     assert sidecar_journal_decisions("42") == []

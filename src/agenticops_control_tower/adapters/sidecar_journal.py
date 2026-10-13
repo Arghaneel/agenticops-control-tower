@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 
 class JournalDecision(BaseModel):
@@ -45,12 +45,14 @@ def sidecar_journal_decisions(content: str) -> list[JournalDecision]:
         decision = payload.get("decision") if isinstance(payload, dict) else None
         if not isinstance(decision, dict) or "timestamp" not in event:
             continue
-        decisions.append(
-            JournalDecision(
+        try:
+            entry = JournalDecision(
                 task_id=event.get("task_id"),
                 sequence=event.get("sequence"),
                 recorded_at=event["timestamp"],
                 decision=decision,
             )
-        )
+        except ValidationError:
+            continue
+        decisions.append(entry)
     return decisions
