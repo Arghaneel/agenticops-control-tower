@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+## 0.5.0
+
+Released 2026-10-13.
+
+### Added
+
+- Push-based ecosystem evidence ingestion through `ControlTowerAPI.ingest_evidence`,
+  `POST /evidence` (writer) and CLI `evidence ingest`, `ingest-manifest` and
+  `ingest-sidecar-journal`. Retries of one attributed observation are idempotent.
+- Durable evidence history in memory or the shared SQLite database, with
+  future-time rejection, 1 MiB HTTP body limit and Python pruning. Only validated
+  projections are stored; unavailable results are kept with their reason.
+- Agent and fleet evidence posture (`GET /agents/{id}/evidence`, `GET /posture`,
+  CLI `evidence posture` and `posture`): fresh/stale/missing freshness, latest
+  record, recent counts and tallies of native producer values. Producer outcomes
+  never change reported health and no verdict is recomputed.
+- `GET /agents/{id}/evidence/history` and CLI `evidence history`.
+- Lens run projection of trace ID, timing, task success, error type, tool names
+  and failed spans, without span payloads or error messages.
+- `sidecar_journal_decisions()` for Sidecar JSON, export-array and JSONL journals.
+- Read-only console fleet posture panel and per-agent evidence table.
+- Offline snapshots accept an `evidence` list, evaluated as of `captured_at`.
+- Evidence guide, native sample artifacts, collection manifest, Python push
+  example and a CI job against published sibling extras.
+
+### Changed
+
+- `GET /agents/{id}/evidence` returns per-producer posture instead of a fixed
+  `unavailable` readiness message.
+- Unavailable evidence reasons name the failing native field without echoing values.
+- Optional sibling floors: Lens 0.6, Chaos 0.5 and MCP 0.3.4 (Evals 0.7 and
+  Sidecar 0.7 unchanged). Checked against Lens 0.6.1, Evals 0.7.1, Sidecar 0.7.0
+  and Chaos 0.5.1.
+
+### Limits
+
+- Tower does not pull from producer services or fetch artifact references.
+  Producers share the writer token; per-producer credentials, AIOS mapping,
+  journal integrity verification and automatic retention remain planned.
+
 ## 0.4.0
 
 Released 2026-10-12.
