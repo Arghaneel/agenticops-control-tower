@@ -4,8 +4,8 @@ Tower is authoritative only for settings explicitly declared `authority="tower"`
 by trusted Python setup. `mirrored` settings belong to their producer; absent
 surfaces return `unsupported` and an honest reason. Ownership cannot be elevated
 through HTTP. The base package imports no sibling runtime. Optional dependency
-floors align with the sibling models used in this release: Lens 0.5, Evals 0.7,
-Sidecar 0.7, Chaos 0.4 and MCP 0.3.1. None provides a writable Tower adapter yet.
+floors align with the sibling models checked in v0.5: Lens 0.6, Evals 0.7,
+Sidecar 0.7, Chaos 0.5 and MCP 0.3.4. None provides a writable Tower adapter yet.
 
 Run `examples/controlled_configuration.py` to declare a desired configuration,
 preview an update, approve it as a different operator and execute it. A patch is
