@@ -136,3 +136,55 @@ def test_unavailable_reason_names_the_failing_native_field_without_values() -> N
     assert "status" in result.reason
     assert "(+1 more)" in result.reason
     assert "secret-value" not in result.reason
+
+
+def test_lens_run_projects_correlation_fields_without_span_payloads() -> None:
+    run = {
+        "schema_version": "1.0",
+        "run_id": "run-a",
+        "trace_id": "trace-a",
+        "application_name": "payments",
+        "status": "failed",
+        "started_at": "2026-10-13T10:00:00Z",
+        "completed_at": "2026-10-13T10:00:02Z",
+        "error_type": "DependencyUnavailable",
+        "spans": [
+            {"span_id": "s1", "name": "plan", "span_type": "planning", "status": "succeeded"},
+            {
+                "span_id": "s2",
+                "name": "charge",
+                "span_type": "tool_call",
+                "tool_name": "payments_api",
+                "status": "failed",
+                "error_type": "ConnectionError",
+                "error_message": "token=secret",
+                "input_data": {"card": "secret"},
+            },
+        ],
+    }
+    run_link = link(source="agenticlens", source_version="0.6.1", artifact_type="run")
+    details = summarize_evidence(run_link, run).details
+    assert details["trace_id"] == "trace-a"
+    assert details["error_type"] == "DependencyUnavailable"
+    assert details["span_count"] == 2
+    assert details["tool_names"] == ["payments_api"]
+    assert details["failed_spans"] == [
+        {
+            "span_id": "s2",
+            "name": "charge",
+            "span_type": "tool_call",
+            "tool_name": "payments_api",
+            "error_type": "ConnectionError",
+        }
+    ]
+    assert "secret" not in str(details)
+    assert "spans" not in details
+
+
+def test_legacy_lens_run_without_optional_fields_remains_available() -> None:
+    run_link = link(source="agenticlens", source_version="0.5.0", artifact_type="run")
+    native = dict(schema_version="1.0", run_id="run-a", application_name="app", status="running")
+    details = summarize_evidence(run_link, native).details
+    assert details["span_count"] == 0
+    assert details["failed_spans"] == []
+    assert details["trace_id"] is None

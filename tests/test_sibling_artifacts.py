@@ -29,6 +29,35 @@ def test_lens_native_run() -> None:
     assert result.details["status"] == "failed"
 
 
+def test_lens_failed_tool_span_correlation() -> None:
+    lens = pytest.importorskip("agenticlens")
+    from agenticlens.models.trace import RunStatus, Span, SpanType
+
+    span = Span(
+        name="lookup",
+        span_type=SpanType.TOOL_CALL,
+        tool_name="inventory_api",
+        status=RunStatus.FAILED,
+        error_type="TimeoutError",
+        error_message="upstream timed out",
+    )
+    run = lens.Run(application_name="app", status="failed", spans=[span])
+    link = EvidenceLink(
+        agent_id="a",
+        source="agenticlens",
+        source_version=lens.__version__,
+        artifact_type="run",
+        artifact_ref="run:" + run.run_id,
+        run_id=run.run_id,
+        observed_at=datetime.now(timezone.utc),
+    )
+    details = summarize_evidence(link, run.model_dump(mode="json")).details
+    assert details["trace_id"] == run.trace_id
+    assert details["tool_names"] == ["inventory_api"]
+    assert details["failed_spans"][0]["span_id"] == span.span_id
+    assert details["failed_spans"][0]["error_type"] == "TimeoutError"
+
+
 def test_evals_report_and_gate() -> None:
     evals = pytest.importorskip("agentic_evals")
     from agentic_evals.models import EvaluationReport, EvaluationSummary

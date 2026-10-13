@@ -10,11 +10,26 @@ from pydantic import BaseModel, Field, ValidationError
 from agenticops_control_tower.models.evidence import EvidenceLink, EvidenceSummary
 
 
+class _Span(BaseModel):
+    span_id: str = Field(min_length=1)
+    name: str
+    span_type: str
+    tool_name: str | None = None
+    status: Literal["running", "succeeded", "failed"] = "running"
+    error_type: str | None = None
+
+
 class _Run(BaseModel):
     schema_version: Literal["1.0"]
     run_id: str = Field(min_length=1)
     application_name: str
     status: Literal["running", "succeeded", "failed"]
+    trace_id: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    task_success: bool | None = None
+    error_type: str | None = None
+    spans: list[_Span] = Field(default_factory=list)
 
 
 class _EvaluationTotals(BaseModel):
@@ -66,6 +81,19 @@ _ARTIFACT_TYPES = {
 }
 
 
+def _run_details(run: _Run) -> dict[str, Any]:
+    """Keep correlation fields; span payloads, inputs and error messages stay in Lens."""
+    details = run.model_dump(mode="json", exclude={"spans"})
+    details["span_count"] = len(run.spans)
+    details["tool_names"] = sorted({span.tool_name for span in run.spans if span.tool_name})
+    details["failed_spans"] = [
+        span.model_dump(mode="json", exclude={"status"})
+        for span in run.spans
+        if span.status == "failed"
+    ]
+    return details
+
+
 def _diagnostic(error: ValidationError) -> str:
     """Name the first failing native field without echoing producer values."""
     first = error.errors(include_input=False)[0]
@@ -103,7 +131,7 @@ def summarize_evidence(
                 return EvidenceSummary(
                     link=link, availability="unavailable", reason="Run ID mismatch"
                 )
-            details = run.model_dump(mode="json")
+            details = _run_details(run)
         elif link.source == "agentic-evals":
             report = _Evaluation.model_validate(artifact)
             details = report.model_dump(mode="json")
