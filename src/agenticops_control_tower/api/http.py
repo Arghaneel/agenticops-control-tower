@@ -5,12 +5,13 @@ from __future__ import annotations
 import os
 from secrets import compare_digest
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 
 from agenticops_control_tower import __version__
+from agenticops_control_tower.api.limits import BodySizeLimit
 from agenticops_control_tower.api.surface import ControlTowerAPI
 from agenticops_control_tower.config.models import ActionRequest, ApprovalRequest, Operator
 from agenticops_control_tower.config.service import ConfigurationError, ConfigurationService
@@ -71,6 +72,8 @@ def create_app(
         )
     control_api = api
     app = FastAPI(title="AgenticOps Control Tower", version=__version__)
+    # Enforced in ASGI middleware so oversized or unsized bodies are never buffered.
+    app.add_middleware(BodySizeLimit, paths=frozenset({"/evidence"}), max_bytes=MAX_EVIDENCE_BYTES)
     bearer = HTTPBearer(auto_error=False)
 
     def authorize(credentials: HTTPAuthorizationCredentials | None, *, write: bool) -> None:
@@ -159,20 +162,13 @@ def create_app(
         except ValueError as exc:
             raise HTTPException(422, "Minimum version must be a valid PEP 440 version") from exc
 
-    def bounded_body(request: Request) -> None:
-        length = request.headers.get("content-length")
-        if length is None:
-            raise HTTPException(411, "Content-Length is required for evidence ingestion")
-        if not length.isdigit() or int(length) > MAX_EVIDENCE_BYTES:
-            raise HTTPException(413, f"Evidence payloads are limited to {MAX_EVIDENCE_BYTES} bytes")
-
     stale_after = Query(DEFAULT_STALE_AFTER_SECONDS, ge=1, le=MAX_STALE_AFTER_SECONDS)
 
     @app.post(
         "/evidence",
         response_model=EvidenceIngestResult,
         status_code=201,
-        dependencies=[Depends(write_access), Depends(bounded_body)],
+        dependencies=[Depends(write_access)],
     )
     def ingest_evidence(payload: EvidenceIngestRequest, response: Response) -> EvidenceIngestResult:
         ingested_by = (

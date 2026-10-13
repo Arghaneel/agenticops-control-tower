@@ -158,3 +158,47 @@ def test_sqlite_evidence_survives_app_restart(tmp_path: Path) -> None:
     )
     history = restarted.get("/agents/payments/evidence/history", headers=READER).json()
     assert len(history) == 1
+
+
+def test_body_limit_runs_before_parsing_and_authorization() -> None:
+    import asyncio
+
+    from agenticops_control_tower.api.limits import BodySizeLimit
+
+    parsed: list[bytes] = []
+
+    async def downstream(scope, receive, send) -> None:
+        while True:
+            message = await receive()
+            parsed.append(message.get("body", b""))
+            if not message.get("more_body"):
+                break
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    async def call(headers: list[tuple[bytes, bytes]], chunks: list[bytes]) -> int:
+        limit = BodySizeLimit(downstream, paths=frozenset({"/evidence"}), max_bytes=10)
+        messages = [
+            {"type": "http.request", "body": chunk, "more_body": i < len(chunks) - 1}
+            for i, chunk in enumerate(chunks)
+        ]
+        sent: list[dict] = []
+
+        async def receive() -> dict:
+            return messages.pop(0)
+
+        async def send(message: dict) -> None:
+            sent.append(message)
+
+        scope = {"type": "http", "method": "POST", "path": "/evidence", "headers": headers}
+        await limit(scope, receive, send)
+        return sent[0]["status"]
+
+    # A body exceeding its declared length is cut off once the limit is crossed.
+    assert asyncio.run(call([(b"content-length", b"5")], [b"123456", b"78901"])) == 413
+    assert asyncio.run(call([(b"content-length", b"5")], [b"12345"])) == 200
+    assert asyncio.run(call([], [b"1"])) == 411
+    assert asyncio.run(call([(b"content-length", b"x")], [b"1"])) == 413
+    # Without credentials, oversized bodies are still rejected before authorization.
+    http = client()
+    assert http.post("/evidence", content=b"x" * (MAX_EVIDENCE_BYTES + 1)).status_code == 413
