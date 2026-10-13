@@ -175,3 +175,22 @@ def test_sidecar_v07_runtime_journal_native_decision(status):
     assert result.details["causal_link"] == "plan"
     assert result.details["status"] == status
     assert api.get_status().healthy_agents == 1
+
+
+def test_sidecar_v07_journal_export_extraction() -> None:
+    sidecar = pytest.importorskip("agentic_sidecar")
+    if not hasattr(sidecar, "TaskRuntime"):
+        pytest.skip("Sidecar v0.7 runtime is not installed")
+    import json
+
+    from agenticops_control_tower.adapters import sidecar_journal_decisions
+
+    runtime = sidecar.Sidecar(on_sidecar_failure="fail_closed", mode="govern")
+    runtime.before_tool_call(
+        lambda context: sidecar.Decision(status="BLOCK", risk="HIGH", reason="Fixture")
+    )
+    decision = runtime.evaluate(sidecar.DecisionContext(tool_name="refund"))
+    exported = json.dumps(runtime.runtime.journal.export(), default=str)
+    entries = sidecar_journal_decisions(exported)
+    assert [entry.decision["decision_id"] for entry in entries] == [decision.decision_id]
+    assert entries[0].decision["status"] == "BLOCK"
