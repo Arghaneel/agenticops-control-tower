@@ -42,6 +42,8 @@ const tick = ()=>new Promise(resolve=>setTimeout(resolve,10));
  assert.equal(id('evidence-sources').rows.length,2);assert.equal(id('evidence-sources').querySelector('img'),null);
  assert.ok(id('evidence-sources').textContent.includes('unavailable: <img src=x>'));assert.ok(id('evidence-sources').textContent.includes('None recorded'));
  assert.ok(id('evidence-sources').querySelector('.missing'));
+ id('agents').querySelector('button').click();await tick();
+ assert.equal(id('evidence-sources').rows.length,2);
  assert.ok(calls.some(c=>c.url.includes(encodeURIComponent(agent.agent_id))));
  failing=true;submit('connection');await tick();
  assert.equal(id('fleet').hidden,true);assert.equal(id('agents').rows.length,0);assert.ok(id('message').textContent.includes('invalid'));

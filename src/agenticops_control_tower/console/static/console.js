@@ -40,6 +40,7 @@ async function detail(agentId, signal, requestGeneration) {
   try {
     const [agent, evidence] = await Promise.all([get(`agents/${encodeURIComponent(agentId)}`, signal), get(`agents/${encodeURIComponent(agentId)}/evidence`, signal)]);
     if (generation !== requestGeneration || selection !== detailGeneration) return;
+    byId("evidence-sources").replaceChildren();
     byId("detail-title").textContent = agent.name;
     byId("detail-data").textContent = JSON.stringify(agent, null, 2);
     byId("evidence").textContent = `Reported health: ${evidence.reported_health}. Evidence older than ${windowLabel(evidence.stale_after_seconds)} is stale.`;
