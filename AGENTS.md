@@ -51,10 +51,10 @@ approval, runbook execution and verified recovery.
 
 ### Current Roadmap Focus
 
-The current build focus is the completed v0.4 controlled configuration model. Work in
-this repo should now strengthen operator inventory views, shared status
-semantics, and the console-ready read surface before attempting write-side
-orchestration or bulk actions.
+v0.5 ecosystem evidence posture is complete: pushed producer evidence is stored
+and shown as freshness and native tallies. The next focus is v0.6, the MCP
+connector and investigation copilot over these real read surfaces, before
+incident workflows, bulk actions or runbooks.
 
 ### Before You Build Here
 
@@ -68,11 +68,12 @@ orchestration or bulk actions.
 
 ## Status
 
-The v0.1–v0.4 milestones are **implemented**. Package layout, docs, tests, and
+The v0.1–v0.5 milestones are **implemented**. Package layout, docs, tests, and
 CI/release workflows exist; a registry with optional SQLite persistence,
 discovery, HTTP API, and CLI exist today — see
 [ROADMAP.md](ROADMAP.md) for published milestone status, implementation evidence,
 operational limits and the actual build order. Reader/writer bearer authorization is available; read-only console at `/console/`.
+Evidence ingestion and posture live in `evidence/` (see `docs/evidence-posture.md`).
 
 ## Build and Run
 
@@ -125,7 +126,8 @@ These are load-bearing, not preferences — see
 | `src/agenticops_control_tower/cli/` | Operator CLI (`agenticops-control-tower`), optional `api` extra | v0.2 |
 | `src/agenticops_control_tower/console/` | AgenticOps Console / dashboard | v0.3 |
 | `src/agenticops_control_tower/config/` | Central configuration models and safe write paths | v0.4 |
-| `src/agenticops_control_tower/adapters/` | Native artifact readers; remote ecosystem and MCP integration planned | v0.5 partial |
+| `src/agenticops_control_tower/adapters/` | Native artifact readers and Sidecar journal extraction; MCP integration planned | v0.5 |
+| `src/agenticops_control_tower/evidence/` | Idempotent evidence store and read-only posture rollups | v0.5 |
 | `examples/` | Sample registration and capability payloads | ongoing |
 | `tests/` | Pytest test suite | ongoing |
 | `Makefile` | Local dev automation | — |
@@ -139,7 +141,7 @@ Full architecture and build order: [ROADMAP.md](ROADMAP.md).
 - HTTP API: `agenticops_control_tower.api.http.create_app()` (optional `api`
   extra) or `agenticops-control-tower serve`
 - CLI: `agenticops-control-tower` console script (optional `api` extra)
-- Console: AgenticOps Console at `/console/` (read-only, v0.3)
+- Console: AgenticOps Console at `/console/` (read-only, v0.3; evidence posture v0.5)
 
 ## Package Boundaries
 
@@ -230,4 +232,6 @@ GitHub Releases page stay aligned.
 Use `docs/ecosystem-alignment.md` for the Tower-local link contract. Reader
 adapters project native producer fields; never recompute evaluations, decisions,
 or resilience verdicts. Deployment health is independent of evidence outcomes.
+Posture only counts native values. Collection is push-based; the server must not
+open or fetch caller-supplied artifact references or paths.
 AIOS is draft and no native reader is an AIOS-conformance implementation.
