@@ -17,8 +17,17 @@ async function get(path, signal) {
 }
 function clear() {
   byId("fleet").hidden = true; byId("detail").hidden = true;
-  for (const id of ["agents", "metrics", "coverage", "detail-data", "evidence"]) byId(id).replaceChildren();
+  for (const id of ["agents", "metrics", "coverage", "posture", "detail-data", "evidence", "evidence-sources"]) byId(id).replaceChildren();
 }
+function tallies(summary) {
+  return Object.entries(summary).map(([key, value]) => {
+    const label = key.replaceAll("_", " ");
+    if (Array.isArray(value)) return `${label}: ${value.length ? value.join(", ") : "none"}`;
+    if (value && typeof value === "object") return `${label}: ${Object.entries(value).map(([k, v]) => `${k} ${v}`).join(" · ")}`;
+    return `${label}: ${value}`;
+  });
+}
+const windowLabel = seconds => seconds % 3600 === 0 ? `${seconds / 3600}h` : `${seconds}s`;
 function options(id, values) {
   const select = byId(id), current = select.value;
   while (select.options.length > 1) select.remove(1);
@@ -33,7 +42,18 @@ async function detail(agentId, signal, requestGeneration) {
     if (generation !== requestGeneration || selection !== detailGeneration) return;
     byId("detail-title").textContent = agent.name;
     byId("detail-data").textContent = JSON.stringify(agent, null, 2);
-    byId("evidence").textContent = `${evidence.availability}: ${evidence.reason}`;
+    byId("evidence").textContent = `Reported health: ${evidence.reported_health}. Evidence older than ${windowLabel(evidence.stale_after_seconds)} is stale.`;
+    for (const source of evidence.sources) {
+      const row = node("tr"), latest = node("td"), summary = node("td", undefined, "tallies");
+      if (source.latest) {
+        const record = source.latest.summary;
+        latest.append(node("div", `${record.availability}: ${record.link.artifact_ref}`), node("small", `Observed ${new Date(record.link.observed_at).toLocaleString()} · ${record.link.source_version}`));
+      } else latest.textContent = "None recorded";
+      if (source.reason) latest.append(node("small", source.reason));
+      for (const line of tallies(source.summary)) summary.append(node("div", line));
+      row.append(node("td", source.source), node("td", source.freshness, source.freshness), latest, node("td", `${source.recent_records} records · ${source.recent_unavailable} unavailable`), summary);
+      byId("evidence-sources").append(row);
+    }
     byId("detail").hidden = false;
     byId("detail").scrollIntoView({behavior:"smooth", block:"nearest"});
   } catch (error) {if (generation === requestGeneration && error.name !== "AbortError") byId("message").textContent = error.message;}
@@ -52,10 +72,11 @@ async function load(refreshOptions = false) {
     const statusParams = new URLSearchParams(environment ? {environment} : {});
     const versionParams = new URLSearchParams({capability, minimum_version:minimum});
     if (environment) versionParams.set("environment", environment);
-    const [agents, status, versions, allAgents] = await Promise.all([
+    const [agents, status, versions, allAgents, posture] = await Promise.all([
       get(`agents?${params}`, signal), get(`status?${statusParams}`, signal),
       minimum ? get(`versions?${versionParams}`, signal) : Promise.resolve([]),
-      refreshOptions ? get("agents", signal) : Promise.resolve(null)
+      refreshOptions ? get("agents", signal) : Promise.resolve(null),
+      get(`posture?${statusParams}`, signal)
     ]);
     if (generation !== requestGeneration) return;
     if (allAgents) {options("environment", allAgents.map(a=>a.environment)); options("capability", allAgents.flatMap(a=>Object.keys(a.capabilities)));}
@@ -85,8 +106,17 @@ async function load(refreshOptions = false) {
       card.append(meter, node("div", `${capability.installed_agents} installed · ${capability.missing_agents} missing`), node("p", `Versions: ${capability.versions.join(", ")}`)); byId("coverage").append(card);
     }
     if (!status.capabilities.length) byId("coverage").append(node("p", "No capabilities reported."));
+    byId("posture-window").textContent = `Stale after ${windowLabel(posture.stale_after_seconds)}`;
+    for (const source of posture.sources) {
+      const card = node("article"); card.append(node("strong", source.source));
+      const counts = node("div"); counts.append(node("span", `${source.fresh_agents.length} fresh`, "fresh"), node("span", " · "), node("span", `${source.stale_agents.length} stale`, "stale"), node("span", " · "), node("span", `${source.missing_agents.length} missing`, "missing"));
+      card.append(counts);
+      if (source.latest_unavailable_agents.length) card.append(node("div", `${source.latest_unavailable_agents.length} with unavailable latest evidence`, "degraded"));
+      for (const line of tallies(source.summary)) card.append(node("p", line, "tallies"));
+      byId("posture").append(card);
+    }
     byId("updated").textContent = `Refreshed ${new Date().toLocaleTimeString()}`;
-    byId("message").textContent = `${visible.length} agents shown. Select an agent to inspect metadata and evidence readiness.`;
+    byId("message").textContent = `${visible.length} agents shown. Select an agent to inspect metadata and evidence posture.`;
     byId("fleet").hidden = false;
   } catch(error) {if (generation === requestGeneration && error.name !== "AbortError") {clear(); byId("message").textContent = error.message;}}
 }
