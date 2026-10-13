@@ -1,7 +1,8 @@
 # agenticops-control-tower — Roadmap & Architecture
 
-**Current package version: 0.4.0.** This release adds controlled desired
-configuration and approval contracts while preserving native Sidecar evidence.
+**Current package version: 0.5.0.** This release persists pushed Lens, Evals,
+Sidecar and Chaos evidence and surfaces its freshness and native outcomes as
+posture across the Python API, HTTP, CLI, offline snapshots and console.
 
 ## Product Vision: AI-Native Operations Command Center
 
@@ -48,8 +49,8 @@ unsupported explanation as an exact RCA.
 - **v0.2** ✅ Implemented and published — HTTP and snapshot CLI, shared health rollups,
   capability coverage and version inventory, and agent filters
 - **v0.3** ✅ Implemented and published — AgenticOps Console (read-only dashboard)
-- **v0.4** ✅ Implemented — Configuration Model and Controlled Write Operations
-- **v0.5** 🏗️ Partial — Lens, Evals, Sidecar, and Chaos artifact readers; remote collection and operator surfaces remain planned
+- **v0.4** ✅ Implemented and published — Configuration Model and Controlled Write Operations
+- **v0.5** ✅ Implemented — Ecosystem evidence ingestion, persistence and posture views (push-based; pull collection deferred)
 - **v0.6** 🚧 Planned — Agentic MCP Connector and Investigation Copilot
 - **v0.6.x** 🚧 Planned — First Approved Incident-to-Recovery Scenario
 - **v0.7** 🚧 Planned — Multi-Agent Operations and Bulk Actions
@@ -59,8 +60,8 @@ unsupported explanation as an exact RCA.
 
 v0.1 and v0.2 share a tested Python control model, optional SQLite registry,
 authenticated HTTP API and operator CLI. The read-only console ships in v0.3; controlled desired configuration ships in
-v0.4. Remote ecosystem adapters, MCP connector, bulk operations and incident
-workflows remain planned or partial.
+v0.4; ecosystem evidence posture ships in v0.5. Pull-based remote collection,
+MCP connector, bulk operations and incident workflows remain planned.
 
 ## Implementation Evidence and Operational Limits
 
@@ -72,12 +73,15 @@ The implementation lives under `src/agenticops_control_tower/`:
 | Shared status, HTTP API and CLI | `status/service.py`, `api/surface.py`, `api/http.py`, `cli/main.py`, `snapshot.py` | `tests/test_http_api.py`, `tests/test_cli.py` |
 | Read-only console and minimum-version assessments | `console/static/`, `models/version.py`, `ControlTowerAPI.assess_versions` | `tests/test_console.py` |
 | Desired configuration, approvals and audit | `config/service.py`, `config/models.py` | `tests/test_configuration.py` |
-| Native producer evidence and Sidecar journal readback | `adapters/evidence.py`, `models/evidence.py`, `examples/inspect_sidecar_journal.py` | `tests/test_ecosystem_alignment.py`, `tests/test_sibling_artifacts.py`, `tests/test_sidecar_journal_example.py` |
+| Native producer evidence and Sidecar journal readback | `adapters/evidence.py`, `adapters/sidecar_journal.py`, `models/evidence.py`, `examples/inspect_sidecar_journal.py` | `tests/test_ecosystem_alignment.py`, `tests/test_sibling_artifacts.py`, `tests/test_sidecar_journal_example.py`, `tests/test_sidecar_journal_adapter.py` |
+| Evidence ingestion, history and posture | `evidence/store.py`, `evidence/posture.py`, `api/http.py`, `cli/main.py`, `snapshot.py`, `console/static/` | `tests/test_evidence_store.py`, `tests/test_evidence_posture.py`, `tests/test_evidence_api.py`, `tests/test_evidence_http.py`, `tests/test_evidence_cli.py`, `tests/test_evidence_snapshot.py`, `tests/test_evidence_examples.py`, `tests/console_ui.cjs` |
 
 Tests cover restart durability, concurrent heartbeats, detached registry reads,
 authorization, unknown-agent errors, filters, coverage, snapshots and console
 asset serving. Native readers preserve producer outcomes independently of fleet
 health; v0.3.1 preserves Sidecar decision IDs, trigger details and causal links.
+v0.5 persists pushed evidence idempotently and reports fresh/stale/missing
+posture per producer without changing reported health.
 The console's public shell carries no inventory and exposes read-only controls.
 
 Optional SQLite persistence supports a single host with a shared local database
@@ -85,7 +89,7 @@ file. Authentication uses deployment-configured reader/writer bearer tokens;
 per-agent identities and tenant isolation are not implemented. Without tokens,
 the API allows anonymous local development. Health is agent-reported;
 timeout-based health, automatic package detection and distributed storage remain
-planned. Remote evidence collection, incident timelines, remote configuration application,
+planned. Pull-based remote evidence collection, incident timelines, remote configuration application,
 MCP/copilot operations, bulk actions, runbook execution and recovery verification
 also remain planned.
 
@@ -364,7 +368,7 @@ Success criteria:
 
 ## Phase 4: Configuration and Safe Write Operations (`v0.4`)
 
-Status: **implemented for Tower-owned desired configuration**. See
+Status: **implemented and published for Tower-owned desired configuration**. See
 [configuration.md](docs/configuration.md), `config/service.py` and
 `tests/test_configuration.py`. API/CLI expose previews, separate approver
 credentials, denial, expiry, revocation, revision checks and atomic one-use writes.
@@ -407,20 +411,42 @@ Success criteria:
 
 ## Phase 5: Ecosystem Surface Integration (`v0.5`)
 
-Status: **partial**. Native JSON readers and a Tower-local evidence-link contract
-are implemented for Lens, Evals, Sidecar and Chaos, with optional tests against
-actual sibling models. Remote collection, persistent evidence, HTTP/CLI posture
-views, and console integration remain planned. See
+Status: **implemented (push-based collection)**. Native JSON readers and the
+Tower-local evidence-link contract feed an idempotent evidence store (memory or
+SQLite) and per-producer posture across Python, HTTP, CLI, offline snapshots and
+the console. See [evidence-posture.md](docs/evidence-posture.md) and
 [ecosystem-alignment.md](docs/ecosystem-alignment.md).
+
+Delivered in `v0.5`:
+
+- [x] push ingestion: `POST /evidence`, `ControlTowerAPI.ingest_evidence`, and CLI
+      `evidence ingest`, `ingest-manifest` and `ingest-sidecar-journal`
+- [x] durable, append-only evidence history with idempotent retries, future-time
+      rejection, bounded HTTP bodies and Python pruning
+- [x] agent and fleet posture: fresh/stale/missing freshness by `observed_at`,
+      latest record (including unavailable), recent counts and native tallies
+- [x] Lens run correlation: trace ID, timing, error type, tool names and failed
+      spans, without storing span payloads or error messages
+- [x] field-level unavailable diagnostics that do not echo producer values
+- [x] console fleet posture panel and agent evidence table (still GET-only)
+- [x] offline snapshots carry evidence evaluated as of `captured_at`
+- [x] optional actual-producer checks against Lens 0.6.1, Evals 0.7.1,
+      Sidecar 0.7.0 and Chaos 0.5.1
+
+Deferred: pull collection from producer services and automatic producer
+discovery, prompt-version correlation (no native Lens field), AIOS mapping,
+journal integrity verification, retention policies and per-producer credentials.
 
 
 Goals:
 
 - surface Lens, Evals, Sidecar, and Chaos summaries in the control plane
 - add live Lens trace/telemetry collection with explicit deployment, run and
-  runtime-participant attribution, observation times and freshness
+  runtime-participant attribution, observation times and freshness — done for
+  pushed evidence
 - correlate tool calls, prompt versions and dependency failures with linked
-  evidence; preserve source references and missing/unavailable data
+  evidence; preserve source references and missing/unavailable data — tool and
+  dependency failures done; prompt versions await a native Lens field
 - keep adapters thin and contract-driven
 - avoid copying sibling project logic into Control Tower
 
@@ -433,11 +459,11 @@ Examples:
 
 Success criteria:
 
-- operators can inspect high-level posture centrally
-- the source of truth for the underlying capability remains in the sibling
-  package
-- integration failures degrade to "unavailable" rather than crashing the
-  control plane
+- [x] operators can inspect high-level posture centrally
+- [x] the source of truth for the underlying capability remains in the sibling
+      package
+- [x] integration failures degrade to "unavailable" rather than crashing the
+      control plane
 
 ## Phase 6: Agentic MCP Connector and Investigation Copilot (`v0.6`)
 
@@ -471,8 +497,9 @@ Success criteria:
 Status: **planned**. This is the first complete command-center demonstration,
 not a requirement to finish every fleet-wide alerting feature first.
 
-Depends on: v0.4 approval/authorization contracts, v0.5 live evidence collection,
-and v0.6 MCP investigation tools. Bulk operations in v0.7 are not a prerequisite.
+Depends on: v0.4 approval/authorization contracts, v0.5 evidence posture (pushed;
+pull collection from the staging runtime may be added here), and v0.6 MCP
+investigation tools. Bulk operations in v0.7 are not a prerequisite.
 
 Scenario: a staging agent's tool dependency becomes unavailable. Use a controlled
 Chaos scenario or deterministic fault fixture; Lens records the failed run and

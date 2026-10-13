@@ -50,6 +50,16 @@ your own hostname and existing certificates.
   `agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json status`.
 - `inspect_ecosystem_evidence.py`: native evidence-reader attribution; see
   [ecosystem alignment](../docs/ecosystem-alignment.md).
+- `push_ecosystem_evidence.py`: push the sample producer artifacts through the
+  Python API and print per-producer posture.
+- `evidence/manifest.json`: native Lens run, Evals report and gate, Sidecar
+  decision and Chaos report for `payment-agent`. With a writer token, run
+  `agenticops-control-tower evidence ingest-manifest examples/evidence/manifest.json`
+  after registering `sample_agent_registration.json`, then
+  `agenticops-control-tower posture`. The sample is dated 2026-08-15, so a live
+  server reports it as stale; the snapshot below evaluates it as of capture time.
+- `sample_fleet_snapshot.json` also carries this evidence:
+  `agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json posture`.
 
 See [authentication](../docs/authentication.md) for PowerShell, role semantics,
 client variables and rotation.

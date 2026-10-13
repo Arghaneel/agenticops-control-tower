@@ -42,6 +42,8 @@ def test_public_shell_has_no_inventory_and_assets_are_served(console_client: Tes
     assert response.status_code == 200
     assert response.url.path == "/console/"
     assert "Fleet inventory" in response.text
+    assert "Ecosystem evidence posture" in response.text
+    assert "Read-only · v0.5" in response.text
     assert "default-src 'self'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
     assert "0.4.9" not in response.text
@@ -49,6 +51,8 @@ def test_public_shell_has_no_inventory_and_assets_are_served(console_client: Tes
     script = console_client.get("/console/assets/console.js")
     assert script.status_code == 200
     assert 'method: "GET"' in script.text
+    assert "posture?" in script.text
+    assert "POST" not in script.text
     assert "localStorage" not in script.text
     assert console_client.get("/console/assets/../../api/http.py").status_code == 404
 
@@ -62,6 +66,8 @@ def test_public_shell_has_no_inventory_and_assets_are_served(console_client: Tes
         "/agents/old",
         "/versions?capability=agenticlens&minimum_version=0.5.0",
         "/agents/old/evidence",
+        "/agents/old/evidence/history",
+        "/posture",
     ],
 )
 def test_console_reads_require_existing_authorization(
@@ -109,11 +115,12 @@ def test_version_policy_uses_pep440_and_preserves_missing_unknown(
     assert console_client.post("/agents/old/heartbeat", json={}, headers=headers).status_code == 403
 
 
-def test_evidence_readiness_is_honest_and_checks_agent(console_client: TestClient) -> None:
+def test_evidence_posture_is_honest_and_checks_agent(console_client: TestClient) -> None:
     headers = {"Authorization": "Bearer reader"}
     evidence = console_client.get("/agents/old/evidence", headers=headers).json()
-    assert evidence["availability"] == "unavailable"
-    assert "not collected or persisted" in evidence["reason"]
+    assert evidence["agent_id"] == "old"
+    assert {source["freshness"] for source in evidence["sources"]} == {"missing"}
+    assert all(source["latest"] is None for source in evidence["sources"])
     assert console_client.get("/agents/absent/evidence", headers=headers).status_code == 404
 
 

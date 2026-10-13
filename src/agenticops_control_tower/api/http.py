@@ -5,27 +5,43 @@ from __future__ import annotations
 import os
 from secrets import compare_digest
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 
 from agenticops_control_tower import __version__
+from agenticops_control_tower.api.limits import BodySizeLimit
 from agenticops_control_tower.api.surface import ControlTowerAPI
 from agenticops_control_tower.config.models import ActionRequest, ApprovalRequest, Operator
 from agenticops_control_tower.config.service import ConfigurationError, ConfigurationService
 from agenticops_control_tower.console.app import ASSET_DIRECTORY
 from agenticops_control_tower.discovery import CapabilityDiscoveryService
 from agenticops_control_tower.errors import AgentNotFoundError
+from agenticops_control_tower.evidence import (
+    DEFAULT_STALE_AFTER_SECONDS,
+    MAX_HISTORY_LIMIT,
+    MAX_STALE_AFTER_SECONDS,
+    EvidenceIngestError,
+    EvidenceStore,
+)
 from agenticops_control_tower.models import (
+    AgentEvidencePosture,
     AgentRecord,
     AgentRegistrationPayload,
     AgentStatus,
+    EvidenceIngestRequest,
+    EvidenceIngestResult,
+    EvidenceRecord,
+    FleetEvidencePosture,
     FleetStatusSummary,
     HeartbeatPayload,
 )
+from agenticops_control_tower.models.evidence import EvidenceSource
 from agenticops_control_tower.models.version import VersionAssessment
 from agenticops_control_tower.registry import AgentRegistry
+
+MAX_EVIDENCE_BYTES = 1024 * 1024
 
 
 def create_app(
@@ -53,9 +69,12 @@ def create_app(
             registry,
             CapabilityDiscoveryService(),
             configuration_service=ConfigurationService(registry, database_path),
+            evidence_store=EvidenceStore(registry, database_path),
         )
     control_api = api
     app = FastAPI(title="AgenticOps Control Tower", version=__version__)
+    # Enforced in ASGI middleware so oversized or unsized bodies are never buffered.
+    app.add_middleware(BodySizeLimit, paths=frozenset({"/evidence"}), max_bytes=MAX_EVIDENCE_BYTES)
     bearer = HTTPBearer(auto_error=False)
 
     def authorize(credentials: HTTPAuthorizationCredentials | None, *, write: bool) -> None:
@@ -144,18 +163,63 @@ def create_app(
         except ValueError as exc:
             raise HTTPException(422, "Minimum version must be a valid PEP 440 version") from exc
 
-    @app.get("/agents/{agent_id}/evidence", dependencies=[Depends(read_access)])
-    def evidence_readiness(agent_id: str) -> dict[str, str]:
+    stale_after = Query(DEFAULT_STALE_AFTER_SECONDS, ge=1, le=MAX_STALE_AFTER_SECONDS)
+
+    @app.post(
+        "/evidence",
+        response_model=EvidenceIngestResult,
+        status_code=201,
+        dependencies=[Depends(write_access)],
+    )
+    def ingest_evidence(payload: EvidenceIngestRequest, response: Response) -> EvidenceIngestResult:
+        ingested_by = (
+            "http-writer" if (read_token or write_token or approval_token) else "anonymous"
+        )
         try:
-            control_api.get_agent(agent_id)
+            result = control_api.ingest_evidence(payload, ingested_by=ingested_by)
+        except AgentNotFoundError as exc:
+            raise HTTPException(404, f"unknown agent: {payload.link.agent_id}") from exc
+        except EvidenceIngestError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        if not result.created:
+            response.status_code = 200
+        return result
+
+    @app.get(
+        "/agents/{agent_id}/evidence",
+        response_model=AgentEvidencePosture,
+        dependencies=[Depends(read_access)],
+    )
+    def agent_evidence_posture(
+        agent_id: str, stale_after_seconds: int = stale_after
+    ) -> AgentEvidencePosture:
+        try:
+            return control_api.agent_posture(agent_id, stale_after_seconds=stale_after_seconds)
         except AgentNotFoundError as exc:
             raise HTTPException(404, f"unknown agent: {agent_id}") from exc
-        return {
-            "agent_id": agent_id,
-            "availability": "unavailable",
-            "reason": "Evidence is not collected or persisted by this service. "
-            "Native artifact readers are available through the Python API.",
-        }
+
+    @app.get(
+        "/agents/{agent_id}/evidence/history",
+        response_model=list[EvidenceRecord],
+        dependencies=[Depends(read_access)],
+    )
+    def agent_evidence_history(
+        agent_id: str,
+        source: EvidenceSource | None = None,
+        limit: int = Query(50, ge=1, le=MAX_HISTORY_LIMIT),
+    ) -> list[EvidenceRecord]:
+        try:
+            return control_api.evidence_history(agent_id, source=source, limit=limit)
+        except AgentNotFoundError as exc:
+            raise HTTPException(404, f"unknown agent: {agent_id}") from exc
+
+    @app.get("/posture", response_model=FleetEvidencePosture, dependencies=[Depends(read_access)])
+    def fleet_posture(
+        environment: str | None = None, stale_after_seconds: int = stale_after
+    ) -> FleetEvidencePosture:
+        return control_api.fleet_posture(
+            environment=environment, stale_after_seconds=stale_after_seconds
+        )
 
     def configuration_operator(
         credentials: HTTPAuthorizationCredentials | None = Depends(bearer),

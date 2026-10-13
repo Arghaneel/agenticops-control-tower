@@ -3,6 +3,7 @@ plus the read-only inventory and capability surface."""
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from packaging.version import InvalidVersion, Version
@@ -10,6 +11,11 @@ from packaging.version import InvalidVersion, Version
 from agenticops_control_tower.adapters.evidence import summarize_evidence
 from agenticops_control_tower.config.service import ConfigurationService
 from agenticops_control_tower.discovery import CapabilityDiscoveryService
+from agenticops_control_tower.evidence import (
+    DEFAULT_STALE_AFTER_SECONDS,
+    EvidenceStore,
+    PostureService,
+)
 from agenticops_control_tower.models import (
     AgentRecord,
     AgentRegistrationPayload,
@@ -18,7 +24,16 @@ from agenticops_control_tower.models import (
     FleetStatusSummary,
     HeartbeatPayload,
 )
-from agenticops_control_tower.models.evidence import EvidenceLink, EvidenceSummary
+from agenticops_control_tower.models.evidence import (
+    AgentEvidencePosture,
+    EvidenceIngestRequest,
+    EvidenceIngestResult,
+    EvidenceLink,
+    EvidenceRecord,
+    EvidenceSource,
+    EvidenceSummary,
+    FleetEvidencePosture,
+)
 from agenticops_control_tower.models.version import VersionAssessment
 from agenticops_control_tower.registry import AgentRegistry
 from agenticops_control_tower.status import StatusService
@@ -33,8 +48,11 @@ class ControlTowerAPI:
         discovery: CapabilityDiscoveryService,
         status_service: StatusService | None = None,
         configuration_service: ConfigurationService | None = None,
+        evidence_store: EvidenceStore | None = None,
     ) -> None:
         self.config = configuration_service or ConfigurationService(registry)
+        self.evidence = evidence_store or EvidenceStore(registry)
+        self._posture = PostureService(self.evidence)
         self._registry = registry
         self._discovery = discovery
         self._status_service = status_service or StatusService(discovery)
@@ -95,10 +113,52 @@ class ControlTowerAPI:
         """Read attributed evidence without changing inventory or health.
 
         Unknown deployment IDs raise AgentNotFoundError. Missing or invalid
-        artifacts return unavailable. No evidence is persisted by this method.
+        artifacts return unavailable. Nothing is persisted; use ingest_evidence
+        to record history and posture.
         """
         self._registry.get(link.agent_id)
         return summarize_evidence(link, artifact, gate=gate)
+
+    def ingest_evidence(
+        self, request: EvidenceIngestRequest, *, ingested_by: str = "python"
+    ) -> EvidenceIngestResult:
+        """Persist an attributed projection; retries of one observation are idempotent."""
+        return self.evidence.ingest(request, ingested_by=ingested_by)
+
+    def evidence_history(
+        self,
+        agent_id: str,
+        *,
+        source: EvidenceSource | None = None,
+        limit: int | None = 50,
+    ) -> list[EvidenceRecord]:
+        return self.evidence.history(agent_id, source=source, limit=limit)
+
+    def agent_posture(
+        self,
+        agent_id: str,
+        *,
+        stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS,
+        now: datetime | None = None,
+    ) -> AgentEvidencePosture:
+        """Per-source evidence posture; reported health is included, never derived."""
+        return self._posture.agent(
+            self._registry.get(agent_id), now=now, stale_after_seconds=stale_after_seconds
+        )
+
+    def fleet_posture(
+        self,
+        *,
+        environment: str | None = None,
+        stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS,
+        now: datetime | None = None,
+    ) -> FleetEvidencePosture:
+        return self._posture.fleet(
+            self.list_agents(environment=environment),
+            environment=environment,
+            now=now,
+            stale_after_seconds=stale_after_seconds,
+        )
 
     def assess_versions(
         self, capability: str, minimum_version: str, *, environment: str | None = None

@@ -11,21 +11,22 @@ resolution-markers = [
 
 [[package]]
 name = "agentic-chaos"
-version = "0.4.0"
+version = "0.5.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "rich" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/f9/91be11ab22a861e7ee6134867654e018c8c5420c4bcbb2ba55ea325079ad/agentic_chaos-0.4.0.tar.gz", hash = "sha256:cdf86803e8d8d8f962ab5bce494b7cf84d6414f89d793698a999df27517c28d6", size = 200332, upload-time = "2026-08-16T04:45:08.965Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/6c/d4e5847a6eb08647148ec33342354d5bae18526a380db81d8acb371c0b5c/agentic_chaos-0.5.1.tar.gz", hash = "sha256:7a88294b26d4b4b520601e9e803ff2e6f5a4f4f294e846cdf65d5bcb38727b15", size = 287558, upload-time = "2026-10-13T18:39:57.075Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/ad/abdf581608e4e8471c742283972a02c316a98e1d42171f61877f3115ce03/agentic_chaos-0.4.0-py3-none-any.whl", hash = "sha256:4fd31854e6fbb4c0254f76bd6d139e2f4562645e411540f5a065e678c98fb57b", size = 43098, upload-time = "2026-08-16T04:45:07.614Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/8d/05588deda1c54cd30b4be9f7f9009bb1d800f4fb1208dadac1b7b47a8ec4/agentic_chaos-0.5.1-py3-none-any.whl", hash = "sha256:8b1a603800067a2d593a3bd591c2abb31e68bb96f427d9524d08f7ebdec6eb57", size = 58650, upload-time = "2026-10-13T18:39:55.769Z" },
 ]
 
 [[package]]
 name = "agentic-evals"
-version = "0.7.0"
+version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -33,9 +34,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "referencing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a5/9d/7dafcf0b6e9ee9ed95256980035a892091e4f2b1d2800192e456970c4a9a/agentic_evals-0.7.0.tar.gz", hash = "sha256:85e2605ebe83f40426af1a80e6c5b19c62d00f8e7103ae7de8f73bb74ef39418", size = 274337, upload-time = "2026-10-04T05:46:23.682Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/c4/8904c6f55178a79b67d3b564968c92c3d912b8f26d6255e52e9e5413a40b/agentic_evals-0.7.1.tar.gz", hash = "sha256:c78b16d51977fd61678fa7a115fa2871eef5376ff2337b65e086dde25467323c", size = 283028, upload-time = "2026-10-12T20:44:09.331Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/3d/e9ca6d9f91c76a6d549e6b99264daabb130ffd412e42261c9ba69cf373af/agentic_evals-0.7.0-py3-none-any.whl", hash = "sha256:06580bfb0587dfba49b9abf12d70de0d3c8a3a384fff92a0e1480ba097ec4b04", size = 73689, upload-time = "2026-10-04T05:46:22.2Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/b7/ad6d5678a10d5ae060b9ce292d188c92e67a6029987570175a6fa78c9d17/agentic_evals-0.7.1-py3-none-any.whl", hash = "sha256:e41e4b6b4f7cb50b9845afc4217f5e2516556edc107ffef431fad75044dc8fc5", size = 76781, upload-time = "2026-10-12T20:44:07.976Z" },
 ]
 
 [[package]]
@@ -55,9 +56,10 @@ wheels = [
 
 [[package]]
 name = "agenticlens"
-version = "0.5.0"
+version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "agentic-evals" },
     { name = "jsonschema" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -65,14 +67,14 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b8/ad/639b89b42a250260452fd26e99ea86abdbb3772cf5a9e83d352270d6327f/agenticlens-0.5.0.tar.gz", hash = "sha256:230476db723efd8d76db14a61d4c9c397866d9b7eedd977516659a246e3361ed", size = 1909706, upload-time = "2026-09-13T05:41:24.764Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5b/06/adb8a9ff9418a074813e4f4887ac96d8ba3507300a85a97433f5afd7ec00/agenticlens-0.6.1.tar.gz", hash = "sha256:455f7f1ff788b7c6ebe6aa44bfc1c88da48cf63be38a4ea33ab725a04bd18cac", size = 1983986, upload-time = "2026-10-13T18:39:16.661Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/02/b3042ea74d20ada38af491f631573615bc0742197712347907237bbbcf4d/agenticlens-0.5.0-py3-none-any.whl", hash = "sha256:9666e222233bea32839e2ae48f05520cd4f80def08960eee6d9cb810db70b333", size = 131196, upload-time = "2026-09-13T05:41:23.59Z" },
+    { url = "https://files.pythonhosted.org/packages/79/20/7425027946c4c41e5e5629cb018fcd789e174c22e29ff9a1758c68789278/agenticlens-0.6.1-py3-none-any.whl", hash = "sha256:cfde64c5e8589748adf4397709f5cb02f43cb7c9a0ac0f170ce0d0975c36b9ef", size = 159344, upload-time = "2026-10-13T18:39:15.107Z" },
 ]
 
 [[package]]
 name = "agenticops-control-tower"
-version = "0.4.0"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "packaging" },
@@ -114,12 +116,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agentic-chaos", marker = "extra == 'agentic-chaos'", specifier = ">=0.4,<1" },
+    { name = "agentic-chaos", marker = "extra == 'agentic-chaos'", specifier = ">=0.5,<1" },
     { name = "agentic-evals", marker = "extra == 'agentic-evals'", specifier = ">=0.7,<1" },
     { name = "agentic-sidecar", marker = "extra == 'agentic-sidecar'", specifier = ">=0.7,<1" },
-    { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.5,<1" },
+    { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.6,<1" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
-    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.1,<1" },
+    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.4,<1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'api'", specifier = ">=0.27,<1" },
@@ -758,7 +760,7 @@ wheels = [
 
 [[package]]
 name = "deep-agentic-core-mcp"
-version = "0.3.1"
+version = "0.3.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -766,9 +768,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "referencing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/07/0d/bae6ca072e00c8ea82dc5361f92b59ad0f491e26d9c29fc53e3047063d92/deep_agentic_core_mcp-0.3.1.tar.gz", hash = "sha256:1db4fd510acc7639fc890df892c5f978f9ed1c1fb913e7759a406e192874d068", size = 253101, upload-time = "2026-10-12T05:48:38.146Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/23/497fbe6067d6357a87519edeb3a29af078589c2deb0f0983d5ac4ce4f999/deep_agentic_core_mcp-0.3.4.tar.gz", hash = "sha256:ef6af73b53bac5dfbafe1fa87b58baa94d25c8324324c62105e7100e68b2e204", size = 276661, upload-time = "2026-10-13T19:26:46.337Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/50/0ac182ad5a0e1aa5f075d18e8c328fe8f8ec235443e47de4dd0ad7983cc2/deep_agentic_core_mcp-0.3.1-py3-none-any.whl", hash = "sha256:47f657fc2544e742c23c61e150cc0c55e81663f68acdd587cb9aa1a2aaf2b2df", size = 48579, upload-time = "2026-10-12T05:48:36.534Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/78/6b947ec7b7d239d2aee2ccc19a561ef03ce751802413862780b6a3190ea9/deep_agentic_core_mcp-0.3.4-py3-none-any.whl", hash = "sha256:04f7c7df2c3627ac5a39958f77bff91f1689aa6d532e052c3aa631f84c689ea8", size = 57853, upload-time = "2026-10-13T19:26:45.12Z" },
 ]
 
 [[package]]

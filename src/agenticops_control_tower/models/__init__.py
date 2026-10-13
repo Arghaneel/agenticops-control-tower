@@ -7,7 +7,18 @@ from .agent import (
     CapabilityInventoryRecord,
     HeartbeatPayload,
 )
-from .evidence import EvidenceLink, EvidenceSummary
+from .evidence import (
+    EVIDENCE_SOURCES,
+    AgentEvidencePosture,
+    EvidenceIngestRequest,
+    EvidenceIngestResult,
+    EvidenceLink,
+    EvidenceRecord,
+    EvidenceSummary,
+    FleetEvidencePosture,
+    FleetSourcePosture,
+    SourcePosture,
+)
 from .status import (
     AgentStatusSummary,
     CapabilityCoverageRecord,
@@ -19,18 +30,26 @@ from .status import (
 )
 
 __all__ = [
+    "EVIDENCE_SOURCES",
+    "AgentEvidencePosture",
     "AgentRecord",
     "AgentRegistrationPayload",
     "AgentStatusSummary",
     "AgentStatus",
     "CapabilityCoverageRecord",
     "CapabilityInventoryRecord",
+    "EvidenceIngestRequest",
+    "EvidenceIngestResult",
     "EvidenceLink",
+    "EvidenceRecord",
     "EvidenceSummary",
+    "FleetEvidencePosture",
     "FleetSnapshot",
+    "FleetSourcePosture",
     "FleetStatusSummary",
     "HeartbeatEvent",
     "HeartbeatPayload",
     "SnapshotAgentRegistration",
     "SnapshotHeartbeatPayload",
+    "SourcePosture",
 ]

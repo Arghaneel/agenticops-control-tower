@@ -6,7 +6,7 @@
 <script src="./assets/console.js" defer></script>
 </head>
 <body>
-<header><div><span class="eyebrow">DEEPAGENTLABS / OPERATIONS</span><h1>AgenticOps Console</h1></div><span class="tag">Read-only · v0.3</span></header>
+<header><div><span class="eyebrow">DEEPAGENTLABS / OPERATIONS</span><h1>AgenticOps Console</h1></div><span class="tag">Read-only · v0.5</span></header>
 <main>
 <section class="connection"><form id="connection"><label>Reader token <input id="token" type="password" autocomplete="off" placeholder="Required on protected servers"></label><button>Connect / refresh</button><button id="disconnect" type="button">Disconnect</button></form><p>Credentials stay in memory for this page. Health reflects reported status; heartbeat age does not change it.</p></section>
 <p id="message" role="status" aria-live="polite">Connect to load your fleet.</p>
@@ -24,7 +24,8 @@
 </form><p>Minimum versions are operator policy, not a claim about the latest release. Missing and unrecognized versions are shown separately.</p>
 <div class="table-scroll"><table><thead><tr><th>Agent</th><th>Environment / runtime</th><th>Reported health</th><th>Last heartbeat</th><th>Capabilities / versions</th><th>Version check</th></tr></thead><tbody id="agents"></tbody></table></div><p id="empty" hidden>No agents match these filters.</p></section>
 <section><h2>Capability coverage</h2><p>Coverage across the selected environment, independent of other inventory filters.</p><div id="coverage" class="coverage"></div></section>
-<section id="detail" hidden aria-live="polite"><h2 id="detail-title">Agent details</h2><pre id="detail-data"></pre><h3>Incident &amp; evidence readiness</h3><p id="evidence"></p><p>Incident detection, investigation, approval and remediation workflows are planned. No actions are available in this console.</p></section>
+<section><div class="section-heading"><h2>Ecosystem evidence posture</h2><span id="posture-window"></span></div><p>Freshness and native producer tallies from pushed Lens, Evals, Sidecar and Chaos evidence. Producer outcomes never change reported health; absent evidence stays missing.</p><div id="posture" class="coverage"></div></section>
+<section id="detail" hidden aria-live="polite"><h2 id="detail-title">Agent details</h2><pre id="detail-data"></pre><h3>Evidence posture</h3><p id="evidence"></p><div class="table-scroll"><table><thead><tr><th>Source</th><th>Freshness</th><th>Latest evidence</th><th>Recent window</th><th>Native tallies</th></tr></thead><tbody id="evidence-sources"></tbody></table></div><p>Incident detection, investigation, approval and remediation workflows are planned. No actions are available in this console.</p></section>
 </div>
 </main><footer>Inventory first. Evidence before conclusions.</footer>
 </body></html>

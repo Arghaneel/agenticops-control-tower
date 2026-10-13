@@ -29,6 +29,35 @@ def test_lens_native_run() -> None:
     assert result.details["status"] == "failed"
 
 
+def test_lens_failed_tool_span_correlation() -> None:
+    lens = pytest.importorskip("agenticlens")
+    from agenticlens.models.trace import RunStatus, Span, SpanType
+
+    span = Span(
+        name="lookup",
+        span_type=SpanType.TOOL_CALL,
+        tool_name="inventory_api",
+        status=RunStatus.FAILED,
+        error_type="TimeoutError",
+        error_message="upstream timed out",
+    )
+    run = lens.Run(application_name="app", status="failed", spans=[span])
+    link = EvidenceLink(
+        agent_id="a",
+        source="agenticlens",
+        source_version=lens.__version__,
+        artifact_type="run",
+        artifact_ref="run:" + run.run_id,
+        run_id=run.run_id,
+        observed_at=datetime.now(timezone.utc),
+    )
+    details = summarize_evidence(link, run.model_dump(mode="json")).details
+    assert details["trace_id"] == run.trace_id
+    assert details["tool_names"] == ["inventory_api"]
+    assert details["failed_spans"][0]["span_id"] == span.span_id
+    assert details["failed_spans"][0]["error_type"] == "TimeoutError"
+
+
 def test_evals_report_and_gate() -> None:
     evals = pytest.importorskip("agentic_evals")
     from agentic_evals.models import EvaluationReport, EvaluationSummary
@@ -146,3 +175,22 @@ def test_sidecar_v07_runtime_journal_native_decision(status):
     assert result.details["causal_link"] == "plan"
     assert result.details["status"] == status
     assert api.get_status().healthy_agents == 1
+
+
+def test_sidecar_v07_journal_export_extraction() -> None:
+    sidecar = pytest.importorskip("agentic_sidecar")
+    if not hasattr(sidecar, "TaskRuntime"):
+        pytest.skip("Sidecar v0.7 runtime is not installed")
+    import json
+
+    from agenticops_control_tower.adapters import sidecar_journal_decisions
+
+    runtime = sidecar.Sidecar(on_sidecar_failure="fail_closed", mode="govern")
+    runtime.before_tool_call(
+        lambda context: sidecar.Decision(status="BLOCK", risk="HIGH", reason="Fixture")
+    )
+    decision = runtime.evaluate(sidecar.DecisionContext(tool_name="refund"))
+    exported = json.dumps(runtime.runtime.journal.export(), default=str)
+    entries = sidecar_journal_decisions(exported)
+    assert [entry.decision["decision_id"] for entry in entries] == [decision.decision_id]
+    assert entries[0].decision["status"] == "BLOCK"

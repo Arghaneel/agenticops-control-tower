@@ -7,6 +7,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from .agent import AgentId, AgentStatus
+from .evidence import EvidenceIngestRequest
 
 
 class CapabilityCoverageRecord(BaseModel):
@@ -86,3 +87,4 @@ class FleetSnapshot(BaseModel):
     captured_at: datetime
     registrations: list[SnapshotAgentRegistration] = Field(default_factory=list)
     heartbeats: list[HeartbeatEvent] = Field(default_factory=list)
+    evidence: list[EvidenceIngestRequest] = Field(default_factory=list)

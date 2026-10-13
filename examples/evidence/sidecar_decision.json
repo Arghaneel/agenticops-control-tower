@@ -1,0 +1,7 @@
+{
+  "decision_id": "pay-0815-01-d1",
+  "status": "ESCALATE",
+  "risk": "HIGH",
+  "reason": "Refund above automatic limit",
+  "escalation_required": true
+}

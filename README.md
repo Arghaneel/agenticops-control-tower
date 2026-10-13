@@ -7,12 +7,42 @@
 
 ## Status
 
-**Current version: 0.4.0. v0.1–v0.4 are implemented.** The registry,
+**Current version: 0.5.0. v0.1–v0.5 are implemented.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
-The read-only web console is served at `/console/`. See [ROADMAP.md](ROADMAP.md) for published milestone status,
+Tower-owned configuration uses approved actions, and pushed Lens, Evals, Sidecar
+and Chaos evidence is stored and shown as posture. The read-only web console is
+served at `/console/`. See [ROADMAP.md](ROADMAP.md) for published milestone status,
 [implementation evidence and operational limits](ROADMAP.md#implementation-evidence-and-operational-limits),
 and the build plan.
+
+## Ecosystem evidence posture (v0.5)
+
+Producers or pipelines push native Lens runs, Evals reports and gates, Sidecar
+decisions and Chaos reports to Tower with an explicit deployment attribution.
+Tower stores the validated projection and reports, per deployment and per
+producer, whether evidence is **fresh, stale or missing**, plus counts of native
+outcomes (run status, failed tool names, gate results, decision outcomes and
+risk, chaos experiments). Retries are idempotent. Producer outcomes never
+change reported health, and Tower never recomputes a verdict.
+
+```bash
+agenticops-control-tower evidence ingest-manifest examples/evidence/manifest.json
+agenticops-control-tower evidence ingest payment-agent agenticlens run.json \
+  --source-version 0.6.1 --artifact-ref lens:run:r1 --run-id r1
+agenticops-control-tower evidence ingest-sidecar-journal payment-agent journal.json --source-version 0.7.0
+agenticops-control-tower evidence posture payment-agent
+agenticops-control-tower evidence history payment-agent --source agentic-sidecar
+agenticops-control-tower posture --environment production
+agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json posture
+```
+
+HTTP: `POST /evidence` (writer), `GET /agents/{id}/evidence`,
+`GET /agents/{id}/evidence/history` and `GET /posture` (reader). Python:
+`ingest_evidence`, `evidence_history`, `agent_posture` and `fleet_posture` on
+`ControlTowerAPI`; see `uv run python examples/push_ecosystem_evidence.py`.
+Collection is push-only; Tower never fetches artifact references. Read the
+[evidence posture guide](docs/evidence-posture.md) for rules, limits and storage.
 
 ## Controlled configuration (v0.4)
 
@@ -42,10 +72,11 @@ an optional minimum version to identify outdated installations using PEP 440;
 missing capabilities and invalid reported versions remain distinct. This minimum
 is your policy, not an inferred latest release. Refresh is manual.
 
-Select an agent to inspect details and incident/evidence readiness. Evidence is
-currently unavailable because the service does not collect or persist artifacts;
-native readers remain accessible through the Python API. Incident detection,
-RCA and remote remediation are planned. Configuration approvals are available through API/CLI.
+The **Ecosystem evidence posture** panel shows fresh, stale and missing
+evidence per producer for the selected environment. Select an agent to inspect
+details and its per-producer evidence: freshness, latest record, recent window
+and native tallies. Incident detection, RCA and remote remediation are planned.
+Configuration approvals are available through API/CLI.
 
 The public HTML shell contains no fleet data. Every data request uses the same
 reader/writer bearer authorization as API and CLI reads. Credentials are retained
@@ -54,8 +85,8 @@ clear the displayed inventory. Use HTTPS when serving bearer-authenticated
 traffic remotely. The console sends only GET requests.
 
 Additional read endpoints: `GET /versions?capability=agenticlens&minimum_version=0.5.0`
-(optionally `environment=staging`) and `GET /agents/{agent_id}/evidence` (readiness,
-not artifact contents). Version policy is also available as
+(optionally `environment=staging`), `GET /agents/{agent_id}/evidence` (per-producer
+posture) and `GET /posture` (fleet posture). Version policy is also available as
 `ControlTowerAPI.assess_versions(capability, minimum_version, environment=...)`.
 
 ## Generate access tokens and host your console
@@ -125,6 +156,9 @@ agenticops-control-tower status
 agenticops-control-tower agents list --unhealthy
 agenticops-control-tower agents list --environment staging --missing-capability agentic-sidecar
 agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json status
+# Push native producer evidence and read posture (v0.5)
+agenticops-control-tower evidence ingest-manifest examples/evidence/manifest.json
+agenticops-control-tower posture
 ```
 
 `AGENTICOPS_TOKEN` authenticates the CLI. Reader tokens permit GET routes;
@@ -222,9 +256,10 @@ dashboard is only one interface to the underlying control plane.
   assuming one execution model.
 - **Not the full architecture yet.** The concept doc describes a broader end
   state than what's built so far — see [Status](#status) for what's real
-  today (registry, discovery, HTTP API, CLI, read-only console) versus [ROADMAP.md](ROADMAP.md)
-  for the narrowed build order still ahead (remote configuration, MCP connector,
-  bulk operations).
+  today (registry, discovery, HTTP API, CLI, read-only console, approved
+  desired configuration, evidence posture) versus [ROADMAP.md](ROADMAP.md)
+  for the narrowed build order still ahead (MCP connector and investigation
+  copilot, incident workflows, bulk operations, runbooks).
 
 ## Architecture
 
@@ -365,7 +400,7 @@ The first usable version should likely prove four things only:
 
 That core is implemented as a Python API with optional SQLite storage.
 
-## Current `v0.3` Surface
+## Current `v0.5` Surface
 
 The package currently exposes:
 
@@ -376,6 +411,11 @@ The package currently exposes:
 - `list_capabilities()`
 - `get_agent_capabilities(agent_id)`
 - `get_status(...)`
+- `assess_versions(capability, minimum_version, ...)`
+- `config` (desired configuration, actions and audit)
+- `summarize_evidence(link, artifact, gate=...)` (no storage)
+- `ingest_evidence(request)`, `evidence_history(agent_id, ...)`
+- `agent_posture(agent_id, ...)`, `fleet_posture(...)`
 
 The operator CLI is now available as:
 
@@ -383,6 +423,9 @@ The operator CLI is now available as:
 - `agenticops-control-tower agents get <agent-id>`
 - `agenticops-control-tower capabilities list`
 - `agenticops-control-tower status`
+- `agenticops-control-tower config|audit|actions ...`
+- `agenticops-control-tower evidence ingest|ingest-manifest|ingest-sidecar-journal|history|posture ...`
+- `agenticops-control-tower posture`
 
 The CLI talks to the HTTP API or reads a fleet snapshot with `--snapshot`.
 Both paths use the same status and inventory model.
@@ -391,7 +434,8 @@ Example registration payloads are included for two runtime styles:
 
 - [`examples/sample_agent_registration.json`](examples/sample_agent_registration.json)
 - [`examples/sample_agent_registration_container.json`](examples/sample_agent_registration_container.json)
-- [`examples/sample_fleet_snapshot.json`](examples/sample_fleet_snapshot.json)
+- [`examples/sample_fleet_snapshot.json`](examples/sample_fleet_snapshot.json) (includes evidence)
+- [`examples/evidence/manifest.json`](examples/evidence/manifest.json) (native producer artifacts)
 
 That is enough to validate the control-plane idea without pretending the full
 dashboard, configuration orchestration, and cross-agent operations engine
@@ -404,8 +448,8 @@ should be:
 
 - start with a narrow registry and discovery core
 - add a real control API and CLI before building the dashboard
-- surface Lens, Sidecar, and Chaos data gradually rather than simulating a
-  complete integration layer
+- surface Lens, Evals, Sidecar, and Chaos data gradually rather than simulating a
+  complete integration layer (v0.5 adds pushed evidence posture)
 - add MCP connectivity to Control Tower after the underlying control surfaces
   are real
 
@@ -421,9 +465,10 @@ to an existing registered deployment. The result preserves producer outcomes
 and never changes fleet health. Invalid, unsupported or missing artifacts
 return `unavailable`; unknown deployment IDs raise `AgentNotFoundError`.
 
-These are local artifact readers, without remote collection, evidence storage,
-HTTP posture routes, or console integration. Phase v0.5 remains partial.
-AIOS is draft; native artifacts and Tower's link contract do not establish
+v0.5 adds push-based ingestion, durable history and posture views across
+Python, HTTP, CLI, snapshots and the console; see
+[evidence posture](docs/evidence-posture.md). Pull collection from producer
+services is not implemented. AIOS is draft; native artifacts and Tower's link contract do not establish
 AIOS conformance. See [the evidence contract](docs/ecosystem-alignment.md) and
 [the runnable example](examples/inspect_ecosystem_evidence.py).
 
@@ -431,7 +476,7 @@ AIOS conformance. See [the evidence contract](docs/ecosystem-alignment.md) and
 ### Console DOM acceptance checks
 
 Python console/API checks run with `make check`. Optional Node DOM checks exercise
-rendering, safe text handling, filtering, details, credential retention on refresh,
+rendering, safe text handling, filtering, evidence posture, details, credential retention on refresh,
 failed-refresh clearing, disconnect and read-only network requests:
 
 ```bash

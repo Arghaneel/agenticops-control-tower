@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "run_id": "pay-0815-01",
+  "trace_id": "trace-pay-0815-01",
+  "application_name": "payment-agent",
+  "status": "failed",
+  "started_at": "2026-08-15T11:39:58Z",
+  "completed_at": "2026-08-15T11:40:00Z",
+  "error_type": "DependencyUnavailable",
+  "spans": [
+    {
+      "span_id": "plan-1",
+      "name": "plan refund",
+      "span_type": "planning",
+      "status": "succeeded"
+    },
+    {
+      "span_id": "tool-1",
+      "parent_span_id": "plan-1",
+      "name": "charge card",
+      "span_type": "tool_call",
+      "tool_name": "payments_api",
+      "status": "failed",
+      "error_type": "ConnectionError"
+    }
+  ]
+}
