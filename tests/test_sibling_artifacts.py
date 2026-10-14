@@ -198,7 +198,9 @@ def test_sidecar_v07_journal_export_extraction() -> None:
 
 def test_lens_native_diagnosis_report() -> None:
     lens = pytest.importorskip("agenticlens")
-    diagnosis = pytest.importorskip("agenticlens.diagnosis")
+    # Not importorskip: the agenticlens extra requires >=0.7, so a missing
+    # diagnosis package is an incompatibility this test must report.
+    from agenticlens import diagnosis
     from agenticlens.models.trace import RunStatus, Span, SpanType
 
     span = Span(
