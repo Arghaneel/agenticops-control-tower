@@ -203,3 +203,33 @@ def test_errors_and_snapshot_rejection(
                 "m",
             ]
         )
+
+
+def test_ingest_detects_lens_diagnosis_reports(
+    api_client: TestClient, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    sample = Path(__file__).resolve().parents[1] / "examples" / "evidence" / "lens_diagnosis.json"
+    artifact = json.loads(sample.read_text(encoding="utf-8"))
+    result = run_cli(
+        [
+            "evidence",
+            "ingest",
+            "payments",
+            "agenticlens",
+            str(sample),
+            "--source-version",
+            "0.7.0",
+            "--artifact-ref",
+            "lens:diagnosis:1",
+            "--run-id",
+            artifact["run_id"],
+            "--observed-at",
+            OBSERVED,
+        ],
+        api_client,
+        capsys,
+    )
+    summary = result["record"]["summary"]  # type: ignore[index]
+    assert summary["link"]["artifact_type"] == "diagnosis_report"
+    assert summary["availability"] == "available"
+    assert summary["details"]["attribution"]["faulty_step"] == "issue_refund"
