@@ -24,6 +24,8 @@ Released 2026-10-13.
 
 - Sample registrations and heartbeats report `agenticlens` 0.7.0. Checked
   against Lens 0.7.0 and Chaos 0.5.3.
+- The optional `agenticlens` extra requires `>=0.7`; the lock resolves Lens
+  0.7.0 and Chaos 0.5.3, so the ecosystem CI job tests the diagnosis reader.
 
 ## 0.5.0
 
