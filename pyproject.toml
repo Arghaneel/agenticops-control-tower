@@ -33,7 +33,7 @@ agentic-evals = [
 # Producer packages are optional. Native JSON artifact readers do not import
 # siblings; these extras let callers generate artifacts in the same environment.
 agenticlens = [
-  "agenticlens>=0.6,<1",
+  "agenticlens>=0.7,<1",
 ]
 agentic-sidecar = [
   "agentic-sidecar>=0.7,<1",
