@@ -29,14 +29,15 @@ join records by display name, application name, suite name or framework.
 
 - `contract_version`: Tower link version, currently `1.0`.
 - `source` and `source_version`: producer package and caller-reported version.
-- `artifact_type`: native `run`, `evaluation_report`, `decision`, or `chaos_report`.
+- `artifact_type`: native `run` or `diagnosis_report` (Lens), `evaluation_report`,
+  `decision`, or `chaos_report`.
 - `artifact_ref`: caller-owned stable artifact identifier/location. Tower neither
   fetches nor opens this reference. Sidecar Decisions and Evals Reports lack a
   universal artifact ID, so the producer/caller supplies one.
 - `observed_at`: when the caller observed this evidence, distinct from source
   execution/creation timestamps.
-- `run_id`: optional execution correlation. For a native Lens Run it must match
-  the artifact's `run_id`; other producers' correlations are caller assertions.
+- `run_id`: optional execution correlation. For a native Lens Run or Lens
+  diagnosis report it must match the artifact's `run_id`; other producers' correlations are caller assertions.
 - `runtime_agent_id`: optional runtime occurrence identity, separate from the
   deployment ID. Caller asserts the mapping; Tower does not infer it.
 - `spec_version`: reserved for an explicit future AIOS mapping. Supplying it

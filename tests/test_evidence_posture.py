@@ -164,6 +164,13 @@ def test_native_tallies_count_producer_values_without_recomputing() -> None:
     assert lens.recent_unavailable == 1
     assert lens.summary == {
         "status_counts": {"running": 0, "succeeded": 1, "failed": 1},
+        "attribution_counts": {
+            "attributed": 0,
+            "recovered": 0,
+            "unattributed": 0,
+            "no_failure": 0,
+        },
+        "faulty_agents": [],
         "failed_tool_names": ["payments_api"],
     }
     assert result["agentic-evals"].summary["gate_counts"] == {

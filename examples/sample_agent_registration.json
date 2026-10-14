@@ -6,7 +6,7 @@
   "framework": "langgraph",
   "status": "unknown",
   "capabilities": {
-    "agenticlens": "0.5.0",
+    "agenticlens": "0.7.0",
     "agentic-evals": "0.7.0",
     "agentic-sidecar": "0.6.0",
     "agentic-chaos": "0.4.0",

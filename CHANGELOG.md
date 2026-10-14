@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## 0.5.1
+
+Released 2026-10-13.
+
+### Added
+
+- Native AgenticLens 0.7.0 diagnosis reports as Lens evidence
+  (`artifact_type: diagnosis_report`). The projection keeps run and trace IDs,
+  run status, task success, taxonomy and engine versions, diagnosis counts,
+  and Lens's attribution (status, faulty step and agent, category,
+  confidence). Diagnoses, span evidence and timelines stay in Lens.
+- Lens posture tallies `attribution_counts` and `faulty_agents` next to run
+  `status_counts`.
+- `evidence ingest` picks `diagnosis_report` automatically for Lens artifacts
+  with an `engine_version` field.
+- `examples/evidence/lens_diagnosis.json` sample and tests, including one
+  against the real `agenticlens.diagnosis` package.
+
+### Changed
+
+- Sample registrations and heartbeats report `agenticlens` 0.7.0. Checked
+  against Lens 0.7.0 and Chaos 0.5.3.
+- The optional `agenticlens` extra requires `>=0.7`; the lock resolves Lens
+  0.7.0 and Chaos 0.5.3, so the ecosystem CI job tests the diagnosis reader.
+
 ## 0.5.0
 
 Released 2026-10-13.

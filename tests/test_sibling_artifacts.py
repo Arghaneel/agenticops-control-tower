@@ -194,3 +194,33 @@ def test_sidecar_v07_journal_export_extraction() -> None:
     entries = sidecar_journal_decisions(exported)
     assert [entry.decision["decision_id"] for entry in entries] == [decision.decision_id]
     assert entries[0].decision["status"] == "BLOCK"
+
+
+def test_lens_native_diagnosis_report() -> None:
+    lens = pytest.importorskip("agenticlens")
+    # Not importorskip: the agenticlens extra requires >=0.7, so a missing
+    # diagnosis package is an incompatibility this test must report.
+    from agenticlens import diagnosis
+    from agenticlens.models.trace import RunStatus, Span, SpanType
+
+    span = Span(
+        name="charge",
+        span_type=SpanType.TOOL_CALL,
+        status=RunStatus.FAILED,
+        agent_name="billing",
+        error_type="TimeoutError",
+    )
+    run = lens.Run(application_name="app", status="failed", spans=[span])
+    report = diagnosis.diagnose_run(run)
+    link = EvidenceLink(
+        agent_id="a",
+        source="agenticlens",
+        source_version=lens.__version__,
+        artifact_type="diagnosis_report",
+        artifact_ref="diagnosis:" + run.run_id,
+        run_id=run.run_id,
+        observed_at=datetime.now(timezone.utc),
+    )
+    result = summarize_evidence(link, report.model_dump(mode="json"))
+    assert result.availability == "available"
+    assert result.details["attribution"]["faulty_agent"] == "billing"

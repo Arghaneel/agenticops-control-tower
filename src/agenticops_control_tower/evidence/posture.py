@@ -34,6 +34,7 @@ def validate_window(stale_after_seconds: int) -> None:
 
 
 _LENS_STATUSES = ("running", "succeeded", "failed")
+_LENS_ATTRIBUTIONS = ("attributed", "recovered", "unattributed", "no_failure")
 _SIDECAR_STATUSES = ("ALLOW", "WARN", "BLOCK", "CHALLENGE", "REPLAN", "PAUSE", "ESCALATE")
 _SIDECAR_RISKS = ("LOW", "MEDIUM", "HIGH")
 
@@ -49,8 +50,22 @@ def native_tallies(source: EvidenceSource, records: list[EvidenceRecord]) -> dic
     """Count native outcomes in available projections for one source."""
     details = [r.summary.details for r in records if r.summary.availability == "available"]
     if source == "agenticlens":
+        diagnoses = [d for d in details if "attribution" in d]
         return {
-            "status_counts": _count((d["status"] for d in details), _LENS_STATUSES),
+            # Run projections carry `status`; diagnosis projections carry `run_status`.
+            "status_counts": _count(
+                (str(d.get("status") or d.get("run_status")) for d in details), _LENS_STATUSES
+            ),
+            "attribution_counts": _count(
+                (d["attribution"]["status"] for d in diagnoses), _LENS_ATTRIBUTIONS
+            ),
+            "faulty_agents": sorted(
+                {
+                    d["attribution"]["faulty_agent"]
+                    for d in diagnoses
+                    if d["attribution"].get("faulty_agent")
+                }
+            ),
             "failed_tool_names": sorted(
                 {
                     span["tool_name"]

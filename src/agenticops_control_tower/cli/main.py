@@ -155,14 +155,20 @@ def _post_evidence(client: httpx.Client, body: dict[str, Any]) -> dict[str, Any]
     return result
 
 
-def _link(args: argparse.Namespace, source: str, artifact_ref: str, observed_at: str) -> Any:
-    from agenticops_control_tower.adapters.evidence import ARTIFACT_TYPES
+def _link(
+    args: argparse.Namespace,
+    source: str,
+    artifact_ref: str,
+    observed_at: str,
+    artifact: dict[str, Any] | None = None,
+) -> Any:
+    from agenticops_control_tower.adapters.evidence import artifact_type_for
 
     link = {
         "agent_id": args.agent_id,
         "source": source,
         "source_version": args.source_version,
-        "artifact_type": ARTIFACT_TYPES[source],
+        "artifact_type": artifact_type_for(source, artifact),
         "artifact_ref": artifact_ref,
         "observed_at": observed_at,
     }
@@ -183,9 +189,12 @@ def _cmd_evidence(args: argparse.Namespace, client: httpx.Client) -> int:
 
     command = args.evidence_command
     if command == "ingest":
+        artifact = _load_payload(args.artifact_file)
         body = {
-            "link": _link(args, args.source, args.artifact_ref, args.observed_at or _now()),
-            "artifact": _load_payload(args.artifact_file),
+            "link": _link(
+                args, args.source, args.artifact_ref, args.observed_at or _now(), artifact
+            ),
+            "artifact": artifact,
             "gate": _load_payload(args.gate) if args.gate else None,
         }
         _print_json(_post_evidence(client, body))

@@ -9,7 +9,7 @@
       "framework": "langgraph",
       "status": "unknown",
       "capabilities": {
-        "agenticlens": "0.5.0",
+        "agenticlens": "0.7.0",
         "agentic-sidecar": "0.6.0"
       },
       "runtime_metadata": {
@@ -29,7 +29,7 @@
       "framework": "openai-agents",
       "status": "unknown",
       "capabilities": {
-        "agenticlens": "0.5.0"
+        "agenticlens": "0.7.0"
       },
       "runtime_metadata": {
         "python_version": "3.11",

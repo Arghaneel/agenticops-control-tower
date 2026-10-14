@@ -21,7 +21,9 @@ class EvidenceLink(BaseModel):
     agent_id: str = Field(min_length=1)
     source: EvidenceSource
     source_version: str = Field(min_length=1)
-    artifact_type: Literal["run", "evaluation_report", "decision", "chaos_report"]
+    artifact_type: Literal[
+        "run", "diagnosis_report", "evaluation_report", "decision", "chaos_report"
+    ]
     artifact_ref: str = Field(min_length=1)
     observed_at: datetime
     run_id: str | None = None
