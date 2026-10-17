@@ -121,7 +121,7 @@ requires-dist = [
     { name = "agentic-sidecar", marker = "extra == 'agentic-sidecar'", specifier = ">=0.7,<1" },
     { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.7,<1" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
-    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.5,<1" },
+    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.6,<1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'api'", specifier = ">=0.27,<1" },
@@ -760,7 +760,7 @@ wheels = [
 
 [[package]]
 name = "deep-agentic-core-mcp"
-version = "0.3.5"
+version = "0.3.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -768,9 +768,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "referencing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/99/7d2bb9be13188263c95b05c2bc603e5d342b5285cd3dba0540cfefdd284a/deep_agentic_core_mcp-0.3.5.tar.gz", hash = "sha256:fe164314ada1236092671a03cfa75e5416e25b42a78913bd9fa0dbed014f68e0", size = 280029, upload-time = "2026-10-14T00:00:44.612Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/30/447ea79e43ba699250ed5ff2a470179c767dd978088dec062127b0daad21/deep_agentic_core_mcp-0.3.6.tar.gz", hash = "sha256:78895443193153dcb7060e95697e5ad29d9f94d9418b57586dcfe8d4cd823ba3", size = 287510, upload-time = "2026-10-17T06:20:21.953Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/69/163beb7b4fc4002b8a04bd68f034d3510a0522789c428d5a5262ed8560d5/deep_agentic_core_mcp-0.3.5-py3-none-any.whl", hash = "sha256:34f6653a4b60d85ba7f2f148691c0277ce7025f4785f387498449ed7d0d0d448", size = 59299, upload-time = "2026-10-14T00:00:43.127Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/a3/7d29f7e85902112b5100b1233f3c4a01bb8b75e09c981131bc97571a8571/deep_agentic_core_mcp-0.3.6-py3-none-any.whl", hash = "sha256:3c9349029fc5f889a77ded8b4456ba897d4dcdafef101e710de2ef4512957d88", size = 64499, upload-time = "2026-10-17T06:20:20.201Z" },
 ]
 
 [[package]]
