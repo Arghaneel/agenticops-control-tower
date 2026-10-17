@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -10,6 +11,7 @@ from hashlib import sha256
 from threading import RLock
 from uuid import uuid4
 
+from agenticops_control_tower.adapters.containment import SidecarContainmentAdapter
 from agenticops_control_tower.config.models import Operator
 from agenticops_control_tower.evidence.store import EvidenceStore, as_utc
 from agenticops_control_tower.incidents.connectors import RecoveryConnector
@@ -38,10 +40,12 @@ class IncidentService:
         evidence: EvidenceStore,
         database_path: str | None = None,
         connectors: dict[str, RecoveryConnector] | None = None,
+        containment: dict[str, SidecarContainmentAdapter] | None = None,
     ) -> None:
         self.registry = registry
         self.evidence = evidence
         self.connectors = dict(connectors or {})
+        self.containment = dict(containment or {})
         self._path = database_path
         self._memory = sqlite3.connect(":memory:", check_same_thread=False)
         self._lock = RLock()
@@ -321,10 +325,19 @@ class IncidentService:
             and lens.summary.details.get("status") == "succeeded"
             and lens.summary.details.get("task_success") is True
             and bool(run_id)
+            and run_id != incident.detection.summary.details.get("run_id")
             and evals.summary.link.run_id == run_id
             and evals.summary.link.source == "agentic-evals"
             and (evals.summary.details.get("gate") or {}).get("passed") is True
         )
+        contradictory = any(
+            r.summary.link.run_id == run_id
+            and r.summary.link.source == "agenticlens"
+            and r.summary.availability == "available"
+            and r.summary.details.get("status") == "failed"
+            for r in self.evidence.history(incident.agent_id, limit=500)
+        )
+        valid = valid and not contradictory
         connector = self.connectors.get(incident.agent_id)
         try:
             probe = connector is not None and connector.probe(incident.plan)
@@ -340,6 +353,52 @@ class IncidentService:
                 "verification." + incident.state,
                 operator,
                 f"Lens={lens_id}; Evals={evals_id}; probe={probe}; criteria={bool(valid)}",
+            )
+            self._save(db, incident)
+            return incident
+
+    def control(self, incident_id: str, action: str, operator: Operator) -> Incident:
+        """Human writer stop/restart; stop does not depend on model approval."""
+        if action not in ("stop", "restart"):
+            raise IncidentError("Unsupported runtime control")
+        incident = self.get(incident_id, operator)
+        self._authorize(operator, incident.agent_id, "writer")
+        adapter = self.containment.get(incident.agent_id)
+        with self._transaction() as db:
+            incident = self._load(db, incident_id)
+            self._event(incident, "control." + action + ".requested", operator)
+            self._save(db, incident)
+        try:
+            receipt = adapter.control(action, operator.operator_id) if adapter else None
+        except Exception:
+            receipt = None
+        with self._transaction() as db:
+            incident = self._load(db, incident_id)
+            self._event(
+                incident,
+                "control."
+                + action
+                + "."
+                + ("acknowledged" if receipt else "unsupported_or_failed"),
+                operator,
+                json.dumps(receipt) if receipt else "No confirmed runtime acknowledgement",
+            )
+            self._save(db, incident)
+            return incident
+
+    def reconcile(self, incident_id: str, operator: Operator) -> Incident:
+        """Escalate an interrupted execution without replaying its runtime action."""
+        with self._transaction() as db:
+            incident = self._load(db, incident_id)
+            self._authorize(operator, incident.agent_id, "writer")
+            if incident.state != "executing":
+                raise IncidentError("Only unknown interrupted execution requires reconciliation")
+            incident.state = "escalated"
+            self._event(
+                incident,
+                "execution.reconciliation_required",
+                operator,
+                "Host must reconcile runtime; action remains consumed and cannot replay",
             )
             self._save(db, incident)
             return incident

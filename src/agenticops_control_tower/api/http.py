@@ -398,6 +398,24 @@ def create_app(
         except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
             raise HTTPException(409, str(exc)) from exc
 
+    @app.post("/incidents/{incident_id}/control/{action}")
+    def incident_control(
+        incident_id: str, action: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.control(incident_id, action, operator)
+        except IncidentError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/reconcile")
+    def incident_reconcile(
+        incident_id: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.reconcile(incident_id, operator)
+        except IncidentError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
     @app.get("/console", include_in_schema=False)
     def console_redirect() -> RedirectResponse:
         return RedirectResponse("./console/")
