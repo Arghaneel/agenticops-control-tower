@@ -700,3 +700,30 @@ Published Evals 0.7.2 report and gate schemas are now enforced in the native
 consumer paths. Validation runs offline using bundled upstream contracts;
 invalid artifacts fail with field-level diagnostics. Native verdicts and
 AIOS conformance remain distinct. See [behavior, examples and migration](docs/evals-report-contract.md).
+
+Agentic Evals 0.7.2 publishes native report (`schema_version: "1.0"`) and
+gate-decision JSON Schemas, with offline `report_schema()` and
+`gate_decision_schema()` accessors. Contract 1.x evolves additively; readers
+should tolerate unknown fields. Tower continues to read native report/gate fields and display the producer verdict. Schema validation does not recompute a gate or establish evidence integrity.
+
+See the [contract, examples and compatibility policy](https://github.com/DeepAgentLabs/agentic-evals/blob/main/docs/report-contract.md). Existing dependency
+ranges remain sufficient; using the new accessors directly requires
+`agentic-evals>=0.7.2`. This documentation alignment needs no sibling patch release.
+
+## AgenticLens 0.8.0 suite management
+
+AgenticLens 0.8.0 delivers its v0.6 milestone: `agenticlens.suites` and
+`agenticlens suite` build regression suites from CSV/JSON imports, production
+traces and user feedback. It masks PII by default before storage (`--no-mask`
+opts out), detects duplicates and
+conflicting labels, adds synthetic variations and stable splits, records
+reviews, and approves suites into immutable, hash-verified versions that CI
+verifies, exports and evaluates. Suites stay plain agentic-evals `TestSuite`
+files.
+
+Tower's native readers are unchanged. Lens 0.8.0 is inside Tower's
+`agenticlens>=0.7,<1` extra. Approved suite versions are Lens-local
+artifacts, not Tower evidence types; evaluation reports produced from them
+keep the native shape Tower already reads. No Tower release is needed.
+
+See the [suite management guide](https://github.com/DeepAgentLabs/agenticlens/blob/v0.8.0/docs/suite-management.md).
