@@ -25,6 +25,14 @@ from agenticops_control_tower.evidence import (
     EvidenceIngestError,
     EvidenceStore,
 )
+from agenticops_control_tower.incidents import IncidentError, IncidentService
+from agenticops_control_tower.incidents.models import (
+    DecisionRequest,
+    DetectionRequest,
+    ExecuteRequest,
+    PlanRequest,
+    VerificationRequest,
+)
 from agenticops_control_tower.models import (
     AgentEvidencePosture,
     AgentRecord,
@@ -65,11 +73,13 @@ def create_app(
         raise ValueError("Approval token must differ from reader and writer tokens")
     if api is None:
         registry = AgentRegistry(database_path)
+        evidence = EvidenceStore(registry, database_path)
         api = ControlTowerAPI(
             registry,
             CapabilityDiscoveryService(),
             configuration_service=ConfigurationService(registry, database_path),
-            evidence_store=EvidenceStore(registry, database_path),
+            evidence_store=evidence,
+            incident_service=IncidentService(registry, evidence, database_path),
         )
     control_api = api
     app = FastAPI(title="AgenticOps Control Tower", version=__version__)
@@ -298,6 +308,94 @@ def create_app(
         except AgentNotFoundError as exc:
             raise HTTPException(404, str(exc)) from exc
         except ConfigurationError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/incidents")
+    def list_incidents(operator: Operator = Depends(configuration_operator)) -> object:
+        return control_api.incidents.list(operator)
+
+    @app.post("/incidents/detect")
+    def detect_incident(
+        request: DetectionRequest, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.detect(request.agent_id, request.evidence_id, operator)
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/incidents/{incident_id}")
+    def incident_get(
+        incident_id: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.get(incident_id, operator)
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/investigate")
+    def incident_investigate(
+        incident_id: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.investigate(incident_id, operator)
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/preview")
+    def incident_preview(
+        incident_id: str, request: PlanRequest, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.preview(
+                incident_id, request.dependency, request.expires_in_seconds, operator
+            )
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/approval")
+    def incident_decide(
+        incident_id: str,
+        request: DecisionRequest,
+        operator: Operator = Depends(configuration_operator),
+    ) -> object:
+        try:
+            return control_api.incidents.decide(
+                incident_id, request.preview_digest, request.approved, operator
+            )
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/revoke")
+    def incident_revoke(
+        incident_id: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.incidents.revoke(incident_id, operator)
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/execute")
+    def incident_execute(
+        incident_id: str,
+        request: ExecuteRequest,
+        operator: Operator = Depends(configuration_operator),
+    ) -> object:
+        try:
+            return control_api.incidents.execute(incident_id, request.preview_digest, operator)
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/incidents/{incident_id}/verify")
+    def incident_verify(
+        incident_id: str,
+        request: VerificationRequest,
+        operator: Operator = Depends(configuration_operator),
+    ) -> object:
+        try:
+            return control_api.incidents.verify(
+                incident_id, request.lens_evidence_id, request.evals_evidence_id, operator
+            )
+        except (IncidentError, EvidenceIngestError, AgentNotFoundError) as exc:
             raise HTTPException(409, str(exc)) from exc
 
     @app.get("/console", include_in_schema=False)
