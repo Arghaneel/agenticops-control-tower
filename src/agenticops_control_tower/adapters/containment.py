@@ -41,15 +41,30 @@ class SidecarContainmentAdapter:
         receipt = self._runtime.control(action, actor)
         running = receipt.get("running", [])
         revocations = receipt.get("revocations", {})
-        acknowledged = (
-            action == "stop"
-            and receipt.get("action") == "stop"
-            and revocations.get("mcp") is True
-            and receipt.get("access_revocation") == "acknowledged"
-        )
+        matches = receipt.get("action") == action
+        outcome = "failed"
+        if matches and action == "restart":
+            outcome = "acknowledged"
+        elif matches and action == "stop":
+            if "mcp" not in revocations:
+                outcome = "unsupported"
+            elif (
+                revocations["mcp"] is not True or receipt.get("access_revocation") != "acknowledged"
+            ):
+                outcome = "failed"
+            elif running:
+                outcome = "incomplete"
+            else:
+                outcome = "acknowledged"
         return {
             "action": action,
-            "dispatch_blocking": "acknowledged" if action == "stop" else "restart_acknowledged",
+            "outcome": outcome,
+            "dispatch_blocking": "acknowledged" if matches and action == "stop" else "not_asserted",
+            "restart_acknowledgement": "acknowledged"
+            if matches and action == "restart"
+            else "failed"
+            if action == "restart"
+            else "not_requested",
             "mcp_revocation": "acknowledged"
             if revocations.get("mcp") is True
             else "failed"
@@ -58,6 +73,8 @@ class SidecarContainmentAdapter:
             "in_flight": running,
             "downstream_credentials": "unsupported",
             "containment": "boundary_acknowledged"
-            if acknowledged and not running
-            else "incomplete",
+            if action == "stop" and outcome == "acknowledged"
+            else "incomplete"
+            if action == "stop"
+            else "not_asserted",
         }

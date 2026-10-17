@@ -371,6 +371,13 @@ class IncidentService:
         outcome = "unsupported" if adapter is None else "acknowledged"
         try:
             receipt = adapter.control(action, operator.operator_id) if adapter else None
+            if receipt is not None:
+                reported = receipt.get("outcome")
+                outcome = (
+                    reported
+                    if reported in ("acknowledged", "failed", "unsupported", "incomplete")
+                    else "failed"
+                )
         except Exception:
             receipt = None
             outcome = "failed"

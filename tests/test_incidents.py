@@ -503,3 +503,71 @@ def test_control_separates_failed_from_unsupported(setup):
         service.control(incident.incident_id, "stop", WRITER).events[-1].event
         == "control.stop.failed"
     )
+
+
+@pytest.mark.parametrize(
+    "receipt,outcome",
+    [
+        (
+            {
+                "action": "stop",
+                "running": [],
+                "revocations": {},
+                "access_revocation": "not_configured",
+            },
+            "unsupported",
+        ),
+        (
+            {
+                "action": "stop",
+                "running": [],
+                "revocations": {"mcp": False},
+                "access_revocation": "partial_failure",
+            },
+            "failed",
+        ),
+        (
+            {
+                "action": "stop",
+                "running": ["active-call"],
+                "revocations": {"mcp": True},
+                "access_revocation": "acknowledged",
+            },
+            "incomplete",
+        ),
+        (
+            {
+                "action": "restart",
+                "running": [],
+                "revocations": {"mcp": True},
+                "access_revocation": "acknowledged",
+            },
+            "failed",
+        ),
+    ],
+)
+def test_incomplete_containment_is_never_an_acknowledged_stop(setup, receipt, outcome):
+    from agenticops_control_tower.adapters.containment import SidecarContainmentAdapter
+
+    class Runtime:
+        def control(self, action, actor):
+            return receipt
+
+    _, _, service, _, _ = setup
+    incident = planned(setup)
+    service.containment["staging"] = SidecarContainmentAdapter(Runtime())
+    result = service.control(incident.incident_id, "stop", WRITER)
+    assert result.events[-1].event == "control.stop." + outcome
+    assert '"containment": "incomplete"' in result.events[-1].detail
+
+
+def test_restart_requires_matching_runtime_acknowledgement():
+    from agenticops_control_tower.adapters.containment import SidecarContainmentAdapter
+
+    class Runtime:
+        def control(self, action, actor):
+            return {"action": "stop"}
+
+    result = SidecarContainmentAdapter(Runtime()).control("restart", "operator")
+    assert result["outcome"] == "failed"
+    assert result["restart_acknowledgement"] == "failed"
