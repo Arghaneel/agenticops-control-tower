@@ -149,6 +149,6 @@ Tower consumes native Lens 0.7.1, Evals 0.7.1, Sidecar 0.8.0 and Chaos 0.5.3
 artifacts without raising producer floors. MCP 0.3.6 adds the local authenticated
 Tower connector. The first staging recovery example uses actual Lens runs and
 an Evals-computed gate; failed recovery escalates. Thin emergency control
-adapters are separate from the read-only native readers above. AIOS 0.5.1 remains
-draft and Tower incident/approval objects remain local. See
+adapters are separate from the read-only native readers above. `ai-operations-spec` catalog release 0.5.1 retains AIOS v0.4-draft
+schemas and Tower incident/approval objects remain local. See
 [the incident guide](incident-recovery.md) and [MCP setup](mcp-connector.md).

@@ -124,10 +124,11 @@ and checks authentication is no longer possible. Secrets remain host-owned and
 are never emitted to the incident. This adapter does not provision AWS resources.
 
 Stop requires a scoped writer and does not require approval from a model or
-agent. Tower records requested, acknowledged, failed and unsupported outcomes;
+agent. Tower records requested, acknowledged, failed, unsupported and incomplete outcomes;
 Sidecar owns dispatch blocking and performs its revocation callbacks. Only a
 confirmed MCP revocation plus Sidecar acknowledgement and no in-flight calls is
-reported as `boundary_acknowledged`. Downstream credentials remain `unsupported`;
+reported as `boundary_acknowledged`. Incomplete or failed containment is never
+recorded as an acknowledged command. Restart validates its own runtime response. Downstream credentials remain `unsupported`;
 this is not a claim of universal containment. Restart is a separate explicit
 operator operation, delegated to Sidecar's stopped/idle/revocation preconditions.
 A revoked MCP credential must be replaced by its issuer for future MCP access.
