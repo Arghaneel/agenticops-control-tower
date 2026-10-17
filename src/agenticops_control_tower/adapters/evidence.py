@@ -52,7 +52,7 @@ class _Attribution(BaseModel):
 class _Diagnosis(BaseModel):
     """AgenticLens 0.7.0+ `DiagnosisReport`; diagnoses, evidence and timeline stay in Lens."""
 
-    schema_version: Literal["1.0"]
+    schema_version: Literal["1.0", "1.1"]
     taxonomy_version: str
     engine_version: str
     run_id: str = Field(min_length=1)
