@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## 0.6.0
+
+Released 2026-10-17. Phase 6 and Phase 6A ship as one milestone.
+
+### Added
+
+- Durable evidence-led incidents, cited chronological investigation and explicit
+  uncertainty; contradictory same-run outcomes block runbook proposals.
+- One allowlisted deterministic staging dependency recovery runtime, exact-plan
+  digests, separate human approval, expiry/revocation and consumed execution claims.
+- Fresh Lens success, correlated passing Evals gate and probe-based recovery
+  verification, with failure escalation and interrupted-execution reconciliation.
+- Authenticated HTTP and CLI incident workflows; MCP 0.3.6 local query/proposal
+  tools and investigation prompt use the real Tower API with separate credentials.
+- Thin Sidecar emergency stop/explicit restart and native MCP issuer revocation
+  adapters with honest in-flight and downstream-credential limits.
+- Native Lens/Evals operator walkthrough and approval, crash, duplicate, timeout,
+  partial-failure and recovery tests. Siblings remain optional.
+
+### Limits
+
+- The supported runtime is a local SQLite staging fixture, not a production
+  process manager. No hosted MCP tenant credential bridge, automatic polling,
+  model provider, production runbooks or incident console is claimed.
+
+
 ## 0.5.2
 
 Released 2026-10-17.
