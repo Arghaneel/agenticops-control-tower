@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## 0.5.2
+
+Released 2026-10-17.
+
+### Fixed
+
+- Accept Lens diagnosis schema 1.1 alongside 1.0 after Sidecar supervision timeline
+  events were added in Lens 0.7.1. Unknown schema versions remain unavailable;
+  producer governance outcomes remain separate from deployment health.
+- Document Sidecar 0.8 shared/exclusive scope and evidence integration boundaries.
+
+
 ## 0.5.1
 
 Released 2026-10-13.
