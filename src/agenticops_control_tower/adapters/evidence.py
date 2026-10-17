@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
+from agenticops_control_tower.adapters.evals_contract import validate_evals_artifact
 from agenticops_control_tower.models.evidence import EvidenceLink, EvidenceSummary
 
 
@@ -186,6 +187,9 @@ def summarize_evidence(
                 )
             details = _run_details(run)
         elif link.source == "agentic-evals":
+            validate_evals_artifact(artifact, "evaluation_report")
+            if gate is not None:
+                validate_evals_artifact(gate, "gate_decision")
             report = _Evaluation.model_validate(artifact)
             details = report.model_dump(mode="json")
             details["gate"] = _Gate.model_validate(gate).model_dump() if gate is not None else None
@@ -207,4 +211,6 @@ def summarize_evidence(
             availability="unavailable",
             reason=f"Invalid or unsupported producer artifact: {_diagnostic(exc)}",
         )
+    except ValueError as exc:
+        return EvidenceSummary(link=link, availability="unavailable", reason=str(exc))
     return EvidenceSummary(link=link, availability="available", details=details)
