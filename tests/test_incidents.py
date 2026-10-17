@@ -211,6 +211,7 @@ def test_partial_execution_and_crash_are_not_replayed(setup, monkeypatch):
     restarted = IncidentService(registry, store, path, {"staging": runtime})
     result = restarted.get(incident.incident_id, READER)
     assert result.state == "executing" and result.outcome == "unknown"
+    assert restarted.reconcile(incident.incident_id, WRITER).state == "escalated"
     with pytest.raises(IncidentError):
         restarted.execute(incident.incident_id, incident.preview_digest, WRITER)
 
@@ -273,3 +274,202 @@ def test_http_end_to_end_and_roles(setup):
     )
     assert result.json()["state"] == "resolved"
     assert client.get(base, headers=reader).json()["state"] == "resolved"
+
+
+def test_cli_reads_incidents_and_rejects_offline_writes(setup, capsys):
+    from agenticops_control_tower.cli.main import main
+
+    registry, store, service, _, _ = setup
+    incident = planned(setup)
+    api = ControlTowerAPI(
+        registry, CapabilityDiscoveryService(), evidence_store=store, incident_service=service
+    )
+    client = TestClient(create_app(api, read_token="reader"))
+    assert main(["--token", "reader", "incidents", "list"], client=client) == 0
+    assert incident.incident_id in capsys.readouterr().out
+    with pytest.raises(SystemExit):
+        main(["--snapshot", "unused.json", "incidents", "list"])
+
+
+def test_connector_failure_escalates_with_reconciliation(setup, monkeypatch):
+    _, _, service, runtime, _ = setup
+    incident = planned(setup)
+    service.decide(incident.incident_id, incident.preview_digest, True, APPROVER)
+
+    def fail(*args):
+        raise TimeoutError("runtime timeout")
+
+    monkeypatch.setattr(runtime, "execute", fail)
+    result = service.execute(incident.incident_id, incident.preview_digest, WRITER)
+    assert result.state == "escalated" and result.outcome == "partial_failure"
+    assert "Reconcile" in result.events[-1].detail
+
+
+def test_runtime_lock_timeout_is_bounded(setup):
+    _, _, service, runtime, _ = setup
+    incident = planned(setup)
+    plan = incident.plan.model_copy(update={"timeout_seconds": 1})
+    with sqlite3.connect(runtime.database_path) as db:
+        db.execute("BEGIN IMMEDIATE")
+        with pytest.raises(sqlite3.OperationalError, match="locked"):
+            runtime.execute(incident.incident_id, plan)
+    assert not runtime.probe(plan)
+
+
+def test_scope_restrictions_and_missing_connector(setup):
+    _, store, service, _, _ = setup
+    incident = planned(setup)
+    with pytest.raises(IncidentError):
+        service.get(
+            incident.incident_id, Operator(operator_id="other", role="reader", agent_ids=[])
+        )
+    assert service.list(Operator(operator_id="other", role="reader", agent_ids=[])) == []
+    assert len(service.list(READER)) == 1
+    service.decide(incident.incident_id, incident.preview_digest, True, APPROVER)
+    service.connectors.clear()
+    with pytest.raises(IncidentError):
+        service.execute(incident.incident_id, incident.preview_digest, WRITER)
+    assert service.get(incident.incident_id, READER).approval == "approved"
+    with pytest.raises(ValueError):
+        service.detect("staging", "not-an-evidence-id", WRITER)
+    success = evidence(store, status="succeeded", run_id="unrelated")
+    with pytest.raises(IncidentError):
+        service.detect("staging", success.record_id, WRITER)
+
+
+def test_containment_adapter_delegates_stop_and_explicit_restart(setup):
+    from agenticops_control_tower.adapters.containment import (
+        MCPAccessRevoker,
+        SidecarContainmentAdapter,
+    )
+
+    class Issuer:
+        active = True
+
+        def authenticate(self, token):
+            return "user" if self.active else None
+
+        def revoke(self, user, token):
+            self.active = False
+
+    issuer = Issuer()
+    revoker = MCPAccessRevoker(issuer, "task", "user", "secret")
+    assert not revoker("wrong-task")
+    assert revoker("task") and revoker("task")
+
+    class Runtime:
+        calls = []
+
+        def control(self, action, actor):
+            self.calls.append((action, actor))
+            return {
+                "action": action,
+                "running": [],
+                "revocations": {"mcp": True},
+                "access_revocation": "acknowledged",
+            }
+
+    _, _, service, _, _ = setup
+    incident = planned(setup)
+    runtime = Runtime()
+    service.containment["staging"] = SidecarContainmentAdapter(runtime)
+    result = service.control(incident.incident_id, "stop", WRITER)
+    assert result.events[-1].event == "control.stop.acknowledged"
+    assert "boundary_acknowledged" in result.events[-1].detail
+    assert "secret" not in result.model_dump_json()
+    service.control(incident.incident_id, "restart", WRITER)
+    assert runtime.calls == [("stop", "operator"), ("restart", "operator")]
+
+
+def test_actual_sidecar_stop_blocks_dispatch(setup):
+    sidecar = pytest.importorskip("agentic_sidecar")
+    from agenticops_control_tower.adapters.containment import SidecarContainmentAdapter
+
+    runtime = sidecar.TaskRuntime(task_id="tower-test", revokers={"mcp": lambda task: True})
+    supervisor = sidecar.Sidecar(runtime=runtime, on_sidecar_failure="fail_closed")
+    from agentic_sidecar.core.context import DecisionContext
+    from agentic_sidecar.core.exceptions import SidecarBlockedError
+
+    context = DecisionContext(tool_name="search")
+    decision = supervisor.evaluate(context)
+    _, _, service, _, _ = setup
+    incident = planned(setup)
+    service.containment["staging"] = SidecarContainmentAdapter(runtime)
+    result = service.control(incident.incident_id, "stop", WRITER)
+    assert runtime.stopped
+    with pytest.raises(SidecarBlockedError):
+        runtime.dispatch(context, decision)
+    assert "boundary_acknowledged" in result.events[-1].detail
+    service.control(incident.incident_id, "restart", WRITER)
+    assert not runtime.stopped
+
+
+def test_mcp_dispatch_over_live_tower_api(setup, monkeypatch):
+    import asyncio
+    import json
+    import socket
+    import threading
+    import time
+
+    import httpx
+    import uvicorn
+
+    mcp = pytest.importorskip("deep_agentic_core_mcp.server")
+    if "tower.detect" not in mcp._TOOL_DISPATCH:
+        pytest.skip("MCP >=0.3.6 connector required")
+    registry, store, service, _, _ = setup
+    api = ControlTowerAPI(
+        registry, CapabilityDiscoveryService(), evidence_store=store, incident_service=service
+    )
+    app = create_app(api, read_token="r", write_token="w", approval_token="a")
+    server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+    sock = socket.socket()
+    sock.bind(("127.0.0.1", 0))
+    origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+    monkeypatch.delenv("DEEP_AGENTIC_CORE_MCP_REMOTE", raising=False)
+    monkeypatch.setenv("AGENTICOPS_TOWER_URL", origin)
+    monkeypatch.setenv("AGENTICOPS_TOWER_READ_TOKEN", "r")
+    monkeypatch.setenv("AGENTICOPS_TOWER_WRITE_TOKEN", "w")
+    thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+    thread.start()
+
+    def call(name, args):
+        result = asyncio.run(mcp.handle_call_tool("tower." + name, args))
+        payload = json.loads(result[0].text)
+        assert payload["ok"], payload
+        return payload["data"]
+
+    try:
+        for _ in range(200):
+            if server.started:
+                break
+            time.sleep(0.01)
+        assert server.started
+        failed = evidence(store)
+        incident = call("detect", {"agent_id": "staging", "evidence_id": failed.record_id})
+        iid = {"incident_id": incident["incident_id"]}
+        call("investigate", iid)
+        preview = call("preview", {**iid, "dependency": "search"})
+        digest = {"preview_digest": preview["preview_digest"]}
+        with httpx.Client(base_url=origin) as client:
+            approval = client.post(
+                "/incidents/" + iid["incident_id"] + "/approval",
+                json={**digest, "approved": True},
+                headers={"Authorization": "Bearer a"},
+            )
+            approval.raise_for_status()
+        assert call("execute", {**iid, **digest})["state"] == "awaiting_verification"
+        lens = evidence(store, status="succeeded", run_id="mcp-recovery")
+        evals = evidence(store, "agentic-evals", "succeeded", "mcp-recovery")
+        assert (
+            call(
+                "verify",
+                {**iid, "lens_evidence_id": lens.record_id, "evals_evidence_id": evals.record_id},
+            )["state"]
+            == "resolved"
+        )
+        assert call("incident", iid)["state"] == "resolved"
+    finally:
+        server.should_exit = True
+        thread.join(timeout=5)
+        sock.close()
