@@ -37,7 +37,7 @@ check: lint format-check typecheck test ## Run all quality gates
 
 
 test-ecosystem: ## Test against actual local sibling artifacts (requires sibling checkouts)
-	uv run --with ../agenticlens --with ../agentic-evals --with ../agentic-sidecar --with ../agentic-chaos python -m pytest
+	uv run --with ../agenticlens --with ../agentic-evals --with ../agentic-sidecar --with ../agentic-chaos --with ../mcp-server python -m pytest
 
 test-ecosystem-published: ## Test against the published optional sibling extras
-	uv run --extra dev --extra agenticlens --extra agentic-evals --extra agentic-sidecar --extra agentic-chaos python -m pytest
+	uv run --extra dev --extra agenticlens --extra agentic-evals --extra agentic-sidecar --extra agentic-chaos --extra deep-agentic-core-mcp python -m pytest
