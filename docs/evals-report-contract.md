@@ -8,3 +8,9 @@ should tolerate unknown fields. Tower continues to read native report/gate field
 See the [contract, examples and compatibility policy](https://github.com/DeepAgentLabs/agentic-evals/blob/main/docs/report-contract.md). Existing dependency
 ranges remain sufficient; using the new accessors directly requires
 `agentic-evals>=0.7.2`. This documentation alignment needs no sibling patch release.
+
+Native schema validation is separate from AIOS conformance and does not
+establish it. The [checked-in report and gate examples](https://github.com/DeepAgentLabs/agentic-evals/tree/main/examples/report-contract)
+include missing evidence and a deliberately failed gate; the
+[historical fixtures](https://github.com/DeepAgentLabs/agentic-evals/tree/main/tests/fixtures/v0.7.1)
+are generated from the actual 0.7.1 release. Tower keeps the producer verdict.
