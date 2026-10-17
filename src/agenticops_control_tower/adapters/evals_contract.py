@@ -34,5 +34,10 @@ def validate_evals_artifact(artifact: Any, kind: ArtifactKind) -> None:
         raise ValueError("Invalid native Evals evaluation_report: unsupported schema_version")
     error = next(_validator(kind).iter_errors(artifact), None)
     if error is not None:
-        location = "/" + "/".join(str(part) for part in error.absolute_path)
+        path = list(error.absolute_path)
+        if error.validator == "required" and isinstance(error.instance, dict):
+            # Names come from the trusted schema, not the invalid input value.
+            missing = next(name for name in error.validator_value if name not in error.instance)
+            path.append(missing)
+        location = "/" + "/".join(str(part) for part in path)
         raise ValueError(f"Invalid native Evals {kind} at {location} ({error.validator})")
