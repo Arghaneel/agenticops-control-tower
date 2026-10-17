@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agenticops-control-tower"
-version = "0.6.0"
+version = "0.6.1"
 description = "Unified control plane and operations console for the DeepAgentLabs ecosystem."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -24,11 +24,12 @@ classifiers = [
 dependencies = [
   "pydantic>=2.0,<3",
   "packaging>=24",
+  "jsonschema>=4.23,<5",
 ]
 
 [project.optional-dependencies]
 agentic-evals = [
-  "agentic-evals>=0.7,<1",
+  "agentic-evals>=0.7.2,<1",
 ]
 # Producer packages are optional. Native JSON artifact readers do not import
 # siblings; these extras let callers generate artifacts in the same environment.
@@ -55,9 +56,11 @@ api = [
 ]
 dev = [
   "pytest>=8.0",
+  "agentic-evals==0.7.2",
   "pytest-cov>=5.0",
   "ruff>=0.6",
   "mypy>=1.10",
+  "types-jsonschema>=4.23",
   "build>=1.2",
   "twine>=5.1",
   "fastapi>=0.115,<1",

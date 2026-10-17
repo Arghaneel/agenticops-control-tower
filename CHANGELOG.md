@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## 0.6.1
+
+Released 2026-10-17.
+
+### Added
+
+- Offline validation against the exact published Evals 0.7.2 report and gate
+  schemas, with pinned upstream parity tests and packaged schema resources.
+- Native JSON boundary tests for nested invalid scores, failed gates, unknown
+  additive fields, unsupported versions and value-free diagnostics.
+
+### Changed
+
+- Report consumers reject malformed/partial native artifacts before projecting
+  or analyzing them. Send full JSON reports rather than summary-only objects.
+- Evidence ingestion marks invalid reports/gates unavailable without retaining a usable gate.
+- The Evals extra floor is 0.7.2; base validation needs no installed sibling.
+
 ## 0.6.0
 
 Released 2026-10-17. Phase 6 and Phase 6A ship as one milestone.

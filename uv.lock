@@ -26,7 +26,7 @@ wheels = [
 
 [[package]]
 name = "agentic-evals"
-version = "0.7.1"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -34,9 +34,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "referencing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/de/c4/8904c6f55178a79b67d3b564968c92c3d912b8f26d6255e52e9e5413a40b/agentic_evals-0.7.1.tar.gz", hash = "sha256:c78b16d51977fd61678fa7a115fa2871eef5376ff2337b65e086dde25467323c", size = 283028, upload-time = "2026-10-12T20:44:09.331Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/cf/dcec72c6b093d6f65f109b50950060eded24630232cfdd004b2a8b542da0/agentic_evals-0.7.2.tar.gz", hash = "sha256:a56f3b407677051d22046dc058c72072cfaeb618e70365b55a8d24d5ead80d4e", size = 302794, upload-time = "2026-10-17T20:42:00.369Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5b/b7/ad6d5678a10d5ae060b9ce292d188c92e67a6029987570175a6fa78c9d17/agentic_evals-0.7.1-py3-none-any.whl", hash = "sha256:e41e4b6b4f7cb50b9845afc4217f5e2516556edc107ffef431fad75044dc8fc5", size = 76781, upload-time = "2026-10-12T20:44:07.976Z" },
+    { url = "https://files.pythonhosted.org/packages/56/f6/c7d916de24645bc7e641852fe8507ca25bc48980c43786f4b7449c3ce43c/agentic_evals-0.7.2-py3-none-any.whl", hash = "sha256:c1daaf9a71a90d038c17f26659fc9764bea8f69f449e52195ed95d25bd0ef99d", size = 80977, upload-time = "2026-10-17T20:41:58.968Z" },
 ]
 
 [[package]]
@@ -74,9 +74,10 @@ wheels = [
 
 [[package]]
 name = "agenticops-control-tower"
-version = "0.6.0"
+version = "0.6.1"
 source = { editable = "." }
 dependencies = [
+    { name = "jsonschema" },
     { name = "packaging" },
     { name = "pydantic" },
 ]
@@ -103,6 +104,7 @@ deep-agentic-core-mcp = [
     { name = "deep-agentic-core-mcp" },
 ]
 dev = [
+    { name = "agentic-evals" },
     { name = "build" },
     { name = "fastapi" },
     { name = "httpx" },
@@ -111,13 +113,15 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
     { name = "twine" },
+    { name = "types-jsonschema" },
     { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "agentic-chaos", marker = "extra == 'agentic-chaos'", specifier = ">=0.5,<1" },
-    { name = "agentic-evals", marker = "extra == 'agentic-evals'", specifier = ">=0.7,<1" },
+    { name = "agentic-evals", marker = "extra == 'agentic-evals'", specifier = ">=0.7.2,<1" },
+    { name = "agentic-evals", marker = "extra == 'dev'", specifier = "==0.7.2" },
     { name = "agentic-sidecar", marker = "extra == 'agentic-sidecar'", specifier = ">=0.7,<1" },
     { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.7,<1" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
@@ -126,6 +130,7 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'api'", specifier = ">=0.27,<1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27,<1" },
+    { name = "jsonschema", specifier = ">=4.23,<5" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
     { name = "packaging", specifier = ">=24" },
     { name = "pydantic", specifier = ">=2.0,<3" },
@@ -133,6 +138,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "twine", marker = "extra == 'dev'", specifier = ">=5.1" },
+    { name = "types-jsonschema", marker = "extra == 'dev'", specifier = ">=4.23" },
     { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.30,<1" },
     { name = "uvicorn", marker = "extra == 'dev'", specifier = ">=0.30,<1" },
 ]
@@ -2182,6 +2188,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/16/f7/57713ba479fd405eb76de31404b2c744c289e336b2d999511ebf51e496f7/typer-0.27.2.tar.gz", hash = "sha256:269b7eb9d3c202ca84b4bc9618cb04ebb43d3d4d1e567e4c768607232c05f945", size = 204045, upload-time = "2026-08-28T10:26:55.046Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dc/bf/205d0004930ede8f542fb58f601526fccf4ae7626075ca1e6c4de5d3d652/typer-0.27.2-py3-none-any.whl", hash = "sha256:b3a5fc4342d5fc8fda8fc3010b1cf117e9249aab7fae800c2eff62fd3842d97d", size = 123130, upload-time = "2026-08-28T10:26:53.752Z" },
+]
+
+[[package]]
+name = "types-jsonschema"
+version = "4.26.0.20261006"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "referencing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/29/d2/1f742605f5a6d39f993134885b8de41c98af606871d3ebddaf3e776bd1eb/types_jsonschema-4.26.0.20261006.tar.gz", hash = "sha256:3eb7db61b6819d40addfdaac7173e749071a7d4a9a4394f0c844598ec84b2500", size = 16843, upload-time = "2026-10-06T08:16:07.318Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/a0/4f2e3c0dc3d5cad958006f2e0307065cc8fe4fbf0393ff0b69d55ee9bbe5/types_jsonschema-4.26.0.20261006-py3-none-any.whl", hash = "sha256:29301f4e65e3928540cdf5e23ad716e38bb0c0b416a48dada213edd3d70206ec", size = 16113, upload-time = "2026-10-06T08:16:06.355Z" },
 ]
 
 [[package]]
