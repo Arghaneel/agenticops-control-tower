@@ -50,9 +50,15 @@ def evidence(store, source="agenticlens", status="failed", run_id="failure", obs
             schema_version="1.0",
             suite_name="recovery",
             suite_version="1",
+            cases=[],
             created_at=now.isoformat(),
             summary=dict(
-                total_cases=1, passed_cases=1, failed_cases=0, pass_rate=1.0, average_score=1.0
+                total_cases=1,
+                passed_cases=1,
+                failed_cases=0,
+                pass_rate=1.0,
+                average_score=1.0,
+                average_latency_ms=0,
             ),
         )
     request = EvidenceIngestRequest(

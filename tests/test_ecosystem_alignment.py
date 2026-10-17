@@ -91,8 +91,16 @@ def test_evaluation_gate_is_preserved_without_recomputation() -> None:
         schema_version="1.0",
         suite_name="suite",
         suite_version="1",
+        cases=[],
         created_at="2026-10-10T12:00:00Z",
-        summary=dict(total_cases=1, passed_cases=0, failed_cases=1, pass_rate=0, average_score=0),
+        summary=dict(
+            total_cases=1,
+            passed_cases=0,
+            failed_cases=1,
+            pass_rate=0,
+            average_score=0,
+            average_latency_ms=0,
+        ),
     )
     eval_link = link(
         source="agentic-evals", source_version="0.7.0", artifact_type="evaluation_report"

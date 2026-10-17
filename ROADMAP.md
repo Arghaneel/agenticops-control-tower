@@ -694,13 +694,9 @@ v1.0. Native correlated Lens readback requires Lens 0.7.1. All sibling packages
 stay optional; no dependency floor is increased without a runtime requirement.
 See the [Sidecar integration contract](https://github.com/DeepAgentLabs/agentic-sidecar/blob/main/docs/integrations.md).
 
-## Evals 0.7.2 report contract
+## Native Evals contract validation — Control Tower 0.6.1
 
-Agentic Evals 0.7.2 publishes native report (`schema_version: "1.0"`) and
-gate-decision JSON Schemas, with offline `report_schema()` and
-`gate_decision_schema()` accessors. Contract 1.x evolves additively; readers
-should tolerate unknown fields. Tower continues to read native report/gate fields and display the producer verdict. Schema validation does not recompute a gate or establish evidence integrity.
-
-See the [contract, examples and compatibility policy](https://github.com/DeepAgentLabs/agentic-evals/blob/main/docs/report-contract.md). Existing dependency
-ranges remain sufficient; using the new accessors directly requires
-`agentic-evals>=0.7.2`. This documentation alignment needs no sibling patch release.
+Published Evals 0.7.2 report and gate schemas are now enforced in the native
+consumer paths. Validation runs offline using bundled upstream contracts;
+invalid artifacts fail with field-level diagnostics. Native verdicts and
+AIOS conformance remain distinct. See [behavior, examples and migration](docs/evals-report-contract.md).

@@ -74,3 +74,9 @@ jobs:
           uv run python -m build
           uv run python -m twine check dist/*
 
+
+      - name: Verify standalone installed-wheel schema resources
+        run: |
+          for wheel in dist/*.whl; do
+            uv run --isolated --no-project --with "$wheel" python -I scripts/smoke_evals_contract.py
+          done
