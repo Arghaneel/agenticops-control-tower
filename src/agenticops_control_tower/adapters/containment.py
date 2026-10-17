@@ -52,7 +52,9 @@ class SidecarContainmentAdapter:
             "dispatch_blocking": "acknowledged" if action == "stop" else "restart_acknowledged",
             "mcp_revocation": "acknowledged"
             if revocations.get("mcp") is True
-            else "unsupported_or_failed",
+            else "failed"
+            if "mcp" in revocations
+            else "unsupported",
             "in_flight": running,
             "downstream_credentials": "unsupported",
             "containment": "boundary_acknowledged"

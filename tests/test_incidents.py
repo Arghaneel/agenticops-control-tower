@@ -473,3 +473,33 @@ def test_mcp_dispatch_over_live_tower_api(setup, monkeypatch):
         server.should_exit = True
         thread.join(timeout=5)
         sock.close()
+
+
+def test_denial_is_attributable_without_claiming_approval(setup):
+    _, _, service, _, _ = setup
+    incident = planned(setup)
+    denied = service.decide(incident.incident_id, incident.preview_digest, False, APPROVER)
+    assert denied.approved_by is None
+    assert denied.events[-1].operator_id == APPROVER.operator_id
+    assert denied.events[-1].event == "denied"
+
+
+def test_control_separates_failed_from_unsupported(setup):
+    from agenticops_control_tower.adapters.containment import SidecarContainmentAdapter
+
+    _, _, service, _, _ = setup
+    incident = planned(setup)
+    assert (
+        service.control(incident.incident_id, "stop", WRITER).events[-1].event
+        == "control.stop.unsupported"
+    )
+
+    class FailingRuntime:
+        def control(self, action, actor):
+            raise ConnectionError("unreachable")
+
+    service.containment["staging"] = SidecarContainmentAdapter(FailingRuntime())
+    assert (
+        service.control(incident.incident_id, "stop", WRITER).events[-1].event
+        == "control.stop.failed"
+    )

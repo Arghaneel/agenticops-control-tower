@@ -238,7 +238,7 @@ class IncidentService:
             ):
                 raise IncidentError("Approval does not match a live pending preview")
             incident.approval = "approved" if approved else "denied"
-            incident.approved_by = operator.operator_id
+            incident.approved_by = operator.operator_id if approved else None
             self._event(incident, incident.approval, operator, digest)
             self._save(db, incident)
             return incident
@@ -368,18 +368,17 @@ class IncidentService:
             incident = self._load(db, incident_id)
             self._event(incident, "control." + action + ".requested", operator)
             self._save(db, incident)
+        outcome = "unsupported" if adapter is None else "acknowledged"
         try:
             receipt = adapter.control(action, operator.operator_id) if adapter else None
         except Exception:
             receipt = None
+            outcome = "failed"
         with self._transaction() as db:
             incident = self._load(db, incident_id)
             self._event(
                 incident,
-                "control."
-                + action
-                + "."
-                + ("acknowledged" if receipt else "unsupported_or_failed"),
+                "control." + action + "." + outcome,
                 operator,
                 json.dumps(receipt) if receipt else "No confirmed runtime acknowledgement",
             )
