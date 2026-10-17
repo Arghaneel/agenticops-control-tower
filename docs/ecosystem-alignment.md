@@ -155,7 +155,10 @@ schemas and Tower incident/approval objects remain local. See
 
 ## Agentic Chaos 0.6.0 compatibility
 
-Chaos 0.6.0 adds a pytest plugin and pass/fail chaos contracts. Its native
+Chaos 0.6.0 adds a pytest plugin and chaos contracts. Each contract result is
+`passed`, `failed` or `inconclusive` (the report cannot support the check, for
+example no baseline or a pre-0.6 report); inconclusive fails closed and never
+counts as a pass. Its native
 reports gain the additive fields `calls`, `calls_dropped` and
 `unhandled_error`. Tower's native `chaos_report` reader ignores them and
 summarizes events as before, which agentic-chaos's sibling-integration CI
