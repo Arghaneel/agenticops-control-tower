@@ -74,10 +74,10 @@ class _EvaluationTotals(BaseModel):
 
 
 class _Evaluation(BaseModel):
-    schema_version: Literal["1.0"]
+    schema_version: Literal["1.0"] = "1.0"
     suite_name: str
     suite_version: str
-    created_at: datetime
+    created_at: datetime | None = None
     summary: _EvaluationTotals
 
 

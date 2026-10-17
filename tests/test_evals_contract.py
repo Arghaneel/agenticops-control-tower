@@ -152,3 +152,37 @@ def test_tower_evidence_store_keeps_invalid_input_unavailable(report):
     record = EvidenceStore(registry).ingest(request).record
     assert record.summary.availability == "unavailable"
     assert record.summary.details == {}
+
+
+@pytest.mark.parametrize("field", ["schema_version", "created_at"])
+def test_tower_projection_accepts_defaulted_contract_fields(report, field):
+    from agenticops_control_tower.adapters import summarize_evidence
+    from agenticops_control_tower.models.evidence import EvidenceLink
+
+    observed_at = report["created_at"]
+    del report[field]
+    link = EvidenceLink(
+        agent_id="a",
+        source="agentic-evals",
+        source_version="0.7.2",
+        artifact_type="evaluation_report",
+        artifact_ref="eval:optional",
+        observed_at=observed_at,
+    )
+    result = summarize_evidence(link, report)
+    assert result.availability == "available"
+    assert result.details["schema_version"] == "1.0"
+    if field == "created_at":
+        assert result.details["created_at"] is None
+
+
+@pytest.mark.parametrize("nested", [False, True])
+def test_missing_required_field_diagnostic_names_the_field(report, nested):
+    if nested:
+        del report["cases"][0]["scores"][0]["explanation"]
+        expected = "/cases/0/scores/0/explanation"
+    else:
+        del report["cases"]
+        expected = "/cases"
+    with pytest.raises(ValueError, match=expected):
+        validate_evals_artifact(report, "evaluation_report")

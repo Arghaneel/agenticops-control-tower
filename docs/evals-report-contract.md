@@ -38,3 +38,9 @@ The optional `agentic-evals` extra now requires `>=0.7.2,<1`; no producer packag
 is required to start Tower or validate native JSON. The base package adds
 `jsonschema` for contract validation. Persisted Tower projections are not native
 reports and must not be submitted back as producer artifacts.
+
+When a writer omits defaulted `schema_version`, Tower interprets it as `1.0`.
+An omitted producer `created_at` is projected as `null` (unknown); Tower does not
+fabricate a producer timestamp. The separately attributed `link.observed_at`
+continues to drive evidence freshness. Required-field errors identify the missing
+field, including nested case/score paths.
