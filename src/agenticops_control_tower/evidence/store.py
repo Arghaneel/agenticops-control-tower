@@ -125,6 +125,18 @@ class EvidenceStore:
             )
             return EvidenceIngestResult(record=record, created=True)
 
+    def get_record(self, agent_id: str, record_id: str) -> EvidenceRecord:
+        """Read an exact stored record with deployment attribution checked."""
+        self.registry.get(agent_id)
+        with self._transaction(write=False) as db:
+            row = db.execute(
+                "SELECT body FROM tower_evidence WHERE agent_id=? AND record_id=?",
+                (agent_id, record_id),
+            ).fetchone()
+            if row is None:
+                raise EvidenceIngestError("Unknown evidence record for deployment")
+            return EvidenceRecord.model_validate_json(row[0])
+
     def history(
         self,
         agent_id: str,
