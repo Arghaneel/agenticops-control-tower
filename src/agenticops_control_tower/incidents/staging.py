@@ -71,4 +71,4 @@ class StagingDependencyRuntime:
                 "SELECT available FROM staging_dependencies WHERE agent=? AND dependency=?",
                 (self.agent_id, self.dependency),
             ).fetchone()
-            return row == (1,)
+            return bool(row == (1,))
