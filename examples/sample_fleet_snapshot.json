@@ -128,7 +128,7 @@
       "link": {
         "agent_id": "payment-agent",
         "source": "agentic-evals",
-        "source_version": "0.7.1",
+        "source_version": "0.7.2",
         "artifact_type": "evaluation_report",
         "artifact_ref": "evals:payments-regression:2026-08-15",
         "observed_at": "2026-08-15T09:00:00Z"
@@ -143,8 +143,585 @@
           "passed_cases": 18,
           "failed_cases": 2,
           "pass_rate": 0.9,
-          "average_score": 0.88
-        }
+          "average_score": 0.9,
+          "total_cost_usd": null,
+          "priced_cases": 0,
+          "cost_sources": {},
+          "average_latency_ms": 50.0,
+          "metrics": {
+            "exact_match": {
+              "total": 20,
+              "passed": 18,
+              "failed": 2,
+              "skipped": 0,
+              "pass_rate": 0.9,
+              "average_score": 0.9
+            }
+          },
+          "tags": {}
+        },
+        "cases": [
+          {
+            "case_id": "payment-0",
+            "case_name": "Payment 0",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-0",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-1",
+            "case_name": "Payment 1",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-1",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-2",
+            "case_name": "Payment 2",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-2",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-3",
+            "case_name": "Payment 3",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-3",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-4",
+            "case_name": "Payment 4",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-4",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-5",
+            "case_name": "Payment 5",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-5",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-6",
+            "case_name": "Payment 6",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-6",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-7",
+            "case_name": "Payment 7",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-7",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-8",
+            "case_name": "Payment 8",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-8",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-9",
+            "case_name": "Payment 9",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-9",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-10",
+            "case_name": "Payment 10",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-10",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-11",
+            "case_name": "Payment 11",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-11",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-12",
+            "case_name": "Payment 12",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-12",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-13",
+            "case_name": "Payment 13",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-13",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-14",
+            "case_name": "Payment 14",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-14",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-15",
+            "case_name": "Payment 15",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-15",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-16",
+            "case_name": "Payment 16",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-16",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-17",
+            "case_name": "Payment 17",
+            "passed": true,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 1.0,
+                "passed": true,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output exactly matches the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "paid",
+            "trace_id": "payment-trace-17",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-18",
+            "case_name": "Payment 18",
+            "passed": false,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 0.0,
+                "passed": false,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output does not exactly match the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "declined",
+            "trace_id": "payment-trace-18",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          },
+          {
+            "case_id": "payment-19",
+            "case_name": "Payment 19",
+            "passed": false,
+            "scores": [
+              {
+                "name": "exact_match",
+                "metric": "exact_match",
+                "value": 0.0,
+                "passed": false,
+                "required": true,
+                "skipped": false,
+                "explanation": "Output does not exactly match the reference.",
+                "evaluator_type": "deterministic",
+                "evaluator": "agentic_evals.builtin",
+                "evaluator_version": "0.7.2",
+                "metadata": {}
+              }
+            ],
+            "output": "declined",
+            "trace_id": "payment-trace-19",
+            "latency_ms": 50.0,
+            "cost_usd": null,
+            "cost_source": null,
+            "sample_available": true,
+            "tags": [],
+            "metadata": {}
+          }
+        ]
       },
       "gate": {
         "passed": false,

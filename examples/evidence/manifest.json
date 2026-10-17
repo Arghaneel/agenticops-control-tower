@@ -28,7 +28,7 @@
       "link": {
         "agent_id": "payment-agent",
         "source": "agentic-evals",
-        "source_version": "0.7.1",
+        "source_version": "0.7.2",
         "artifact_type": "evaluation_report",
         "artifact_ref": "evals:payments-regression:2026-08-15",
         "observed_at": "2026-08-15T09:00:00Z"

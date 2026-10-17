@@ -49,6 +49,7 @@ REPORT = {
     "schema_version": "1.0",
     "suite_name": "suite",
     "suite_version": "1",
+    "cases": [],
     "created_at": "2026-10-13T00:00:00Z",
     "summary": {
         "total_cases": 1,
@@ -56,6 +57,7 @@ REPORT = {
         "failed_cases": 0,
         "pass_rate": 1,
         "average_score": 1,
+        "average_latency_ms": 0,
     },
 }
 
