@@ -124,7 +124,7 @@ and checks authentication is no longer possible. Secrets remain host-owned and
 are never emitted to the incident. This adapter does not provision AWS resources.
 
 Stop requires a scoped writer and does not require approval from a model or
-agent. Tower records requested and acknowledged/unsupported-or-failed outcomes;
+agent. Tower records requested, acknowledged, failed and unsupported outcomes;
 Sidecar owns dispatch blocking and performs its revocation callbacks. Only a
 confirmed MCP revocation plus Sidecar acknowledgement and no in-flight calls is
 reported as `boundary_acknowledged`. Downstream credentials remain `unsupported`;
