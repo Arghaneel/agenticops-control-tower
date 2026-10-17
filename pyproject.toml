@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agenticops-control-tower"
-version = "0.5.2"
+version = "0.6.0"
 description = "Unified control plane and operations console for the DeepAgentLabs ecosystem."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -42,7 +42,7 @@ agentic-chaos = [
   "agentic-chaos>=0.5,<1",
 ]
 deep-agentic-core-mcp = [
-  "deep-agentic-core-mcp>=0.3.4,<1",
+  "deep-agentic-core-mcp>=0.3.6,<1",
 ]
 # HTTP API server (v0.1) and CLI (v0.2) -- optional so the base package
 # stays a dependency-free control model. `pip install

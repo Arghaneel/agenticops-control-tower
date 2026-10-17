@@ -54,7 +54,7 @@ jobs:
       - name: Test with published siblings
         run: >-
           uv run --python 3.12 --extra dev --extra agenticlens --extra agentic-evals
-          --extra agentic-sidecar --extra agentic-chaos python -m pytest
+          --extra agentic-sidecar --extra agentic-chaos --extra deep-agentic-core-mcp python -m pytest
 
   package:
     runs-on: ubuntu-latest

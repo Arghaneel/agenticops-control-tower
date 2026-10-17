@@ -74,7 +74,7 @@ wheels = [
 
 [[package]]
 name = "agenticops-control-tower"
-version = "0.5.2"
+version = "0.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "packaging" },
@@ -121,7 +121,7 @@ requires-dist = [
     { name = "agentic-sidecar", marker = "extra == 'agentic-sidecar'", specifier = ">=0.7,<1" },
     { name = "agenticlens", marker = "extra == 'agenticlens'", specifier = ">=0.7,<1" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
-    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.4,<1" },
+    { name = "deep-agentic-core-mcp", marker = "extra == 'deep-agentic-core-mcp'", specifier = ">=0.3.6,<1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'api'", specifier = ">=0.27,<1" },
@@ -760,7 +760,7 @@ wheels = [
 
 [[package]]
 name = "deep-agentic-core-mcp"
-version = "0.3.4"
+version = "0.3.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -768,9 +768,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "referencing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/23/497fbe6067d6357a87519edeb3a29af078589c2deb0f0983d5ac4ce4f999/deep_agentic_core_mcp-0.3.4.tar.gz", hash = "sha256:ef6af73b53bac5dfbafe1fa87b58baa94d25c8324324c62105e7100e68b2e204", size = 276661, upload-time = "2026-10-13T19:26:46.337Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/30/447ea79e43ba699250ed5ff2a470179c767dd978088dec062127b0daad21/deep_agentic_core_mcp-0.3.6.tar.gz", hash = "sha256:78895443193153dcb7060e95697e5ad29d9f94d9418b57586dcfe8d4cd823ba3", size = 287510, upload-time = "2026-10-17T06:20:21.953Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/78/6b947ec7b7d239d2aee2ccc19a561ef03ce751802413862780b6a3190ea9/deep_agentic_core_mcp-0.3.4-py3-none-any.whl", hash = "sha256:04f7c7df2c3627ac5a39958f77bff91f1689aa6d532e052c3aa631f84c689ea8", size = 57853, upload-time = "2026-10-13T19:26:45.12Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/a3/7d29f7e85902112b5100b1233f3c4a01bb8b75e09c981131bc97571a8571/deep_agentic_core_mcp-0.3.6-py3-none-any.whl", hash = "sha256:3c9349029fc5f889a77ded8b4456ba897d4dcdafef101e710de2ef4512957d88", size = 64499, upload-time = "2026-10-17T06:20:20.201Z" },
 ]
 
 [[package]]

@@ -52,9 +52,9 @@ approval, runbook execution and verified recovery.
 ### Current Roadmap Focus
 
 v0.5 ecosystem evidence posture is complete: pushed producer evidence is stored
-and shown as freshness and native tallies. The next focus is v0.6, the MCP
-connector and investigation copilot over these real read surfaces, before
-incident workflows, bulk actions or runbooks.
+and shown as freshness and native tallies. v0.6 combines Phase 6 and 6A: local MCP investigation, durable incidents and
+approved deterministic staging recovery. See docs/incident-recovery.md. Next are
+bulk actions and broader incident views; production runbooks remain planned.
 
 ### Before You Build Here
 
@@ -68,7 +68,7 @@ incident workflows, bulk actions or runbooks.
 
 ## Status
 
-The v0.1–v0.5 milestones are **implemented**. Package layout, docs, tests, and
+The v0.1–v0.6 milestones are **implemented**. Package layout, docs, tests, and
 CI/release workflows exist; a registry with optional SQLite persistence,
 discovery, HTTP API, and CLI exist today — see
 [ROADMAP.md](ROADMAP.md) for published milestone status, implementation evidence,

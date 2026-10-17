@@ -16,6 +16,7 @@ from agenticops_control_tower.evidence import (
     EvidenceStore,
     PostureService,
 )
+from agenticops_control_tower.incidents import IncidentService
 from agenticops_control_tower.models import (
     AgentRecord,
     AgentRegistrationPayload,
@@ -49,9 +50,11 @@ class ControlTowerAPI:
         status_service: StatusService | None = None,
         configuration_service: ConfigurationService | None = None,
         evidence_store: EvidenceStore | None = None,
+        incident_service: IncidentService | None = None,
     ) -> None:
         self.config = configuration_service or ConfigurationService(registry)
         self.evidence = evidence_store or EvidenceStore(registry)
+        self.incidents = incident_service or IncidentService(registry, self.evidence)
         self._posture = PostureService(self.evidence)
         self._registry = registry
         self._discovery = discovery
