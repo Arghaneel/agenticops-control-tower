@@ -1,6 +1,6 @@
 # agenticops-control-tower — Roadmap & Architecture
 
-**Current package version: 0.5.1.** v0.5 persists pushed Lens, Evals,
+**Current package version: 0.6.0.** v0.5 persists pushed Lens, Evals,
 Sidecar and Chaos evidence and surfaces its freshness and native outcomes as
 posture across the Python API, HTTP, CLI, offline snapshots and console.
 0.5.1 adds AgenticLens 0.7.0 diagnosis reports as native Lens evidence
@@ -17,8 +17,8 @@ remediate and verify recovery in real time.
 
 This is the intended product, not a description of features already shipped.
 Today's registry, inventory, status and native artifact readers are its foundation.
-The copilot is a planned Tower capability; no particular third-party Copilot
-product is required by this roadmap.
+The investigation prompt and authorized tools ship in 0.6.0; the MCP host supplies
+the model. No particular third-party Copilot product is required.
 
 The core operator workflow is:
 
@@ -53,8 +53,7 @@ unsupported explanation as an exact RCA.
 - **v0.3** ✅ Implemented and published — AgenticOps Console (read-only dashboard)
 - **v0.4** ✅ Implemented and published — Configuration Model and Controlled Write Operations
 - **v0.5** ✅ Implemented — Ecosystem evidence ingestion, persistence and posture views (push-based; pull collection deferred)
-- **v0.6** 🚧 Planned — Agentic MCP Connector and Investigation Copilot
-- **v0.6.x** 🚧 Planned — First Approved Incident-to-Recovery Scenario
+- **v0.6.0** ✅ Implemented — Phase 6 MCP investigation and Phase 6A approved staging recovery (one release)
 - **v0.7** 🚧 Planned — Multi-Agent Operations and Bulk Actions
 - **v0.8** 🚧 Planned — Live Detection, Alerts, Audit Trails, and Incident Views
 - **v0.9** 🚧 Planned — Automated Runbooks and Recovery Workflows
@@ -63,7 +62,7 @@ unsupported explanation as an exact RCA.
 v0.1 and v0.2 share a tested Python control model, optional SQLite registry,
 authenticated HTTP API and operator CLI. The read-only console ships in v0.3; controlled desired configuration ships in
 v0.4; ecosystem evidence posture ships in v0.5. Pull-based remote collection,
-MCP connector, bulk operations and incident workflows remain planned.
+bulk operations, production runtime adapters and broader incident views remain planned.
 
 ## Implementation Evidence and Operational Limits
 
@@ -71,6 +70,7 @@ The implementation lives under `src/agenticops_control_tower/`:
 
 | Capability | Implementation | Acceptance tests |
 | --- | --- | --- |
+| Phase 6/6A incidents, investigation, approval and verified staging recovery | `incidents/`, `adapters/containment.py`, `api/http.py`, `cli/main.py` | `tests/test_incidents.py`, `examples/incident_recovery.py` |
 | Registry, discovery and persistence | `registry/service.py`, `discovery/service.py` | `tests/test_registry.py`, `tests/test_milestones.py` |
 | Shared status, HTTP API and CLI | `status/service.py`, `api/surface.py`, `api/http.py`, `cli/main.py`, `snapshot.py` | `tests/test_http_api.py`, `tests/test_cli.py` |
 | Read-only console and minimum-version assessments | `console/static/`, `models/version.py`, `ControlTowerAPI.assess_versions` | `tests/test_console.py` |
@@ -91,9 +91,10 @@ file. Authentication uses deployment-configured reader/writer bearer tokens;
 per-agent identities and tenant isolation are not implemented. Without tokens,
 the API allows anonymous local development. Health is agent-reported;
 timeout-based health, automatic package detection and distributed storage remain
-planned. Pull-based remote evidence collection, incident timelines, remote configuration application,
-MCP/copilot operations, bulk actions, runbook execution and recovery verification
-also remain planned.
+planned. Pull-based remote evidence collection, fleet-wide incident views and remote configuration application,
+bulk actions, production runbooks and automatic incident polling remain planned.
+Phase 6/6A delivers explicit detection, investigation and approved verified recovery
+for the deterministic staging fixture; see docs/incident-recovery.md.
 
 Run `make check` for lint, formatting, strict typing and tests. Run
 `make test-ecosystem` against local sibling checkouts, or the published Sidecar
@@ -467,7 +468,14 @@ Success criteria:
 - [x] integration failures degrade to "unavailable" rather than crashing the
       control plane
 
-## Phase 6: Agentic MCP Connector and Investigation Copilot (`v0.6`)
+## Phase 6: Agentic MCP Connector and Investigation Copilot (`v0.6.0`)
+
+Status: **implemented together with Phase 6A in 0.6.0**. Local MCP 0.3.6
+exposes twelve authenticated Tower HTTP tools plus a cited investigation prompt.
+Read/write credentials remain separate; human approval is HTTP/CLI-only. Hosted
+MCP rejects Tower tools until per-user credential binding exists. The host
+supplies the model; Tower assembles cited evidence and preserves uncertainty.
+See [connector setup](docs/mcp-connector.md).
 
 Goals:
 
@@ -494,9 +502,15 @@ Success criteria:
 - read and write operations have distinct authorization boundaries
 - examples exist showing MCP with and without Control Tower
 
-## Phase 6A: First Approved Incident-to-Recovery Scenario (`v0.6.x`)
+## Phase 6A: First Approved Incident-to-Recovery Scenario (`v0.6.0`)
 
-Status: **planned**. This is the first complete command-center demonstration,
+Status: **implemented together with Phase 6 in 0.6.0** for the deterministic
+local SQLite staging dependency runtime. Durable incidents, exact-preview
+approvals, at-most-one dispatch, bounded runtime lock waits, fresh Lens/Evals
+verification and probe-based recovery ship through real HTTP/CLI paths.
+Partial execution and failed recovery escalate. See
+[operator guide](docs/incident-recovery.md), `examples/incident_recovery.py`,
+`incidents/` and `tests/test_incidents.py`. This is the first complete command-center demonstration,
 not a requirement to finish every fleet-wide alerting feature first.
 
 Depends on: v0.4 approval/authorization contracts, v0.5 evidence posture (pushed;
@@ -514,22 +528,22 @@ Evals checks. Failure to verify recovery keeps the incident open and escalates i
 
 Success criteria:
 
-- [ ] one supported staging runtime completes detect → investigate → recommend
+- [x] one supported staging runtime completes detect → investigate → recommend
       → approve → execute → verify, through real API/tool paths
-- [ ] the incident retains linked trace, tool, prompt and dependency evidence;
+- [x] the incident retains linked trace, tool, prompt and dependency evidence;
       unavailable evidence and uncertain causes remain explicit
-- [ ] the diagnosis cites source evidence and distinguishes a confirmed cause
+- [x] the diagnosis cites source evidence and distinguishes a confirmed cause
       from a hypothesis; contradictory evidence prevents an unsupported RCA
-- [ ] the remediation preview specifies scope, parameters, impact, rollback and
+- [x] the remediation preview specifies scope, parameters, impact, rollback and
       recovery criteria; approval is attributable and bound to that preview
-- [ ] denied, expired or modified approvals cause no remediation execution
-- [ ] actions have timeout and retry limits; duplicate requests cannot repeat
+- [x] denied, expired or modified approvals cause no remediation execution
+- [x] actions have timeout and retry limits; duplicate requests cannot repeat
       an unsafe action; partial execution is recorded and reconciled
-- [ ] fresh telemetry, a successful probe and applicable Evals results determine
+- [x] fresh telemetry, a successful probe and applicable Evals results determine
       recovery; a successful command alone cannot resolve the incident
-- [ ] the incident timeline records detection, investigation, approval,
+- [x] the incident timeline records detection, investigation, approval,
       execution and verification, including failed-remediation paths
-- [ ] an end-to-end fixture and operator walkthrough demonstrate both verified
+- [x] an end-to-end fixture and operator walkthrough demonstrate both verified
       recovery and escalation when recovery fails
 
 ## Phase 7: Multi-Agent Operations (`v0.7`)
@@ -571,7 +585,7 @@ Success criteria:
 
 ## Phase 9: Automated Runbooks and Recovery Workflows (`v0.9`)
 
-Status: **planned**. Builds on the approved v0.6.x scenario and the v0.8 incident
+Status: **planned**. Builds on the approved v0.6.0 scenario and the v0.8 incident
 surface, extending one supported action into reusable operational workflows.
 
 Goals:
@@ -639,8 +653,9 @@ is read-only; registry/configuration access is not agent termination.
 - [ ] v0.4: define authenticated operator roles and task/deployment-scoped stop/revoke
       contracts with command IDs, expiry and idempotency. Emergency stop must not
       depend on LLM approval or cooperation from the agent being stopped.
-- [ ] v0.6.x: demonstrate emergency braking through Sidecar stop plus MCP access
-      revocation using supported adapters; define explicit operator-controlled restart.
+- [x] v0.6.0: thin Sidecar stop/restart and native MCP issuer revocation adapters
+      with requested/acknowledged/unsupported outcomes; in-flight and downstream
+      credentials remain explicit limits. See docs/incident-recovery.md.
 - [ ] Report requested, acknowledged, failed and unsupported outcomes separately.
       Claim containment only after dispatch blocking and revocation are confirmed;
       expose in-flight calls, unreachable targets and unsupported downstream credentials.

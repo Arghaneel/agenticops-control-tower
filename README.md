@@ -7,7 +7,7 @@
 
 ## Status
 
-**Current version: 0.5.0. v0.1–v0.5 are implemented.** The registry,
+**Current version: 0.6.0. Phases 6 and 6A ship together in this release.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 Tower-owned configuration uses approved actions, and pushed Lens, Evals, Sidecar
@@ -15,6 +15,20 @@ and Chaos evidence is stored and shown as posture. The read-only web console is
 served at `/console/`. See [ROADMAP.md](ROADMAP.md) for published milestone status,
 [implementation evidence and operational limits](ROADMAP.md#implementation-evidence-and-operational-limits),
 and the build plan.
+
+## Investigation and approved recovery (0.6.0)
+
+Phases 6 and 6A are one release: an authenticated MCP connector, an operations
+investigation prompt over cited evidence, durable incidents, exact-preview human
+approval and one bounded staging dependency runbook. A successful command awaits
+fresh Lens success, a same-run passing Evals gate and a probe; failed verification
+escalates. SQLite execution claims prevent replay after duplicates or crashes.
+Thin Sidecar stop/restart and native MCP issuer revocation adapters keep emergency
+control independent of model approval. Production runtime adapters remain planned.
+
+See the [operator guide](docs/incident-recovery.md), [MCP setup](docs/mcp-connector.md)
+and [native-producer walkthrough](examples/incident_recovery.py). The console
+remains read-only. Base Tower and MCP stay usable without sibling packages.
 
 ## Ecosystem evidence posture (v0.5)
 
@@ -77,7 +91,7 @@ is your policy, not an inferred latest release. Refresh is manual.
 The **Ecosystem evidence posture** panel shows fresh, stale and missing
 evidence per producer for the selected environment. Select an agent to inspect
 details and its per-producer evidence: freshness, latest record, recent window
-and native tallies. Incident detection, RCA and remote remediation are planned.
+and native tallies. Evidence-led incident investigation and approved deterministic staging recovery ship in 0.6.0; production remediation remains planned.
 Configuration approvals are available through API/CLI.
 
 The public HTML shell contains no fleet data. Every data request uses the same
@@ -128,8 +142,8 @@ Lens traces, tool calls, prompt versions, dependencies and sibling evidence.
 Diagnoses cite evidence and distinguish confirmed causes from hypotheses.
 Tower owns incident coordination; the sibling packages retain their engines.
 
-This full loop is planned, not implemented. The roadmap introduces the first
-approved staging scenario in v0.6.x, broader live incident views in v0.8 and
+The first complete loop ships in 0.6.0 for the deterministic staging runtime.
+The roadmap adds broader live incident views in v0.8 and
 reusable automated runbooks in v0.9. See [the command-center roadmap](ROADMAP.md#product-vision-ai-native-operations-command-center).
 
 ## Quickstart
@@ -260,8 +274,8 @@ dashboard is only one interface to the underlying control plane.
   state than what's built so far — see [Status](#status) for what's real
   today (registry, discovery, HTTP API, CLI, read-only console, approved
   desired configuration, evidence posture) versus [ROADMAP.md](ROADMAP.md)
-  for the narrowed build order still ahead (MCP connector and investigation
-  copilot, incident workflows, bulk operations, runbooks).
+  for implemented investigation/recovery scope and the build order ahead
+  (bulk operations, live incident views, reusable runbooks).
 
 ## Architecture
 

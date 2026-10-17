@@ -68,3 +68,10 @@ client variables and rotation.
 
 See [configuration and approvals](../docs/configuration.md) for Tower ownership, action lifecycle, audit durability and API/CLI usage.
 Runtime settings remain mirrored or unsupported without an adapter.
+
+## Approved incident recovery (0.6.0)
+
+`incident_recovery.py` runs the Phase 6/6A deterministic staging scenario through
+HTTP routes using native Lens runs and an actual Evals gate. Run with local Lens
+and Evals packages as shown in [the guide](../docs/incident-recovery.md); pass
+`--fail-verification` to observe escalation. No model provider is required.
