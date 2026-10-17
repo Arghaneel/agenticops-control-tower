@@ -35,3 +35,15 @@ def test_manifest_pushes_over_http_cli(capsys: pytest.CaptureFixture[str]) -> No
     assert main(["evidence", "ingest-manifest", manifest], client=client) == 0
     result = json.loads(capsys.readouterr().out)
     assert result == {**result, "submitted": 4, "created": 4, "unavailable": 0}
+
+
+@pytest.mark.parametrize("fail_verification", [False, True])
+def test_native_incident_walkthrough(tmp_path: Path, fail_verification: bool) -> None:
+    pytest.importorskip("agenticlens")
+    pytest.importorskip("agentic_evals")
+    example = runpy.run_path(str(EXAMPLES / "incident_recovery.py"))
+    incident = example["walkthrough"](tmp_path, fail_verification)
+    assert incident["state"] == ("escalated" if fail_verification else "resolved")
+    assert incident["approval"] == "consumed"
+    assert incident["detection"]["summary"]["link"]["source"] == "agenticlens"
+    assert any(event["event"] == "execution.succeeded" for event in incident["events"])
