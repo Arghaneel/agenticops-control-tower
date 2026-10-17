@@ -152,3 +152,13 @@ an Evals-computed gate; failed recovery escalates. Thin emergency control
 adapters are separate from the read-only native readers above. `ai-operations-spec` catalog release 0.5.1 retains AIOS v0.4-draft
 schemas and Tower incident/approval objects remain local. See
 [the incident guide](incident-recovery.md) and [MCP setup](mcp-connector.md).
+
+## Agentic Chaos 0.6.0 compatibility
+
+Chaos 0.6.0 adds a pytest plugin and pass/fail chaos contracts. Its native
+reports gain the additive fields `calls`, `calls_dropped` and
+`unhandled_error`. Tower's native `chaos_report` reader ignores them and
+summarizes events as before, which agentic-chaos's sibling-integration CI
+checks. The optional `agentic-chaos>=0.5,<1` extra already admits 0.6; no Tower
+change or release is needed. Contract verdicts are Chaos-native per-run checks;
+they do not become deployment health, and Evals still computes release gates.
