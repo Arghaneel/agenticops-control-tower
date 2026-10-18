@@ -165,3 +165,11 @@ summarizes events as before, which agentic-chaos's sibling-integration CI
 checks. The optional `agentic-chaos>=0.5,<1` extra already admits 0.6; no Tower
 change or release is needed. Contract verdicts are Chaos-native per-run checks;
 they do not become deployment health, and Evals still computes release gates.
+
+## Tower 0.7.0 fleet coordination
+
+See [fleet operations](fleet-operations.md). Fleet selectors, command IDs,
+approvals and receipts are Tower-local contracts. Existing optional sibling
+ranges stay sufficient. Native evidence, deployment health, runtime enforcement
+and issuer revocation retain separate ownership and meaning. New fleet writes
+are HTTP/CLI/Python-only; MCP investigation remains compatible and cannot approve.

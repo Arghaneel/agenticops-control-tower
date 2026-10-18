@@ -146,6 +146,29 @@ def _cmd_incidents(args: argparse.Namespace, client: httpx.Client) -> int:
     return 0
 
 
+def _cmd_bulk(args: argparse.Namespace, client: httpx.Client) -> int:
+    operation = args.bulk_command
+    if operation == "preview":
+        response = client.post("/bulk/preview", json=_load_payload(args.payload_file))
+    elif operation == "get":
+        response = client.get(f"/bulk/{args.bulk_id}")
+    elif operation in ("approve", "deny"):
+        response = client.post(
+            f"/bulk/{args.bulk_id}/approval", json={"approved": operation == "approve"}
+        )
+    else:
+        response = client.post(f"/bulk/{args.bulk_id}/{operation}", timeout=60)
+    _raise_for_status(response)
+    payload = response.json()
+    _print_json(payload)
+    return int(
+        operation == "execute"
+        and any(
+            target["outcome"] not in ("succeeded", "acknowledged") for target in payload["targets"]
+        )
+    )
+
+
 def _cmd_configuration(args: argparse.Namespace, client: httpx.Client) -> int:
     if args.command == "config":
         response = client.get(f"/agents/{args.agent_id}/config/{args.capability}")
@@ -355,6 +378,13 @@ def _build_parser() -> argparse.ArgumentParser:
         command.add_argument("payload_file" if operation == "preview" else "action_id")
         command.set_defaults(handler=_cmd_configuration, needs_client=True)
 
+    bulk = subparsers.add_parser("bulk", help="Preview and operate on a frozen fleet target set")
+    bulk_sub = bulk.add_subparsers(dest="bulk_command", required=True)
+    for operation in ("preview", "get", "approve", "deny", "revoke", "execute"):
+        command = bulk_sub.add_parser(operation)
+        command.add_argument("payload_file" if operation == "preview" else "bulk_id")
+        command.set_defaults(handler=_cmd_bulk, needs_client=True)
+
     incidents = subparsers.add_parser("incidents", help="Investigate and approve staging recovery")
     incident_sub = incidents.add_subparsers(dest="incident_command", required=True)
     for operation in (
@@ -462,7 +492,7 @@ def main(argv: list[str] | None = None, *, client: httpx.Client | None = None) -
         from agenticops_control_tower.snapshot import load_snapshot, read_snapshot
 
         if (
-            args.command in ("serve", "config", "audit", "actions", "incidents")
+            args.command in ("serve", "config", "audit", "actions", "incidents", "bulk")
             or (args.command == "agents" and args.agents_command in ("register", "heartbeat"))
             or (args.command == "evidence" and args.evidence_command.startswith("ingest"))
         ):

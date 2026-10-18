@@ -7,7 +7,7 @@
 
 ## Status
 
-**Current version: 0.6.0. Phases 6 and 6A ship together in this release.** The registry,
+**Current version: 0.7.0. Phase 7 adds approved fleet operations.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 Tower-owned configuration uses approved actions, and pushed Lens, Evals, Sidecar
@@ -275,7 +275,7 @@ dashboard is only one interface to the underlying control plane.
   today (registry, discovery, HTTP API, CLI, read-only console, approved
   desired configuration, evidence posture) versus [ROADMAP.md](ROADMAP.md)
   for implemented investigation/recovery scope and the build order ahead
-  (bulk operations, live incident views, reusable runbooks).
+  (live incident views, reusable runbooks).
 
 ## Architecture
 
@@ -591,3 +591,14 @@ schema, automatic adapter, hosted execution capability or containment guarantee
 is introduced.
 
 Tower summarizes native Chaos event counts; resilience outcomes remain separate from deployment health. Its agentic-chaos>=0.5,<1 extra already admits 0.7. No Tower patch release is needed.
+
+## Fleet operations — 0.7.0
+
+Bulk desired configuration and host-installed Sidecar stop/MCP revocation now
+ship through Python, HTTP and CLI. Preview a frozen environment/capability
+target list, obtain separate approval, execute once, and inspect durable
+per-target results and audit events. Partial failures remain explicit;
+there is no fleet atomicity, automatic rollback, or remote configuration claim.
+See the [operator guide](docs/fleet-operations.md) and run
+`uv run python examples/fleet_operations.py`. New fleet endpoints are not
+exposed through MCP; all sibling extras remain optional.

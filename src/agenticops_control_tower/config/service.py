@@ -171,39 +171,48 @@ class ConfigurationService:
         if not capability:
             raise ConfigurationError("An explicit capability target is required")
         with self._transaction() as db:
-            agent = self.registry.get(agent_id)
-            if (
-                request.target.environment is not None
-                and request.target.environment != agent.environment
-            ):
-                raise ConfigurationError("Target environment does not match deployment")
-            before = self._get(db, agent_id, capability)
-            if before.authority != "tower":
-                raise ConfigurationError(before.reason)
-            after = before.model_copy(deep=True)
-            if request.operation == "config.update":
-                after.values.update(request.patch.values)
-            else:
-                if request.patch.values:
-                    raise ConfigurationError(
-                        "Capability toggles do not accept a configuration patch"
-                    )
-                after.enabled = request.operation == "capabilities.enable"
-            after.revision += 1
-            action = ActionPreview(
-                action_id=str(uuid4()),
-                request=request.model_copy(deep=True),
-                proposed_by=operator.operator_id,
-                expected_revision=before.revision,
-                before=before,
-                after=after,
-                impact="Changes Tower-owned desired configuration only; no remote execution",
-                expires_at=datetime.now(timezone.utc)
-                + timedelta(seconds=request.expires_in_seconds),
-            )
-            self._save_action(db, action)
-            self._audit(db, operator, agent_id, "action.previewed", action.action_id)
-            return action
+            return self._preview(db, request, operator)
+
+    def _preview(
+        self,
+        db: sqlite3.Connection,
+        request: ActionRequest,
+        operator: Operator,
+        *,
+        audit_action_id: str | None = None,
+    ) -> ActionPreview:
+        agent_id = request.target.agent_id
+        capability = request.target.capability
+        agent = self.registry.get(agent_id)
+        if (
+            request.target.environment is not None
+            and request.target.environment != agent.environment
+        ):
+            raise ConfigurationError("Target environment does not match deployment")
+        before = self._get(db, agent_id, capability)
+        if before.authority != "tower":
+            raise ConfigurationError(before.reason)
+        after = before.model_copy(deep=True)
+        if request.operation == "config.update":
+            after.values.update(request.patch.values)
+        else:
+            if request.patch.values:
+                raise ConfigurationError("Capability toggles do not accept a configuration patch")
+            after.enabled = request.operation == "capabilities.enable"
+        after.revision += 1
+        action = ActionPreview(
+            action_id=str(uuid4()),
+            request=request.model_copy(deep=True),
+            proposed_by=operator.operator_id,
+            expected_revision=before.revision,
+            before=before,
+            after=after,
+            impact="Changes Tower-owned desired configuration only; no remote execution",
+            expires_at=datetime.now(timezone.utc) + timedelta(seconds=request.expires_in_seconds),
+        )
+        self._save_action(db, action)
+        self._audit(db, operator, agent_id, "action.previewed", audit_action_id or action.action_id)
+        return action
 
     @staticmethod
     def _save_action(db: sqlite3.Connection, action: ActionPreview) -> None:
@@ -259,36 +268,40 @@ class ConfigurationService:
     @audited
     def execute(self, action_id: str, operator: Operator) -> ExecutionResult:
         with self._transaction() as db:
-            action = self._action(db, action_id)
-            target = action.request.target
-            self._authorize(operator, target.agent_id, "writer")
-            if action.status != "approved" or action.expires_at <= datetime.now(timezone.utc):
-                raise ConfigurationError(
-                    "Approval is missing, denied, revoked, consumed or expired"
-                )
-            current = self._get(db, target.agent_id, action.after.capability)
-            agent = self.registry.get(target.agent_id)
-            if (
-                current != action.before
-                or current.revision != action.expected_revision
-                or (target.environment is not None and target.environment != agent.environment)
-            ):
-                raise ConfigurationError(
-                    "Approval no longer matches current configuration or target"
-                )
-            db.execute(
-                "INSERT OR REPLACE INTO tower_config VALUES (?, ?)",
-                (
-                    self._key(target.agent_id, action.after.capability),
-                    action.after.model_dump_json(),
-                ),
-            )
-            action.status = "executed"
-            self._save_action(db, action)
-            self._audit(db, operator, target.agent_id, "action.executed", action_id)
-            return ExecutionResult(
-                action_id=action_id, outcome="succeeded", configuration=action.after
-            )
+            return self._execute(db, action_id, operator)
+
+    def _execute(
+        self,
+        db: sqlite3.Connection,
+        action_id: str,
+        operator: Operator,
+        *,
+        audit_action_id: str | None = None,
+    ) -> ExecutionResult:
+        action = self._action(db, action_id)
+        target = action.request.target
+        self._authorize(operator, target.agent_id, "writer")
+        if action.status != "approved" or action.expires_at <= datetime.now(timezone.utc):
+            raise ConfigurationError("Approval is missing, denied, revoked, consumed or expired")
+        current = self._get(db, target.agent_id, action.after.capability)
+        agent = self.registry.get(target.agent_id)
+        if (
+            current != action.before
+            or current.revision != action.expected_revision
+            or (target.environment is not None and target.environment != agent.environment)
+        ):
+            raise ConfigurationError("Approval no longer matches current configuration or target")
+        db.execute(
+            "INSERT OR REPLACE INTO tower_config VALUES (?, ?)",
+            (
+                self._key(target.agent_id, action.after.capability),
+                action.after.model_dump_json(),
+            ),
+        )
+        action.status = "executed"
+        self._save_action(db, action)
+        self._audit(db, operator, target.agent_id, "action.executed", audit_action_id or action_id)
+        return ExecutionResult(action_id=action_id, outcome="succeeded", configuration=action.after)
 
     def audit(self, agent_id: str) -> list[AuditRecord]:
         self.registry.get(agent_id)
