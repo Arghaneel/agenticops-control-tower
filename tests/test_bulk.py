@@ -263,3 +263,55 @@ def test_limits_and_toggle(service):
     bid = approved(service, request("capabilities.disable"))
     assert all(t.outcome == "succeeded" for t in service.execute(bid, WRITER).targets)
     assert service.config.get("a", "agentic-sidecar").enabled is False
+
+
+def test_actual_sidecar_stop(service):
+    sidecar = pytest.importorskip("agentic_sidecar")
+    runtime = sidecar.TaskRuntime(
+        task_id="bulk-test", revokers={"mcp": lambda task: task == "bulk-test"}
+    )
+    sidecar.Sidecar(on_sidecar_failure="fail_closed", runtime=runtime)
+    service.install("a", SidecarContainmentAdapter(runtime))
+    result = service.execute(approved(service, request("runtime.stop")), WRITER)
+    assert result.targets[0].outcome == "acknowledged"
+    assert result.targets[0].receipt["mcp_revocation"] == "acknowledged"
+
+
+def test_preview_transaction_rolls_back_all_children(service):
+    service.config.declare(
+        Configuration(agent_id="b", capability="agentic-sidecar", authority="mirrored"), WRITER
+    )
+    with pytest.raises(ConfigurationError):
+        service.preview(request(), WRITER)
+    with service.config._transaction(write=False) as db:
+        assert db.execute("SELECT count(*) FROM tower_bulk").fetchone()[0] == 0
+        assert db.execute("SELECT count(*) FROM tower_actions").fetchone()[0] == 0
+    assert service.config.get("a", "agentic-sidecar").values == {}
+
+
+def test_capacity_exhaustion_does_not_dispatch(service, monkeypatch):
+    from agenticops_control_tower.bulk import service as bulk_module
+
+    class Full:
+        def acquire(self, blocking):
+            return False
+
+    monkeypatch.setattr(bulk_module, "_DISPATCH_SLOTS", Full())
+    runtime = Runtime()
+    service.install("a", SidecarContainmentAdapter(runtime))
+    result = service.execute(approved(service, request("runtime.stop")), WRITER)
+    assert result.targets[0].outcome == "failed"
+    assert runtime.calls == 0
+
+
+def test_target_limit(service):
+    for number in range(100):
+        register(service.config.registry, f"extra-{number}")
+    with pytest.raises(ConfigurationError, match="100"):
+        service.preview(request("runtime.stop"), WRITER)
+
+
+def test_example_runs():
+    import runpy
+
+    runpy.run_path("examples/fleet_operations.py", run_name="__main__")
