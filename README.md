@@ -7,7 +7,7 @@
 
 ## Status
 
-**Current version: 0.6.0. Phases 6 and 6A ship together in this release.** The registry,
+**Current version: 0.7.0. Phase 7 adds approved fleet operations.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 Tower-owned configuration uses approved actions, and pushed Lens, Evals, Sidecar
@@ -275,7 +275,7 @@ dashboard is only one interface to the underlying control plane.
   today (registry, discovery, HTTP API, CLI, read-only console, approved
   desired configuration, evidence posture) versus [ROADMAP.md](ROADMAP.md)
   for implemented investigation/recovery scope and the build order ahead
-  (bulk operations, live incident views, reusable runbooks).
+  (live incident views, reusable runbooks).
 
 ## Architecture
 
