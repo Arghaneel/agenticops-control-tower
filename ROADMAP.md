@@ -727,3 +727,9 @@ artifacts, not Tower evidence types; evaluation reports produced from them
 keep the native shape Tower already reads. No Tower release is needed.
 
 See the [suite management guide](https://github.com/DeepAgentLabs/agenticlens/blob/v0.8.0/docs/suite-management.md).
+
+## Evals 0.8.0 CLI interoperability
+
+Evals 0.8.0 CLI JSON reports and gate decisions retain schema 1.0 and work with the native Evals evidence reader and bundled 0.7.2 schemas. Keep JSON artifacts when producing JUnit or Markdown for CI; presentation output is not a Tower evidence input. Gate results remain producer evidence, separate from deployment health and recovery authorization.
+
+See [CLI usage and compatibility](docs/evals-0.8-cli.md).
