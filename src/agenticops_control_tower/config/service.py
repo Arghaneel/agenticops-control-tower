@@ -174,7 +174,12 @@ class ConfigurationService:
             return self._preview(db, request, operator)
 
     def _preview(
-        self, db: sqlite3.Connection, request: ActionRequest, operator: Operator
+        self,
+        db: sqlite3.Connection,
+        request: ActionRequest,
+        operator: Operator,
+        *,
+        audit_action_id: str | None = None,
     ) -> ActionPreview:
         agent_id = request.target.agent_id
         capability = request.target.capability
@@ -206,7 +211,7 @@ class ConfigurationService:
             expires_at=datetime.now(timezone.utc) + timedelta(seconds=request.expires_in_seconds),
         )
         self._save_action(db, action)
-        self._audit(db, operator, agent_id, "action.previewed", action.action_id)
+        self._audit(db, operator, agent_id, "action.previewed", audit_action_id or action.action_id)
         return action
 
     @staticmethod
@@ -266,7 +271,12 @@ class ConfigurationService:
             return self._execute(db, action_id, operator)
 
     def _execute(
-        self, db: sqlite3.Connection, action_id: str, operator: Operator
+        self,
+        db: sqlite3.Connection,
+        action_id: str,
+        operator: Operator,
+        *,
+        audit_action_id: str | None = None,
     ) -> ExecutionResult:
         action = self._action(db, action_id)
         target = action.request.target
@@ -290,7 +300,7 @@ class ConfigurationService:
         )
         action.status = "executed"
         self._save_action(db, action)
-        self._audit(db, operator, target.agent_id, "action.executed", action_id)
+        self._audit(db, operator, target.agent_id, "action.executed", audit_action_id or action_id)
         return ExecutionResult(action_id=action_id, outcome="succeeded", configuration=action.after)
 
     def audit(self, agent_id: str) -> list[AuditRecord]:
