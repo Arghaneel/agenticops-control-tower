@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from agenticops_control_tower import __version__
 from agenticops_control_tower.api.limits import BodySizeLimit
 from agenticops_control_tower.api.surface import ControlTowerAPI
+from agenticops_control_tower.bulk import BulkRequest
 from agenticops_control_tower.config.models import ActionRequest, ApprovalRequest, Operator
 from agenticops_control_tower.config.service import ConfigurationError, ConfigurationService
 from agenticops_control_tower.console.app import ASSET_DIRECTORY
@@ -84,7 +85,9 @@ def create_app(
     control_api = api
     app = FastAPI(title="AgenticOps Control Tower", version=__version__)
     # Enforced in ASGI middleware so oversized or unsized bodies are never buffered.
-    app.add_middleware(BodySizeLimit, paths=frozenset({"/evidence"}), max_bytes=MAX_EVIDENCE_BYTES)
+    app.add_middleware(
+        BodySizeLimit, paths=frozenset({"/evidence", "/bulk/preview"}), max_bytes=MAX_EVIDENCE_BYTES
+    )
     bearer = HTTPBearer(auto_error=False)
 
     def authorize(credentials: HTTPAuthorizationCredentials | None, *, write: bool) -> None:
@@ -307,6 +310,45 @@ def create_app(
             return control_api.config.execute(action_id, operator)
         except AgentNotFoundError as exc:
             raise HTTPException(404, str(exc)) from exc
+        except ConfigurationError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/bulk/preview")
+    def bulk_preview(
+        request: BulkRequest, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.bulk.preview(request, operator)
+        except (ConfigurationError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/bulk/{bulk_id}")
+    def bulk_get(bulk_id: str, operator: Operator = Depends(configuration_operator)) -> object:
+        try:
+            return control_api.bulk.get(bulk_id, operator)
+        except ConfigurationError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/bulk/{bulk_id}/approval")
+    def bulk_approve(
+        bulk_id: str, request: ApprovalRequest, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.bulk.decide(bulk_id, request.approved, operator)
+        except ConfigurationError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/bulk/{bulk_id}/revoke")
+    def bulk_revoke(bulk_id: str, operator: Operator = Depends(configuration_operator)) -> object:
+        try:
+            return control_api.bulk.revoke(bulk_id, operator)
+        except ConfigurationError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/bulk/{bulk_id}/execute")
+    def bulk_execute(bulk_id: str, operator: Operator = Depends(configuration_operator)) -> object:
+        try:
+            return control_api.bulk.execute(bulk_id, operator)
         except ConfigurationError as exc:
             raise HTTPException(409, str(exc)) from exc
 

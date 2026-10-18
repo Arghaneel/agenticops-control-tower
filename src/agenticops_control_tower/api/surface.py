@@ -9,6 +9,7 @@ from typing import Any
 from packaging.version import InvalidVersion, Version
 
 from agenticops_control_tower.adapters.evidence import summarize_evidence
+from agenticops_control_tower.bulk import BulkService
 from agenticops_control_tower.config.service import ConfigurationService
 from agenticops_control_tower.discovery import CapabilityDiscoveryService
 from agenticops_control_tower.evidence import (
@@ -53,6 +54,7 @@ class ControlTowerAPI:
         incident_service: IncidentService | None = None,
     ) -> None:
         self.config = configuration_service or ConfigurationService(registry)
+        self.bulk = BulkService(self.config)
         self.evidence = evidence_store or EvidenceStore(registry)
         self.incidents = incident_service or IncidentService(registry, self.evidence)
         self._posture = PostureService(self.evidence)
