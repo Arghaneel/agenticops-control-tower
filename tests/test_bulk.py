@@ -315,3 +315,55 @@ def test_example_runs():
     import runpy
 
     runpy.run_path("examples/fleet_operations.py", run_name="__main__")
+
+
+def test_late_receipt_is_durable_without_changing_timeout(service, monkeypatch):
+    runtime = Runtime("wait")
+    receipt_saved = Event()
+    original = service._event
+
+    def event(action, name, operator, agent_id=None):
+        original(action, name, operator, agent_id)
+        if name == "target.receipt_received":
+            receipt_saved.set()
+
+    monkeypatch.setattr(service, "_event", event)
+    service.install("a", SidecarContainmentAdapter(runtime))
+    bid = approved(service, request("runtime.stop", acknowledgement_seconds=0.01))
+    result = service.execute(bid, WRITER)
+    assert result.targets[0].outcome == "timed_out"
+    runtime.release.set()
+    assert receipt_saved.wait(2)
+    restored = BulkService(ConfigurationService(service.config.registry, service.config._path))
+    target = restored.get(bid, WRITER).targets[0]
+    assert target.outcome == "timed_out"
+    assert target.receipt["outcome"] == "acknowledged"
+    audit = restored.config.audit("a")
+    assert any(
+        r.event == "bulk.target.receipt_received" and '"mcp_revocation"' in r.detail for r in audit
+    )
+
+
+def test_batch_deadline_skips_remaining_dispatches(service):
+    runtime = Runtime("wait")
+    service.install("a", SidecarContainmentAdapter(runtime))
+    service.install("b", SidecarContainmentAdapter(runtime))
+    bid = approved(
+        service, request("runtime.stop", execution_seconds=0.01, acknowledgement_seconds=30)
+    )
+    try:
+        result = service.execute(bid, WRITER)
+        assert [t.outcome for t in result.targets] == ["timed_out", "failed"]
+        assert "deadline" in result.targets[1].detail
+        assert runtime.calls == 1
+    finally:
+        runtime.release.set()
+
+
+def test_configuration_audit_references_durable_batch(service):
+    bid = approved(service)
+    service.execute(bid, WRITER)
+    for aid in ("a", "b"):
+        records = [r for r in service.config.audit(aid) if r.action_id]
+        assert records and {r.action_id for r in records} == {bid}
+        assert service.get(bid, WRITER).targets[0].preview.status == "executed"
