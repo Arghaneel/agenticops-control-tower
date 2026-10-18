@@ -53,8 +53,9 @@ approval, runbook execution and verified recovery.
 
 v0.5 ecosystem evidence posture is complete: pushed producer evidence is stored
 and shown as freshness and native tallies. v0.6 combines Phase 6 and 6A: local MCP investigation, durable incidents and
-approved deterministic staging recovery. See docs/incident-recovery.md. Next are
-bulk actions and broader incident views; production runbooks remain planned.
+approved deterministic staging recovery. See docs/incident-recovery.md. v0.7 adds frozen fleet previews, approvals, desired settings and bounded
+stop/revoke coordination; see docs/fleet-operations.md. Broader incident views
+and production runbooks remain planned.
 
 ### Before You Build Here
 
@@ -68,7 +69,7 @@ bulk actions and broader incident views; production runbooks remain planned.
 
 ## Status
 
-The v0.1–v0.6 milestones are **implemented**. Package layout, docs, tests, and
+The v0.1–v0.7 milestones are **implemented**. Package layout, docs, tests, and
 CI/release workflows exist; a registry with optional SQLite persistence,
 discovery, HTTP API, and CLI exist today — see
 [ROADMAP.md](ROADMAP.md) for published milestone status, implementation evidence,

@@ -591,3 +591,14 @@ schema, automatic adapter, hosted execution capability or containment guarantee
 is introduced.
 
 Tower summarizes native Chaos event counts; resilience outcomes remain separate from deployment health. Its agentic-chaos>=0.5,<1 extra already admits 0.7. No Tower patch release is needed.
+
+## Fleet operations — 0.7.0
+
+Bulk desired configuration and host-installed Sidecar stop/MCP revocation now
+ship through Python, HTTP and CLI. Preview a frozen environment/capability
+target list, obtain separate approval, execute once, and inspect durable
+per-target results and audit events. Partial failures remain explicit;
+there is no fleet atomicity, automatic rollback, or remote configuration claim.
+See the [operator guide](docs/fleet-operations.md) and run
+`uv run python examples/fleet_operations.py`. New fleet endpoints are not
+exposed through MCP; all sibling extras remain optional.

@@ -1,6 +1,6 @@
 # agenticops-control-tower — Roadmap & Architecture
 
-**Current package version: 0.6.0.** v0.5 persists pushed Lens, Evals,
+**Current package version: 0.7.0.** v0.5 persists pushed Lens, Evals,
 Sidecar and Chaos evidence and surfaces its freshness and native outcomes as
 posture across the Python API, HTTP, CLI, offline snapshots and console.
 0.5.1 adds AgenticLens 0.7.0 diagnosis reports as native Lens evidence
@@ -54,7 +54,7 @@ unsupported explanation as an exact RCA.
 - **v0.4** ✅ Implemented and published — Configuration Model and Controlled Write Operations
 - **v0.5** ✅ Implemented — Ecosystem evidence ingestion, persistence and posture views (push-based; pull collection deferred)
 - **v0.6.0** ✅ Implemented — Phase 6 MCP investigation and Phase 6A approved staging recovery (one release)
-- **v0.7** 🚧 Planned — Multi-Agent Operations and Bulk Actions
+- **v0.7.0** ✅ Implemented — Multi-Agent Operations and Bulk Actions
 - **v0.8** 🚧 Planned — Live Detection, Alerts, Audit Trails, and Incident Views
 - **v0.9** 🚧 Planned — Automated Runbooks and Recovery Workflows
 - **v1.0** 🚧 Planned — Stable Control Plane and Published Capability Contract
@@ -62,7 +62,7 @@ unsupported explanation as an exact RCA.
 v0.1 and v0.2 share a tested Python control model, optional SQLite registry,
 authenticated HTTP API and operator CLI. The read-only console ships in v0.3; controlled desired configuration ships in
 v0.4; ecosystem evidence posture ships in v0.5. Pull-based remote collection,
-bulk operations, production runtime adapters and broader incident views remain planned.
+production runtime adapters and broader incident views remain planned.
 
 ## Implementation Evidence and Operational Limits
 
@@ -92,7 +92,7 @@ per-agent identities and tenant isolation are not implemented. Without tokens,
 the API allows anonymous local development. Health is agent-reported;
 timeout-based health, automatic package detection and distributed storage remain
 planned. Pull-based remote evidence collection, fleet-wide incident views and remote configuration application,
-bulk actions, production runbooks and automatic incident polling remain planned.
+production runbooks and automatic incident polling remain planned.
 Phase 6/6A delivers explicit detection, investigation and approved verified recovery
 for the deterministic staging fixture; see docs/incident-recovery.md.
 
@@ -548,6 +548,13 @@ Success criteria:
 
 ## Phase 7: Multi-Agent Operations (`v0.7`)
 
+Status: **implemented in 0.7.0**. Frozen deterministic environment/capability
+targeting, bulk desired settings and stop/MCP-revocation coordination, separate
+approval, durable per-target results and bounded acknowledgement waits ship
+through Python, HTTP and CLI. See [fleet operations](docs/fleet-operations.md),
+`bulk/`, `tests/test_bulk.py` and `examples/fleet_operations.py`. No fleet
+atomicity, automatic rollback/resume or remote configuration application is claimed.
+
 Goals:
 
 - add bulk operations and fleet-wide targeting
@@ -659,7 +666,7 @@ is read-only; registry/configuration access is not agent termination.
 - [ ] Report requested, acknowledged, failed and unsupported outcomes separately.
       Claim containment only after dispatch blocking and revocation are confirmed;
       expose in-flight calls, unreachable targets and unsupported downstream credentials.
-- [ ] v0.7: bulk stop/revoke with per-target results and bounded acknowledgement
+- [x] v0.7: bulk stop/revoke with per-target results and bounded acknowledgement
       times; test partial failure/disconnection without assuming fleet atomicity.
 - [ ] v0.8: join operator commands, policy decisions and actual execution evidence
       in incident timelines; show Lens integrity/coverage status separately from health.
