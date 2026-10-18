@@ -735,6 +735,24 @@ keep the native shape Tower already reads. No Tower release is needed.
 
 See the [suite management guide](https://github.com/DeepAgentLabs/agenticlens/blob/v0.8.0/docs/suite-management.md).
 
+## AgenticLens 0.9.0 ModelFit
+
+AgenticLens 0.9.0 delivers its v0.7 milestone: `agenticlens.modelfit` and
+`agenticlens modelfit` recommend a model per task category from recorded
+experiment reports, under hard quality, cost, latency, safety, provider and
+deployment constraints that fail closed. Each recommendation carries a
+confidence level with reasons, an explanation, alternatives, a fallback
+(on a different provider when one is feasible), savings against a reference variant tied to the
+experiment evidence, and quality risks, plus a task-level model matrix.
+
+Tower's native readers are unchanged. Lens 0.9.0 is inside Tower's
+`agenticlens>=0.7,<1` extra. A ModelFit report is a Lens-local
+recommendation artifact, not a Tower evidence type: it neither reports fleet
+health nor changes desired settings, and acting on a recommendation stays an
+operator decision. No Tower release is needed.
+
+See the [ModelFit guide](https://github.com/DeepAgentLabs/agenticlens/blob/v0.9.0/docs/modelfit.md).
+
 ## Evals 0.8.0 CLI interoperability
 
 Evals 0.8.0 CLI JSON reports and gate decisions retain schema 1.0 and work with the native Evals evidence reader and bundled 0.7.2 schemas. Keep JSON artifacts when producing JUnit or Markdown for CI; presentation output is not a Tower evidence input. Gate results remain producer evidence, separate from deployment health and recovery authorization.
