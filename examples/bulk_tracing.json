@@ -1,0 +1,7 @@
+{
+  "intent": "Enable enhanced tracing for staging Lens deployments",
+  "selector": {"environment": "staging", "capability": "agenticlens"},
+  "operation": "config.update",
+  "patch": {"values": {"enhanced_tracing": true}},
+  "expires_in_seconds": 300
+}

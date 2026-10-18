@@ -75,3 +75,10 @@ Runtime settings remain mirrored or unsupported without an adapter.
 HTTP routes using native Lens runs and an actual Evals gate. Run with local Lens
 and Evals packages as shown in [the guide](../docs/incident-recovery.md); pass
 `--fail-verification` to observe escalation. No model provider is required.
+
+## Fleet operations (0.7.0)
+
+`uv run python examples/fleet_operations.py` demonstrates approved bulk desired
+configuration with a stale-target partial failure. `bulk_tracing.json` is the
+HTTP/CLI preview payload. See [fleet operations](../docs/fleet-operations.md)
+for host-installed stop/revoke adapters, audit and interruption handling.
