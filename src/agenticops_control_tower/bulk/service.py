@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from queue import Empty, Queue
 from threading import BoundedSemaphore, Thread
+from time import monotonic
 from uuid import uuid4
 
 from agenticops_control_tower.adapters.containment import SidecarContainmentAdapter
@@ -130,6 +132,7 @@ class BulkService:
                             expires_in_seconds=request.expires_in_seconds,
                         ),
                         operator,
+                        audit_action_id=action.bulk_id,
                     )
                     # Internal single-target actions cannot be separately approved/executed.
                     db.execute("DELETE FROM tower_actions WHERE id=?", (target.preview.action_id,))
@@ -175,8 +178,9 @@ class BulkService:
             action.status = "executing"
             self._event(action, "bulk.claimed", operator)
             self._save(db, action)
+        deadline = monotonic() + action.request.execution_seconds
         for index in range(len(action.targets)):
-            self._execute_target(bulk_id, index, operator)
+            self._execute_target(bulk_id, index, operator, deadline)
         with self.config._transaction() as db:
             action = self._load(db, bulk_id)
             action.status = "completed"
@@ -184,11 +188,15 @@ class BulkService:
             self._save(db, action)
             return action
 
-    def _execute_target(self, bulk_id: str, index: int, operator: Operator) -> None:
+    def _execute_target(
+        self, bulk_id: str, index: int, operator: Operator, deadline: float
+    ) -> None:
         with self.config._transaction() as db:
             action = self._load(db, bulk_id)
             target = action.targets[index]
             try:
+                if monotonic() >= deadline:
+                    raise ConfigurationError("Batch execution deadline elapsed; no dispatch")
                 agent = self.config.registry.get(target.agent_id)
                 if action.expires_at <= now() or (
                     agent.environment != action.request.selector.environment
@@ -205,7 +213,10 @@ class BulkService:
                     child = target.preview.model_copy(deep=True)
                     child.status, child.approved_by = "approved", action.decided_by
                     self.config._save_action(db, child)
-                    self.config._execute(db, child.action_id, operator)
+                    self.config._execute(
+                        db, child.action_id, operator, audit_action_id=action.bulk_id
+                    )
+                    target.preview = self.config._action(db, child.action_id)
                     target.outcome = "succeeded"
                 elif target.agent_id not in self._connectors:
                     target.outcome = "unsupported"
@@ -233,10 +244,26 @@ class BulkService:
 
         def dispatch() -> None:
             try:
-                queue.put(adapter.control("stop", operator.operator_id))
-            except Exception:
-                # Do not persist exception text: a connector may include credentials.
-                queue.put({"outcome": "failed", "detail": "Connector raised; inspect host logs"})
+                try:
+                    receipt = adapter.control("stop", operator.operator_id)
+                except Exception:
+                    # Connector exception text may contain credentials.
+                    receipt = {"outcome": "failed", "detail": "Connector raised; inspect host logs"}
+                # Preserve late evidence without changing the acknowledgement deadline outcome.
+                with self.config._transaction() as db:
+                    stored = self._load(db, bulk_id)
+                    stored.targets[index].receipt = receipt
+                    self._event(stored, "target.receipt_received", operator, target.agent_id)
+                    self.config._audit(
+                        db,
+                        operator,
+                        target.agent_id,
+                        "bulk.target.receipt_received",
+                        bulk_id,
+                        json.dumps(receipt, sort_keys=True),
+                    )
+                    self._save(db, stored)
+                queue.put(receipt)
             finally:
                 _DISPATCH_SLOTS.release()
 
@@ -247,7 +274,9 @@ class BulkService:
         else:
             Thread(target=dispatch, daemon=True).start()
         try:
-            receipt = queue.get(timeout=action.request.acknowledgement_seconds)
+            receipt = queue.get(
+                timeout=max(0, min(action.request.acknowledgement_seconds, deadline - monotonic()))
+            )
             outcome = receipt.get("outcome")
             target.outcome = (
                 outcome
@@ -255,6 +284,7 @@ class BulkService:
                 else "unknown"
             )
             target.receipt = receipt
+            target.detail = json.dumps(receipt, sort_keys=True)
         except Empty:
             target.outcome = "timed_out"
             target.detail = (
@@ -262,6 +292,8 @@ class BulkService:
             )
         with self.config._transaction() as db:
             action = self._load(db, bulk_id)
+            if not target.receipt:
+                target.receipt = action.targets[index].receipt
             action.targets[index] = target
             if target.preview is not None:
                 db.execute("DELETE FROM tower_actions WHERE id=?", (target.preview.action_id,))

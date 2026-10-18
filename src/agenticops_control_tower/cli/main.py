@@ -157,7 +157,7 @@ def _cmd_bulk(args: argparse.Namespace, client: httpx.Client) -> int:
             f"/bulk/{args.bulk_id}/approval", json={"approved": operation == "approve"}
         )
     else:
-        response = client.post(f"/bulk/{args.bulk_id}/{operation}")
+        response = client.post(f"/bulk/{args.bulk_id}/{operation}", timeout=60)
     _raise_for_status(response)
     payload = response.json()
     _print_json(payload)

@@ -24,6 +24,8 @@ class BulkRequest(Contract):
     expires_in_seconds: int = Field(default=300, ge=1, le=3600)
     acknowledgement_seconds: float = Field(default=5, ge=0.01, le=30, allow_inf_nan=False)
 
+    execution_seconds: float = Field(default=30, ge=0.01, le=30, allow_inf_nan=False)
+
     @model_validator(mode="after")
     def valid_patch(self) -> "BulkRequest":
         if self.operation != "config.update" and self.patch.values:
