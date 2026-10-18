@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## 0.7.0
+
+Released 2026-10-18.
+
+### Added
+
+- Deterministic environment/capability fleet selectors with frozen sorted targets,
+  explicit intent, before/after configuration previews and separate human approval.
+- Durable SQLite bulk actions, per-target audit/results, expiry, revocation,
+  scoped Python identities and single-use transactional execution claims.
+- Bulk desired settings and capability toggles with independent stale-target failures.
+- Host-installed Sidecar stop/MCP revocation coordination, bounded acknowledgement
+  waits, capped outstanding calls and explicit unsupported/incomplete/timeout outcomes.
+- Authenticated Python/HTTP/CLI workflows, partial-failure CLI status and runnable
+  offline example, with documented rollback and interrupted-work reconciliation.
+
+### Compatibility
+
+- Siblings remain optional; existing dependency ranges remain sufficient. Native
+  evidence and deployment health are unchanged. Fleet contracts are Tower-local.
+- Local MCP investigation remains compatible; new bulk writes are Python/HTTP/CLI-only.
+  No hosted MCP fleet exposure, remote configuration application, fleet atomicity,
+  automatic rollback/resume or full downstream containment is asserted.
+
 ## 0.6.1
 
 Released 2026-10-17.
