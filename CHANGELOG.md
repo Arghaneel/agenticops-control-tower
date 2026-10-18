@@ -14,7 +14,8 @@ Released 2026-10-18.
   scoped Python identities and single-use transactional execution claims.
 - Bulk desired settings and capability toggles with independent stale-target failures.
 - Host-installed Sidecar stop/MCP revocation coordination, bounded acknowledgement
-  waits, capped outstanding calls and explicit unsupported/incomplete/timeout outcomes.
+  waits, a 30-second maximum batch wait budget, capped outstanding calls, durable
+  late receipts and explicit unsupported/incomplete/timeout outcomes.
 - Authenticated Python/HTTP/CLI workflows, partial-failure CLI status and runnable
   offline example, with documented rollback and interrupted-work reconciliation.
 

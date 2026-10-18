@@ -77,15 +77,19 @@ A stop request blocks dispatch and requests configured MCP access revocation;
 there is no standalone arbitrary credential-revocation or bulk restart endpoint.
 
 Each target records requested then acknowledged, failed, unsupported, incomplete,
-or timed_out; unrecognized receipts are unknown. In-flight calls and unsupported
+or timed_out; unrecognized receipts are unknown. Late receipts are durably
+recorded in the target receipt and audit without replacing a timed_out outcome. In-flight calls and unsupported
 downstream credentials stay explicit. A boundary acknowledgement does not prove
 end-to-end containment or verified incident recovery. Missing adapters are
 unsupported. Connector exceptions produce a generic failure without persisting
 exception text. Acknowledgement waiting is bounded per target; a timed-out host
 call may still finish. At most 16 host calls can remain outstanding per process;
 capacity exhaustion records failed without dispatch. Host adapters must themselves
-bound their network/runtime calls. This is synchronous sequential execution, with
-up to 100 per-target waits, not a background distributed scheduler.
+bound their network/runtime calls. This is synchronous sequential execution with an overall `execution_seconds`
+budget (0.01–30, default 30). Each acknowledgement wait is capped by the
+remaining budget; remaining targets fail without dispatch after it expires.
+Storage work adds overhead to that budget. CLI execution allows a 60-second
+HTTP timeout. This is not a background distributed scheduler.
 
 ## Partial failure, rollback and interruption
 
