@@ -593,6 +593,15 @@ Evals 0.8.0 CLI JSON reports and gate decisions retain schema 1.0 and work with 
 
 See [CLI usage and compatibility](docs/evals-0.8-cli.md).
 
+## Evals 0.9.0 judge reliability — Control Tower 0.7.1
+
+Tower 0.7.1 bundles the Evals 0.9.0 native report and gate schemas and projects
+the new optional judge summary (unavailable judgments, judge cost, lowest
+agreement) and live-target summary (retried, timed-out and errored cases) into
+evaluation evidence. They are `null` for older reports. The producer's gate
+decision is carried unchanged, and judge or target outcomes are not deployment
+health. See [the compatibility note](docs/evals-0.9-judge-reliability.md).
+
 ## Chaos 0.7.0 interoperability
 
 Chaos 0.7.0 adds sequential fault cascades, deterministic monotonic breaking-point
