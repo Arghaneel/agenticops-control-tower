@@ -1,6 +1,7 @@
 # Local MCP investigation connector
 
-Use `deep-agentic-core-mcp>=0.3.6` with Tower 0.6.0. The connector uses HTTP and
+Use `deep-agentic-core-mcp>=0.3.6` (0.4.0 is current) with Tower 0.6.0 or later;
+Tower 0.7 fleet endpoints stay Python/HTTP/CLI-only. The connector uses HTTP and
 does not import Tower or any producer package. Without Tower configuration, the
 other MCP tools still work and Tower tools return a structured unavailable result.
 
