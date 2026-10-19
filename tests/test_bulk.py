@@ -194,7 +194,10 @@ class Runtime:
 def test_stop_receipts_deadline_and_no_replay(service, mode, outcome):
     runtime = Runtime(mode)
     service.install("a", SidecarContainmentAdapter(runtime))
-    bid = approved(service, request("runtime.stop", acknowledgement_seconds=0.01))
+    # Only "wait" should miss the deadline; a 10 ms budget for the immediate modes
+    # times out on slow CI runners before the dispatch thread is even scheduled.
+    seconds = 0.01 if mode == "wait" else 5
+    bid = approved(service, request("runtime.stop", acknowledgement_seconds=seconds))
     try:
         result = service.execute(bid, WRITER)
         assert [t.outcome for t in result.targets] == [outcome, "unsupported"]
