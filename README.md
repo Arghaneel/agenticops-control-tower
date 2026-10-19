@@ -7,7 +7,7 @@
 
 ## Status
 
-**Current version: 0.7.0. Phase 7 adds approved fleet operations.** The registry,
+**Current version: 0.7.1. Phase 7 adds approved fleet operations; 0.7.1 syncs the native Evals contract to Evals 0.9.0.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 Tower-owned configuration uses approved actions, and pushed Lens, Evals, Sidecar
@@ -537,7 +537,7 @@ See the [Sidecar integration contract](https://github.com/DeepAgentLabs/agentic-
 
 ## Native Evals contract validation — Control Tower 0.6.1
 
-Published Evals 0.7.2 report and gate schemas are now enforced in the native
+Published Evals report and gate schemas (0.7.2 at Tower 0.6.1; 0.9.0 since Tower 0.7.1) are now enforced in the native
 consumer paths. Validation runs offline using bundled upstream contracts;
 invalid artifacts fail with field-level diagnostics. Native verdicts and
 AIOS conformance remain distinct. See [behavior, examples and migration](docs/evals-report-contract.md).
@@ -589,7 +589,7 @@ See the [ModelFit guide](https://github.com/DeepAgentLabs/agenticlens/blob/v0.9.
 
 ## Evals 0.8.0 CLI interoperability
 
-Evals 0.8.0 CLI JSON reports and gate decisions retain schema 1.0 and work with the native Evals evidence reader and bundled 0.7.2 schemas. Keep JSON artifacts when producing JUnit or Markdown for CI; presentation output is not a Tower evidence input. Gate results remain producer evidence, separate from deployment health and recovery authorization.
+Evals 0.8.0 CLI JSON reports and gate decisions retain schema 1.0 and work with the native Evals evidence reader and the bundled schemas (0.7.2 at the time; 0.9.0 since Tower 0.7.1). Keep JSON artifacts when producing JUnit or Markdown for CI; presentation output is not a Tower evidence input. Gate results remain producer evidence, separate from deployment health and recovery authorization.
 
 See [CLI usage and compatibility](docs/evals-0.8-cli.md).
 
@@ -598,7 +598,9 @@ See [CLI usage and compatibility](docs/evals-0.8-cli.md).
 Tower 0.7.1 bundles the Evals 0.9.0 native report and gate schemas and projects
 the new optional judge summary (unavailable judgments, judge cost, lowest
 agreement) and live-target summary (retried, timed-out and errored cases) into
-evaluation evidence. They are `null` for older reports. The producer's gate
+evaluation evidence. Both are `null` in reports written before Evals 0.9.0;
+`summary.live` is also `null` for offline runs, and `summary.judge` for runs
+without judge scores. The producer's gate
 decision is carried unchanged, and judge or target outcomes are not deployment
 health. See [the compatibility note](docs/evals-0.9-judge-reliability.md).
 
