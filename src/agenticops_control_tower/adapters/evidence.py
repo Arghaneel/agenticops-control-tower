@@ -65,12 +65,35 @@ class _Diagnosis(BaseModel):
     attribution: _Attribution
 
 
+class _JudgeTotals(BaseModel):
+    """Evals 0.9.0+ `summary.judge`: what the judges cost and whether they answered."""
+
+    judge_scores: int = Field(default=0, ge=0)
+    unavailable_scores: int = Field(default=0, ge=0)
+    unavailable_cases: list[str] = Field(default_factory=list)
+    total_cost_usd: float | None = Field(default=None, ge=0)
+    min_agreement: float | None = Field(default=None, ge=0, le=1)
+
+
+class _LiveTotals(BaseModel):
+    """Evals 0.9.0+ `summary.live`: target outages, kept apart from wrong answers."""
+
+    retried_cases: int = Field(default=0, ge=0)
+    timed_out_cases: int = Field(default=0, ge=0)
+    error_cases: int = Field(default=0, ge=0)
+    timed_out_case_ids: list[str] = Field(default_factory=list)
+    error_case_ids: list[str] = Field(default_factory=list)
+
+
 class _EvaluationTotals(BaseModel):
     total_cases: int = Field(ge=0)
     passed_cases: int = Field(ge=0)
     failed_cases: int = Field(ge=0)
     pass_rate: float = Field(ge=0, le=1)
     average_score: float = Field(ge=0, le=1)
+    # Absent before Evals 0.9.0; projected as null rather than assumed healthy.
+    judge: _JudgeTotals | None = None
+    live: _LiveTotals | None = None
 
 
 class _Evaluation(BaseModel):
