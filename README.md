@@ -623,6 +623,8 @@ exposed through MCP; all sibling extras remain optional.
 
 ## AgenticLens 0.10.0 routing compatibility
 
+See the [local integration boundary guide](docs/lens-0.10-routing.md).
+
 AgenticLens 0.10.0 implements roadmap v0.8: evidence-based runtime model
 selection, fail-closed routing constraints, bounded provider failover,
 confidence/escalation handoffs, shadow/canary modes and a local routing journal.
