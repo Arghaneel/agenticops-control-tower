@@ -675,3 +675,14 @@ They are not scores, release gates or proof of containment. No new shared
 schema, automatic adapter or hosted execution capability is introduced.
 
 Tower's native artifact reader counts merged workflow events, and the existing `agentic-chaos>=0.5,<1` extra admits 0.8. Tower projects only the native event count. Workflow statuses, health checks and fuzz outcomes stay Chaos-native evidence that Tower does not interpret. Tower does not orchestrate Chaos workflows or approve their gates; Suspend approvals stay in the Chaos run. No dependency change or Tower patch release is needed.
+
+## MCP 0.4.0 unified release checks
+
+[MCP 0.4.0](https://github.com/DeepAgentLabs/mcp-server/releases/tag/v0.4.0) ships the first Phase 4 unified workflows: `core.compare_runs`, a fail-closed `core.release_check`, `core.incident_summary` and `core.export_report`. MCP judges nothing itself; it composes Lens comparisons, the Evals release gate and Chaos run reports, and missing, malformed or failed-call evidence blocks readiness.
+
+MCP 0.4.0 is within Tower's `deep-agentic-core-mcp>=0.3.6,<1` range, and the
+`tower.*` connector tools are unchanged and remain local-only. The release check and
+incident summary are host-side MCP views; they do not create Tower incidents, and
+Tower does not ingest the MCP-local `mcp.unified-report.v1` export. No Tower change
+or release is needed.
+See [the compatibility guide](docs/mcp-0.4-unified-workflows.md).
