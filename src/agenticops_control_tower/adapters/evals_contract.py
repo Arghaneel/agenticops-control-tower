@@ -1,4 +1,4 @@
-"""Validate native artifacts using the published Evals 0.7.2 contracts.
+"""Validate native artifacts using the published Evals 0.9.0 contracts (schema 1.0).
 
 Packaged upstream schemas keep this reader independent of sibling installations.
 No caller-supplied schemas or remote references are evaluated.

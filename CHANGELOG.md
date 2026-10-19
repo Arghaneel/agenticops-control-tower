@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## 0.7.1
+
+Released 2026-10-19. Pairs with Agentic Evals 0.9.0 (roadmap v0.9 judge
+reliability, cost and live-target resilience).
+
+### Changed
+
+- Re-sync the bundled native Evals report and gate schemas from
+  `agentic-evals==0.9.0`, so validation enforces the new optional judge summary,
+  live-target summary and per-case `target_status` fields. Reports from Evals
+  0.7.2 to 0.8.0 still validate.
+- Evaluation evidence details project `summary.judge` (judge scores, unavailable
+  judgments and cases, judge cost, lowest agreement) and `summary.live` (retried,
+  timed-out and errored cases). Both are `null` in reports written before Evals
+  0.9.0; `summary.live` is also `null` for offline runs, and `summary.judge` for
+  runs without judge scores (offline judged runs do carry it).
+  Producer gate decisions are carried unchanged.
+- The contract-test dev pin moves to `agentic-evals==0.9.0`. The optional
+  `agentic-evals` extra keeps `>=0.7.2,<1`, and the base package imports no sibling.
+
 ## 0.7.0
 
 Released 2026-10-18.
