@@ -289,3 +289,91 @@ def test_tower_rejects_invalid_evals_090_fields():
     artifact["cases"][2]["target_status"] = "crashed"
     with pytest.raises(ValueError, match="evaluation_report"):
         validate_evals_artifact(artifact, "evaluation_report")
+
+
+def _flaky_target(payload, *, case):
+    calls = _flaky_target.calls.get(case.id, 0) + 1
+    _flaky_target.calls[case.id] = calls
+    if case.id == "slow":
+        raise TimeoutError("target timed out")
+    if case.id == "recovers" and calls == 1:
+        raise ConnectionError("reset")
+    return {"output": "ok", "trace": {"trace_id": case.id}}
+
+
+_flaky_target.calls = {}
+
+
+def test_tower_projects_timed_out_and_retried_live_cases():
+    from agentic_evals import PythonTarget, RetryPolicy, run_live_suite
+
+    from agenticops_control_tower.adapters import summarize_evidence
+    from agenticops_control_tower.models.evidence import EvidenceLink
+
+    _flaky_target.calls.clear()
+    suite = Suite(
+        name="timeouts",
+        version="1",
+        cases=[
+            Case(id="recovers", name="recovers", expected_output="ok"),
+            Case(id="slow", name="slow", expected_output="ok"),
+        ],
+    )
+    report = run_live_suite(
+        suite,
+        PythonTarget(callable_path=f"{__name__}:_flaky_target"),
+        retry=RetryPolicy(max_attempts=2),
+    )
+    artifact = report.model_dump(mode="json")
+    validate_evals_artifact(artifact, "evaluation_report")
+    link = EvidenceLink(
+        agent_id="a",
+        source="agentic-evals",
+        source_version="0.9.0",
+        artifact_type="evaluation_report",
+        artifact_ref="eval:timeouts",
+        observed_at=artifact["created_at"],
+    )
+    live = summarize_evidence(link, artifact).details["summary"]["live"]
+    assert live["retried_cases"] == 2
+    assert live["timed_out_cases"] == 1
+    assert live["timed_out_case_ids"] == ["slow"]
+    assert live["error_cases"] == 0
+
+
+def test_tower_projects_an_offline_judge_summary():
+    from agentic_evals import (
+        EvaluationContext,
+        EvaluatorConfig,
+        EvaluatorRegistry,
+        LLMJudgeEvaluator,
+        Score,
+    )
+
+    from agenticops_control_tower.adapters import summarize_evidence
+    from agenticops_control_tower.models.evidence import EvidenceLink
+
+    def judge(context: EvaluationContext) -> Score:
+        return Score(name="q", value=1.0, passed=True, explanation="ok")
+
+    registry = EvaluatorRegistry()
+    registry.register(LLMJudgeEvaluator("q", judge))
+    suite = Suite(
+        name="offline-judged",
+        version="1",
+        cases=[Case(id="a", name="a", evaluators=[EvaluatorConfig(name="q")])],
+    )
+    artifact = evaluate_suite(
+        suite, [EvaluationSample(case_id="a", output="ok", trace=EvalTrace())], registry=registry
+    ).model_dump(mode="json")
+    link = EvidenceLink(
+        agent_id="a",
+        source="agentic-evals",
+        source_version="0.9.0",
+        artifact_type="evaluation_report",
+        artifact_ref="eval:offline",
+        observed_at=artifact["created_at"],
+    )
+    summary = summarize_evidence(link, artifact).details["summary"]
+    assert summary["judge"]["judge_scores"] == 1
+    assert summary["live"] is None
