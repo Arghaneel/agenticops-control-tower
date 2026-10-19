@@ -14,8 +14,11 @@ Evidence details for an `agentic-evals` evaluation report now also carry:
 | `summary.judge.total_cost_usd`, `min_agreement` | `summary.judge` | judge spend (null unless every judge score was priced) and the lowest sampling agreement |
 | `summary.live.retried_cases`, `timed_out_cases`, `error_cases` and their case IDs | `summary.live` | target outages, kept apart from wrong answers |
 
-Both are `null` for reports written before Evals 0.9.0 and for offline
-(non-live) evaluations. Tower shows them as missing, not as healthy.
+Both are `null` in reports written before Evals 0.9.0. `summary.live` is
+also `null` for offline (non-live) evaluations, and `summary.judge` is `null`
+when a report has no judge scores; an offline evaluation with LLM judges does
+carry `summary.judge`, and Tower projects it. Tower shows a missing summary as
+missing, not as healthy.
 
 The producer's gate stays authoritative. Evals 0.9.0 fails its default gate when
 any judgment is unavailable, and Tower carries `gate.passed` and `reasons`
