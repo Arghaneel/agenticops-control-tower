@@ -186,3 +186,106 @@ def test_missing_required_field_diagnostic_names_the_field(report, nested):
         expected = "/cases"
     with pytest.raises(ValueError, match=expected):
         validate_evals_artifact(report, "evaluation_report")
+
+
+def _live_target(payload, *, case):
+    if case.id == "outage":
+        raise ConnectionError("backend unavailable")
+    return {"output": "ok", "trace": {"trace_id": case.id}}
+
+
+def _judged_live_report():
+    """An Evals 0.9.0 live run with a judge outage and a target outage."""
+    from agentic_evals import (
+        EvaluationContext,
+        EvaluatorConfig,
+        EvaluatorRegistry,
+        LLMJudgeEvaluator,
+        PythonTarget,
+        RetryPolicy,
+        Score,
+        run_live_suite,
+    )
+
+    def judge(context: EvaluationContext) -> Score:
+        if context.case.id == "judge-down":
+            raise TimeoutError("judge provider timed out")
+        return Score(
+            name="quality",
+            value=1.0,
+            passed=True,
+            explanation="ok",
+            metadata={"judge_cost_usd": 0.001, "judge_cost_source": "measured"},
+        )
+
+    judged = [EvaluatorConfig(name="quality", required=False)]
+    suite = Suite(
+        name="judged-live",
+        version="1",
+        cases=[
+            Case(id="ok", name="ok", expected_output="ok", evaluators=judged),
+            Case(id="judge-down", name="judge", expected_output="ok", evaluators=judged),
+            Case(id="outage", name="outage", expected_output="ok"),
+        ],
+    )
+    registry = EvaluatorRegistry()
+    registry.register(LLMJudgeEvaluator("quality", judge))
+    return run_live_suite(
+        suite,
+        PythonTarget(callable_path=f"{__name__}:_live_target"),
+        registry=registry,
+        retry=RetryPolicy(max_attempts=2),
+    )
+
+
+def test_tower_projects_evals_090_judge_and_live_outcomes():
+    from agenticops_control_tower.adapters import summarize_evidence
+    from agenticops_control_tower.models.evidence import EvidenceLink
+
+    report = _judged_live_report()
+    artifact = report.model_dump(mode="json")
+    gate = evaluate_gate(report, GateConfig(min_pass_rate=0.5)).model_dump(mode="json")
+    link = EvidenceLink(
+        agent_id="a",
+        source="agentic-evals",
+        source_version="0.9.0",
+        artifact_type="evaluation_report",
+        artifact_ref="eval:judged-live",
+        observed_at=artifact["created_at"],
+    )
+    result = summarize_evidence(link, artifact, gate=gate)
+    assert result.availability == "available"
+    summary = result.details["summary"]
+    assert summary["judge"]["unavailable_scores"] == 1
+    assert summary["judge"]["unavailable_cases"] == ["judge-down"]
+    assert summary["judge"]["total_cost_usd"] is None  # one judge score has no cost
+    assert summary["live"]["error_cases"] == 1
+    assert summary["live"]["error_case_ids"] == ["outage"]
+    # The producer's failed gate is carried, never recomputed.
+    assert result.details["gate"]["passed"] is False
+
+
+def test_tower_projects_pre_090_reports_with_null_judge_and_live(report):
+    from agenticops_control_tower.adapters import summarize_evidence
+    from agenticops_control_tower.models.evidence import EvidenceLink
+
+    for key in ("judge", "live"):
+        report["summary"].pop(key, None)
+    link = EvidenceLink(
+        agent_id="a",
+        source="agentic-evals",
+        source_version="0.7.2",
+        artifact_type="evaluation_report",
+        artifact_ref="eval:legacy",
+        observed_at=report["created_at"],
+    )
+    summary = summarize_evidence(link, report).details["summary"]
+    assert summary["judge"] is None
+    assert summary["live"] is None
+
+
+def test_tower_rejects_invalid_evals_090_fields():
+    artifact = _judged_live_report().model_dump(mode="json")
+    artifact["cases"][2]["target_status"] = "crashed"
+    with pytest.raises(ValueError, match="evaluation_report"):
+        validate_evals_artifact(artifact, "evaluation_report")
