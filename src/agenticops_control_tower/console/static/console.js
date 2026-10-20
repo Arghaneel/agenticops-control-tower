@@ -16,8 +16,9 @@ async function get(path, signal) {
   return response.json();
 }
 function clear() {
+  byId("incident-view").hidden = true;
   byId("fleet").hidden = true; byId("detail").hidden = true;
-  for (const id of ["agents", "metrics", "coverage", "posture", "detail-data", "evidence", "evidence-sources"]) byId(id).replaceChildren();
+  for (const id of ["agents", "metrics", "coverage", "posture", "detail-data", "evidence", "evidence-sources", "alerts", "incidents", "incident-view"]) byId(id).replaceChildren();
 }
 function tallies(summary) {
   return Object.entries(summary).map(([key, value]) => {
@@ -58,6 +59,40 @@ async function detail(agentId, signal, requestGeneration) {
     byId("detail").hidden = false;
     byId("detail").scrollIntoView({behavior:"smooth", block:"nearest"});
   } catch (error) {if (generation === requestGeneration && error.name !== "AbortError") byId("message").textContent = error.message;}
+}
+async function operations(signal, requestGeneration, environment) {
+  // Keep the inventory usable on anonymous development servers or older Tower APIs.
+  try {
+    const params = new URLSearchParams(environment ? {environment} : {});
+    params.set("active_only", "true");
+    const [alerts, incidents] = await Promise.all([get(`alerts?${params}`, signal), get(`incidents?${new URLSearchParams(environment ? {environment} : {})}`, signal)]);
+    if (generation !== requestGeneration) return;
+    byId("alerts").replaceChildren(); byId("incidents").replaceChildren();
+    for (const alert of alerts) {
+      const card = node("article");
+      card.append(node("strong", `${alert.severity}: ${alert.rule}`), node("p", `${alert.agent_id} / ${alert.environment}: ${alert.message}`), node("small", `Observed ${new Date(alert.first_seen).toLocaleString()} · ${alert.acknowledged_by ? `Acknowledged by ${alert.acknowledged_by}` : "Unacknowledged"}`));
+      byId("alerts").append(card);
+    }
+    if (!alerts.length) byId("alerts").append(node("p", "No active alerts."));
+    for (const incident of incidents) {
+      const card = node("article"), button = node("button", `${incident.agent_id}: ${incident.state}`);
+      button.type = "button";
+      button.addEventListener("click", async()=>{
+        const selection = ++detailGeneration;
+        try {
+          const view = await get(`incidents/${encodeURIComponent(incident.incident_id)}/view`, signal);
+          if (generation !== requestGeneration || selection !== detailGeneration) return;
+          byId("incident-view").textContent = JSON.stringify(view, null, 2);
+          byId("incident-view").hidden = false;
+        } catch(error) {if (generation === requestGeneration && error.name !== "AbortError") byId("message").textContent = error.message;}
+      });
+      card.append(button, node("p", `Approval: ${incident.approval} · Recovery: ${incident.outcome || "not executed"}`));
+      byId("incidents").append(card);
+    }
+    if (!byId("incidents").children.length) byId("incidents").append(node("p", "No incidents in this view."));
+  } catch(error) {
+    if (generation === requestGeneration && error.name !== "AbortError") byId("alerts").textContent = "Live operations unavailable. Configured reader credentials are required for incident views.";
+  }
 }
 async function load(refreshOptions = false) {
   controller?.abort(); controller = new AbortController();
@@ -119,8 +154,11 @@ async function load(refreshOptions = false) {
     byId("updated").textContent = `Refreshed ${new Date().toLocaleTimeString()}`;
     byId("message").textContent = `${visible.length} agents shown. Select an agent to inspect metadata and evidence posture.`;
     byId("fleet").hidden = false;
+    await operations(signal, requestGeneration, environment);
   } catch(error) {if (generation === requestGeneration && error.name !== "AbortError") {clear(); byId("message").textContent = error.message;}}
 }
 byId("connection").addEventListener("submit", event=>{event.preventDefault(); token = byId("token").value || token; byId("token").value = ""; load(true);});
 byId("filters").addEventListener("submit", event=>{event.preventDefault(); load();});
 byId("disconnect").addEventListener("click", ()=>{controller?.abort(); generation++; token = ""; byId("token").value = ""; clear(); byId("message").textContent = "Disconnected. Credentials and inventory cleared.";});
+
+setInterval(()=>{if (!byId("fleet").hidden) load();}, 30000);

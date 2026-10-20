@@ -43,7 +43,7 @@ def test_public_shell_has_no_inventory_and_assets_are_served(console_client: Tes
     assert response.url.path == "/console/"
     assert "Fleet inventory" in response.text
     assert "Ecosystem evidence posture" in response.text
-    assert "Read-only · v0.5" in response.text
+    assert "Read-only · v0.8" in response.text
     assert "default-src 'self'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
     assert "0.4.9" not in response.text

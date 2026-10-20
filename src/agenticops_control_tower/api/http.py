@@ -417,8 +417,14 @@ def create_app(
             raise HTTPException(409, str(exc)) from exc
 
     @app.get("/incidents")
-    def list_incidents(operator: Operator = Depends(configuration_operator)) -> object:
-        return control_api.incidents.list(operator)
+    def list_incidents(
+        environment: str | None = None, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        return [
+            i
+            for i in control_api.incidents.list(operator)
+            if environment is None or control_api.get_agent(i.agent_id).environment == environment
+        ]
 
     @app.post("/incidents/detect")
     def detect_incident(
