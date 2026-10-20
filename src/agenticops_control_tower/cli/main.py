@@ -131,8 +131,9 @@ def _cmd_incidents(args: argparse.Namespace, client: httpx.Client) -> int:
     operation = args.incident_command
     if operation == "list":
         response = client.get("/incidents")
-    elif operation == "get":
-        response = client.get(f"/incidents/{args.incident_id}")
+    elif operation in ("get", "view"):
+        suffix = "/view" if operation == "view" else ""
+        response = client.get(f"/incidents/{args.incident_id}{suffix}")
     else:
         path = (
             "/incidents/detect"
@@ -141,6 +142,23 @@ def _cmd_incidents(args: argparse.Namespace, client: httpx.Client) -> int:
         )
         payload = _load_payload(args.payload_file) if hasattr(args, "payload_file") else {}
         response = client.post(path, json=payload)
+    _raise_for_status(response)
+    _print_json(response.json())
+    return 0
+
+
+def _cmd_alerts(args: argparse.Namespace, client: httpx.Client) -> int:
+    if args.alert_command == "list":
+        params: dict[str, str] = {}
+        if args.environment:
+            params["environment"] = args.environment
+        if args.active_only:
+            params["active_only"] = "true"
+        response = client.get("/alerts", params=params)
+    elif args.alert_command == "evaluate":
+        response = client.post("/alerts/evaluate")
+    else:
+        response = client.post(f"/alerts/{args.alert_id}/acknowledge")
     _raise_for_status(response)
     _print_json(response.json())
     return 0
@@ -385,12 +403,24 @@ def _build_parser() -> argparse.ArgumentParser:
         command.add_argument("payload_file" if operation == "preview" else "bulk_id")
         command.set_defaults(handler=_cmd_bulk, needs_client=True)
 
+    alerts = subparsers.add_parser("alerts", help="Read, evaluate and acknowledge live alerts")
+    alert_sub = alerts.add_subparsers(dest="alert_command", required=True)
+    for operation in ("list", "evaluate", "acknowledge"):
+        command = alert_sub.add_parser(operation)
+        if operation == "list":
+            command.add_argument("--environment")
+            command.add_argument("--active-only", action="store_true")
+        elif operation == "acknowledge":
+            command.add_argument("alert_id")
+        command.set_defaults(handler=_cmd_alerts, needs_client=True)
+
     incidents = subparsers.add_parser("incidents", help="Investigate and approve staging recovery")
     incident_sub = incidents.add_subparsers(dest="incident_command", required=True)
     for operation in (
         "list",
         "get",
         "detect",
+        "view",
         "investigate",
         "preview",
         "approval",
@@ -492,7 +522,7 @@ def main(argv: list[str] | None = None, *, client: httpx.Client | None = None) -
         from agenticops_control_tower.snapshot import load_snapshot, read_snapshot
 
         if (
-            args.command in ("serve", "config", "audit", "actions", "incidents", "bulk")
+            args.command in ("serve", "config", "audit", "actions", "incidents", "bulk", "alerts")
             or (args.command == "agents" and args.agents_command in ("register", "heartbeat"))
             or (args.command == "evidence" and args.evidence_command.startswith("ingest"))
         ):
