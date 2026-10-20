@@ -50,3 +50,14 @@ def test_malformed_decision_events_are_skipped() -> None:
     assert [entry.decision["decision_id"] for entry in decisions] == ["d4"]
     assert sidecar_journal_decisions(json.dumps({"events": "bad"})) == []
     assert sidecar_journal_decisions("42") == []
+
+
+def test_v09_authority_journal_is_compatible_and_redacted_summaries_are_not_native():
+    from pathlib import Path
+
+    native = json.loads((Path(__file__).parent / "fixtures/sidecar-v09-authority.json").read_text())
+    decisions = sidecar_journal_decisions(json.dumps(native["events"]))
+    assert len(decisions) == 1
+    assert decisions[0].decision["status"] == "BLOCK"
+    assert "revoked" in decisions[0].decision["reason"]
+    assert sidecar_journal_decisions(json.dumps({"redacted": True, "decisions": []})) == []
