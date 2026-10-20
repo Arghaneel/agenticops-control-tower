@@ -37,6 +37,7 @@ from agenticops_control_tower.models.evidence import (
     FleetEvidencePosture,
 )
 from agenticops_control_tower.models.version import VersionAssessment
+from agenticops_control_tower.operations import OperationsService
 from agenticops_control_tower.registry import AgentRegistry
 from agenticops_control_tower.status import StatusService
 
@@ -61,6 +62,7 @@ class ControlTowerAPI:
         self._registry = registry
         self._discovery = discovery
         self._status_service = status_service or StatusService(discovery)
+        self.operations = OperationsService(self)
 
     def register(self, agent: AgentRegistrationPayload | AgentRecord) -> AgentRecord:
         return self._registry.register(AgentRegistrationPayload.model_validate(agent.model_dump()))
