@@ -7,7 +7,7 @@
 
 ## Status
 
-**Current version: 0.7.1. Phase 7 adds approved fleet operations; 0.7.1 syncs the native Evals contract to Evals 0.9.0.** The registry,
+**Current version: 0.8.0. Phase 8 adds live detection, durable alerts, joined audit timelines and incident console views.** The registry,
 HTTP API and CLI support SQLite persistence, reader/writer bearer authorization,
 shared fleet health and capability coverage, agent filters, and offline snapshots.
 Tower-owned configuration uses approved actions, and pushed Lens, Evals, Sidecar
@@ -15,6 +15,27 @@ and Chaos evidence is stored and shown as posture. The read-only web console is
 served at `/console/`. See [ROADMAP.md](ROADMAP.md) for published milestone status,
 [implementation evidence and operational limits](ROADMAP.md#implementation-evidence-and-operational-limits),
 and the build plan.
+
+## Live detection and incident views (0.8.0)
+
+The HTTP server scans pushed telemetry every 30 seconds. Fresh failed native Lens
+runs create deduplicated alerts and recovery incidents; overdue heartbeats and
+stale/missing evidence produce separate warnings. Acknowledgements and alert
+lifecycle changes are durable with SQLite. Detection never executes recovery.
+The read-only console joins inventory, evidence freshness, findings, approvals,
+commands and recovery checks. Lens integrity/coverage stay explicitly unverified
+and unassessed, separate from reported health.
+
+```bash
+agenticops-control-tower --token writer-token alerts evaluate
+agenticops-control-tower --token reader-token alerts list --active-only
+agenticops-control-tower --token writer-token alerts acknowledge ALERT_ID
+agenticops-control-tower --token reader-token incidents view INCIDENT_ID
+uv run python examples/live_operations.py
+```
+
+See [rules, limits and operator workflow](docs/live-operations.md) and
+[sibling compatibility](docs/tower-0.8-compatibility.md).
 
 ## Investigation and approved recovery (0.6.0)
 

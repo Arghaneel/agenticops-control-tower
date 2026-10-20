@@ -82,3 +82,9 @@ and Evals packages as shown in [the guide](../docs/incident-recovery.md); pass
 configuration with a stale-target partial failure. `bulk_tracing.json` is the
 HTTP/CLI preview payload. See [fleet operations](../docs/fleet-operations.md)
 for host-installed stop/revoke adapters, audit and interruption handling.
+
+## Live operations (0.8.0)
+
+Run `uv run python examples/live_operations.py` for a standalone native-JSON
+demo of detection, deduplication, acknowledgement and joined incident/audit views.
+No optional siblings or network required. See [operator guide](../docs/live-operations.md).

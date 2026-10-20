@@ -1,6 +1,6 @@
 # agenticops-control-tower — Roadmap & Architecture
 
-**Current package version: 0.7.1.** 0.7.1 syncs the bundled native Evals contract to Evals 0.9.0. v0.5 persists pushed Lens, Evals,
+**Current package version: 0.8.0.** Phase 8 adds periodic detection, durable alerts and incident console views. v0.5 persists pushed Lens, Evals,
 Sidecar and Chaos evidence and surfaces its freshness and native outcomes as
 posture across the Python API, HTTP, CLI, offline snapshots and console.
 0.5.1 adds AgenticLens 0.7.0 diagnosis reports as native Lens evidence
@@ -55,7 +55,7 @@ unsupported explanation as an exact RCA.
 - **v0.5** ✅ Implemented — Ecosystem evidence ingestion, persistence and posture views (push-based; pull collection deferred)
 - **v0.6.0** ✅ Implemented — Phase 6 MCP investigation and Phase 6A approved staging recovery (one release)
 - **v0.7.0** ✅ Implemented — Multi-Agent Operations and Bulk Actions
-- **v0.8** 🚧 Planned — Live Detection, Alerts, Audit Trails, and Incident Views
+- **v0.8.0** ✅ Implemented — Live Detection, Alerts, Audit Trails, and Incident Views
 - **v0.9** 🚧 Planned — Automated Runbooks and Recovery Workflows
 - **v1.0** 🚧 Planned — Stable Control Plane and Published Capability Contract
 
@@ -91,8 +91,8 @@ file. Authentication uses deployment-configured reader/writer bearer tokens;
 per-agent identities and tenant isolation are not implemented. Without tokens,
 the API allows anonymous local development. Health is agent-reported;
 timeout-based health, automatic package detection and distributed storage remain
-planned. Pull-based remote evidence collection, fleet-wide incident views and remote configuration application,
-production runbooks and automatic incident polling remain planned.
+planned. Pull-based remote evidence collection and remote configuration application,
+production runbooks remain planned. Periodic latest-observation incident detection ships in v0.8.0.
 Phase 6/6A delivers explicit detection, investigation and approved verified recovery
 for the deterministic staging fixture; see docs/incident-recovery.md.
 
@@ -575,6 +575,14 @@ Success criteria:
 
 ## Phase 8: Live Detection, Alerts, Audit, and Incident Views (`v0.8`)
 
+Status: **implemented in 0.8.0**. `operations/` provides periodic latest-observation
+rules, durable alert lifecycle/audit, explicit environment/run correlation and
+joined incident views through API, CLI and the read-only console. See
+[workflow, acceptance boundaries and limits](docs/live-operations.md) and
+`tests/test_operations.py`, `tests/console_ui.cjs`, `examples/live_operations.py`.
+External notifications, lossless streaming and production remediation remain
+future work. Lens integrity/coverage are explicitly unverified/unassessed.
+
 Goals:
 
 - add operator-facing alerts and warnings
@@ -668,7 +676,7 @@ is read-only; registry/configuration access is not agent termination.
       expose in-flight calls, unreachable targets and unsupported downstream credentials.
 - [x] v0.7: bulk stop/revoke with per-target results and bounded acknowledgement
       times; test partial failure/disconnection without assuming fleet atomicity.
-- [ ] v0.8: join operator commands, policy decisions and actual execution evidence
+- [x] v0.8: join operator commands, policy decisions and actual execution evidence
       in incident timelines; show Lens integrity/coverage status separately from health.
 - [ ] Validate with Chaos attacks and Evals zero-violation gates, including queued
       calls, retries, denied tools and revocation races.
