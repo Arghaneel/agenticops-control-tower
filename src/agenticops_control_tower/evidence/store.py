@@ -167,6 +167,29 @@ class EvidenceStore:
         with self._transaction(write=False) as db:
             return [EvidenceRecord.model_validate_json(row[0]) for row in db.execute(query, params)]
 
+    def run_history(
+        self, agent_id: str, run_id: str, *, limit: int = 100
+    ) -> tuple[list[EvidenceRecord], bool]:
+        """Bounded deployment/run lookup; filter in SQLite before decoding records.
+
+        Link metadata correlates all producers. Validated native Lens run IDs also
+        match when the caller omitted optional link-level correlation metadata.
+        """
+        if not 1 <= limit <= MAX_HISTORY_LIMIT:
+            raise ValueError(f"limit must be between 1 and {MAX_HISTORY_LIMIT}")
+        self.registry.get(agent_id)
+        with self._transaction(write=False) as db:
+            rows = db.execute(
+                "SELECT body FROM tower_evidence WHERE agent_id=? AND "
+                "(json_extract(body, '$.summary.link.run_id')=? OR "
+                "(source='agenticlens' AND json_extract(body, '$.summary.details.run_id')=?)) "
+                "ORDER BY observed_at DESC, seq DESC LIMIT ?",
+                (agent_id, run_id, run_id, limit + 1),
+            ).fetchall()
+        return [EvidenceRecord.model_validate_json(row[0]) for row in rows[:limit]], len(
+            rows
+        ) > limit
+
     def source_views(
         self, agent_ids: list[str], since: datetime
     ) -> dict[tuple[str, str], tuple[EvidenceRecord | None, list[EvidenceRecord]]]:

@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## 0.8.0
+
+Released 2026-10-20.
+
+### Added
+
+- Periodic latest-observation detection over pushed telemetry: fresh native Lens
+  failures create deduplicated incidents; stale heartbeats and stale/missing
+  producer evidence create warnings independently of reported deployment health.
+- Durable scoped alerts, idempotent acknowledgement, explicit same-run/environment
+  correlation, clearing/reopening lifecycle and append-only attributed audit.
+- Reader alert feed and joined incident views; writer evaluate/acknowledge HTTP
+  routes and CLI commands. Automatic detection never approves or executes recovery.
+- Read-only incident console with 30-second refresh, findings, approvals, native
+  policy evidence, command receipts and verification history. Lens integrity and
+  coverage remain explicitly unverified/unassessed.
+- Standalone example, operational boundaries, sibling compatibility guide and
+  persistence/freshness/authorization/concurrency/console acceptance coverage.
+
+### Compatibility
+
+- Existing evidence schemas, recovery/fleet contracts and optional sibling ranges
+  are unchanged. No sibling runtime release is needed. Detection is local polling,
+  not lossless streaming, external notification delivery or production remediation.
+
 ## 0.7.1
 
 Released 2026-10-19. Pairs with Agentic Evals 0.9.0 (roadmap v0.9 judge

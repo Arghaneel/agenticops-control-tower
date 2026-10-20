@@ -124,6 +124,8 @@ rendered as text, and the console still sends only GET requests.
   automatic discovery of producer endpoints.
 - AIOS artifact mapping/conformance, full producer-schema validation and Sidecar
   journal hash-chain verification.
-- Incident creation, alerting or causal analysis from posture. These belong to
-  v0.6 (MCP investigation) and v0.8 (live detection and incident views).
+- Incident creation and alerting were outside v0.5. They now ship in
+  v0.6 (MCP investigation) and v0.8 (live detection and incident views); see
+  [the current live operations guide](live-operations.md). Causal confirmation
+  remains evidence-dependent.
 - Per-producer credentials: HTTP ingestion uses the shared writer token.

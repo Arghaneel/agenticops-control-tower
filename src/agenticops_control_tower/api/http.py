@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
 from secrets import compare_digest
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response
@@ -60,6 +63,7 @@ def create_app(
     read_token: str | None = None,
     write_token: str | None = None,
     approval_token: str | None = None,
+    detection_interval_seconds: float = 30,
 ) -> FastAPI:
     """Configure SQLite and reader/writer bearer tokens via arguments or environment.
 
@@ -83,7 +87,34 @@ def create_app(
             incident_service=IncidentService(registry, evidence, database_path),
         )
     control_api = api
-    app = FastAPI(title="AgenticOps Control Tower", version=__version__)
+    if detection_interval_seconds < 0:
+        raise ValueError("Detection interval cannot be negative")
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        stop = asyncio.Event()
+
+        async def poll() -> None:
+            import logging
+
+            detector = Operator(operator_id="tower-detector", role="writer")
+            while not stop.is_set():
+                try:
+                    await asyncio.to_thread(control_api.operations.evaluate, detector)
+                except Exception:
+                    logging.getLogger(__name__).exception("Live detection scan failed")
+                with suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(stop.wait(), timeout=detection_interval_seconds)
+
+        task = asyncio.create_task(poll()) if detection_interval_seconds else None
+        try:
+            yield
+        finally:
+            stop.set()
+            if task:
+                await task
+
+    app = FastAPI(title="AgenticOps Control Tower", version=__version__, lifespan=lifespan)
     # Enforced in ASGI middleware so oversized or unsized bodies are never buffered.
     app.add_middleware(
         BodySizeLimit, paths=frozenset({"/evidence", "/bulk/preview"}), max_bytes=MAX_EVIDENCE_BYTES
@@ -352,9 +383,48 @@ def create_app(
         except ConfigurationError as exc:
             raise HTTPException(409, str(exc)) from exc
 
+    @app.get("/alerts", dependencies=[Depends(read_access)])
+    def alerts(environment: str | None = None, active_only: bool = False) -> object:
+        return control_api.operations.list(
+            Operator(operator_id="http-reader", role="reader"),
+            environment=environment,
+            active_only=active_only,
+        )
+
+    @app.post("/alerts/evaluate")
+    def evaluate_alerts(operator: Operator = Depends(configuration_operator)) -> object:
+        try:
+            return control_api.operations.evaluate(operator)
+        except IncidentError as exc:
+            raise HTTPException(403, str(exc)) from exc
+
+    @app.post("/alerts/{alert_id}/acknowledge")
+    def acknowledge_alert(
+        alert_id: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.operations.acknowledge(alert_id, operator)
+        except IncidentError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/incidents/{incident_id}/view")
+    def incident_view(
+        incident_id: str, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        try:
+            return control_api.operations.incident_view(incident_id, operator)
+        except (IncidentError, AgentNotFoundError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
     @app.get("/incidents")
-    def list_incidents(operator: Operator = Depends(configuration_operator)) -> object:
-        return control_api.incidents.list(operator)
+    def list_incidents(
+        environment: str | None = None, operator: Operator = Depends(configuration_operator)
+    ) -> object:
+        return [
+            i
+            for i in control_api.incidents.list(operator)
+            if environment is None or control_api.get_agent(i.agent_id).environment == environment
+        ]
 
     @app.post("/incidents/detect")
     def detect_incident(
