@@ -4,7 +4,7 @@ Sidecar 0.9.0 adds explicit task-authority tool bindings, narrowed delegation,
 ancestor revocation, dispatch-time expiry checks, context reader permissions and
 redacted evidence summaries. Private scope goals/values use explicit host delivery.
 
-Tower consumes native Sidecar decisions/journals without recomputing governance or treating BLOCK as deployment failure. Its existing optional agentic-sidecar>=0.7,<1 range admits 0.9.0. Redacted summaries are intentionally not accepted as original native evidence.
+Tower consumes native Sidecar decisions/journals without recomputing governance or treating BLOCK as deployment failure. Its existing optional agentic-sidecar>=0.7,<1 range admits 0.9.0; the lock now tests the published 0.9.0 wheel. Redacted summaries are intentionally not accepted as original native evidence.
 
 The core package remains standalone. No new mandatory sibling dependency or
 shared schema is introduced. Constraint-only guardians retain expiry WARN;

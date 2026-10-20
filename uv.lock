@@ -41,7 +41,7 @@ wheels = [
 
 [[package]]
 name = "agentic-sidecar"
-version = "0.7.0"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
@@ -49,9 +49,9 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/16/a8/3b4365938fe622b45bced69b87b8193d9e6faed3bce8d4451d354d3e8e9c/agentic_sidecar-0.7.0.tar.gz", hash = "sha256:345acfe2d7561fcccd0ecbb3dd322dbcb624350405bc06a6d5d7453e9970c4da", size = 884243, upload-time = "2026-10-12T05:31:59.653Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/43/b9/ee42f3e6177ef66db625ae5d2de98f104619816227f55349eee8cea50226/agentic_sidecar-0.9.0.tar.gz", hash = "sha256:5432b146bedaa49d1512ff8ea7dfbb6f557befab4c6209bba3d5834a03afdb01", size = 1255935, upload-time = "2026-10-20T01:20:51.673Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/99/1aecc3073d34eeb7e5f59fbf67eb8f33a65fce14b8d61a7aaa27eb4753ed/agentic_sidecar-0.7.0-py3-none-any.whl", hash = "sha256:700e03cdeb1babc89580afa785d9d5b6d5c94aef700da0add4c9bad8b8c49c7a", size = 79899, upload-time = "2026-10-12T05:31:58.082Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/4c/384c4e5835140f8f8ef6ed2c954493a66fccb294a503bb2322f1815e5d58/agentic_sidecar-0.9.0-py3-none-any.whl", hash = "sha256:3689317d88441bc3cbf02a1a653ba0e6ddfdf76af0bd76fffc72fbbfc7813fc8", size = 95639, upload-time = "2026-10-20T01:20:49.983Z" },
 ]
 
 [[package]]
