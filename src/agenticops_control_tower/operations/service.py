@@ -1,0 +1,238 @@
+"""Evaluate pushed telemetry; persist deduplicated alerts without executing recovery."""
+
+from __future__ import annotations
+
+import builtins
+import sqlite3
+from datetime import datetime, timedelta, timezone
+from hashlib import sha256
+from typing import TYPE_CHECKING, Any
+
+from agenticops_control_tower.config.models import Operator
+from agenticops_control_tower.evidence.store import as_utc
+from agenticops_control_tower.incidents import IncidentError, IncidentService
+from agenticops_control_tower.models import AgentRecord
+from agenticops_control_tower.models.evidence import EVIDENCE_SOURCES
+from agenticops_control_tower.operations.models import Alert, DetectionPolicy
+
+if TYPE_CHECKING:
+    from agenticops_control_tower.api.surface import ControlTowerAPI
+
+
+class OperationsService:
+    def __init__(self, api: ControlTowerAPI, policy: DetectionPolicy | None = None) -> None:
+        self.api = api
+        self.policy = policy or DetectionPolicy()
+        # Share the incident transaction/connection so in-memory and durable modes agree.
+        with self.api.incidents._transaction() as db:
+            db.execute("CREATE TABLE IF NOT EXISTS tower_alerts (id TEXT PRIMARY KEY, body TEXT)")
+
+    @staticmethod
+    def _save(db: sqlite3.Connection, alert: Alert) -> None:
+        db.execute(
+            "INSERT OR REPLACE INTO tower_alerts VALUES (?, ?)",
+            (alert.alert_id, alert.model_dump_json()),
+        )
+
+    def list(
+        self, operator: Operator, *, environment: str | None = None, active_only: bool = False
+    ) -> builtins.list[Alert]:
+        with self.api.incidents._transaction() as db:
+            alerts = [
+                Alert.model_validate_json(row[0])
+                for row in db.execute("SELECT body FROM tower_alerts ORDER BY id")
+            ]
+        return [
+            a
+            for a in alerts
+            if (operator.agent_ids is None or a.agent_id in operator.agent_ids)
+            and (environment is None or a.environment == environment)
+            and (not active_only or a.cleared_at is None)
+        ]
+
+    def acknowledge(self, alert_id: str, operator: Operator) -> Alert:
+        with self.api.incidents._transaction() as db:
+            row = db.execute("SELECT body FROM tower_alerts WHERE id=?", (alert_id,)).fetchone()
+            if row is None:
+                raise IncidentError("Unknown alert")
+            alert = Alert.model_validate_json(row[0])
+            IncidentService._authorize(operator, alert.agent_id, "writer")
+            if alert.acknowledged_at is None:
+                alert.acknowledged_by = operator.operator_id
+                alert.acknowledged_at = datetime.now(timezone.utc)
+                self._save(db, alert)
+            return alert
+
+    def evaluate(self, operator: Operator, *, now: datetime | None = None) -> builtins.list[Alert]:
+        if operator.role != "writer":
+            raise IncidentError("Detection requires writer authority")
+        now = as_utc(now or datetime.now(timezone.utc))
+        # Serialize scans across processes, including their input reads, to avoid an older
+        # scan clearing a newer observation. Incident detection uses a separate transaction.
+        incidents: dict[str, str] = {}
+        for agent in self.api.list_agents():
+            if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
+                continue
+            records = self.api.evidence.history(agent.agent_id, source="agenticlens", limit=1)
+            if records:
+                record = records[0]
+                summary = record.summary
+                age = (now - as_utc(summary.link.observed_at)).total_seconds()
+                if (
+                    0 <= age <= self.policy.stale_after_seconds
+                    and summary.availability == "available"
+                    and summary.link.artifact_type == "run"
+                    and summary.details.get("status") == "failed"
+                ):
+                    incidents[record.record_id] = self.api.incidents.detect(
+                        agent.agent_id, record.record_id, operator
+                    ).incident_id
+        with self.api.incidents._transaction() as db:
+            for agent in self.api.list_agents():
+                if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
+                    continue
+                candidates: list[Alert] = []
+
+                def add(
+                    rule: Any,
+                    source: str,
+                    message: str,
+                    evidence_id: str | None = None,
+                    run_id: str | None = None,
+                    *,
+                    agent: AgentRecord = agent,
+                    candidates: list[Alert] = candidates,
+                ) -> None:
+                    identity = "\0".join(
+                        (agent.agent_id, agent.environment, rule, source, evidence_id or "")
+                    )
+                    candidates.append(
+                        Alert(
+                            alert_id=sha256(identity.encode()).hexdigest(),
+                            agent_id=agent.agent_id,
+                            environment=agent.environment,
+                            rule=rule,
+                            source=source,
+                            severity="critical" if rule == "lens.failed" else "warning",
+                            message=message,
+                            evidence_id=evidence_id,
+                            incident_id=incidents.get(evidence_id or ""),
+                            correlation_key=sha256(
+                                "\0".join(
+                                    (agent.environment, source, run_id or agent.agent_id)
+                                ).encode()
+                            ).hexdigest(),
+                            first_seen=now,
+                            last_seen=now,
+                        )
+                    )
+
+                heartbeat = as_utc(agent.last_seen or agent.registered_at)
+                if now - heartbeat > timedelta(seconds=self.policy.heartbeat_after_seconds):
+                    add(
+                        "heartbeat.stale",
+                        "registry",
+                        "Heartbeat overdue; reported health unchanged",
+                    )
+                for source in EVIDENCE_SOURCES:
+                    records = self.api.evidence.history(agent.agent_id, source=source, limit=1)
+                    if not records:
+                        if source in agent.capabilities:
+                            add(
+                                "evidence.missing",
+                                source,
+                                "Installed capability has no pushed evidence",
+                            )
+                        continue
+                    record = records[0]
+                    summary = record.summary
+                    age = (now - as_utc(summary.link.observed_at)).total_seconds()
+                    if age > self.policy.stale_after_seconds:
+                        add("evidence.stale", source, "Latest producer evidence is stale")
+                    elif age >= 0 and source == "agenticlens" and record.record_id in incidents:
+                        add(
+                            "lens.failed",
+                            source,
+                            "Fresh native Lens failure; cause unconfirmed",
+                            record.record_id,
+                            summary.link.run_id,
+                        )
+                active = {a.alert_id for a in candidates}
+                for row in db.execute("SELECT body FROM tower_alerts").fetchall():
+                    previous = Alert.model_validate_json(row[0])
+                    if (
+                        previous.agent_id == agent.agent_id
+                        and previous.cleared_at is None
+                        and previous.alert_id not in active
+                    ):
+                        previous.cleared_at = now
+                        self._save(db, previous)
+                for alert in candidates:
+                    row = db.execute(
+                        "SELECT body FROM tower_alerts WHERE id=?", (alert.alert_id,)
+                    ).fetchone()
+                    if row:
+                        previous = Alert.model_validate_json(row[0])
+                        if previous.cleared_at is None:
+                            alert.first_seen = previous.first_seen
+                            alert.acknowledged_by = previous.acknowledged_by
+                            alert.acknowledged_at = previous.acknowledged_at
+                    self._save(db, alert)
+        return self.list(operator)
+
+    def incident_view(self, incident_id: str, operator: Operator) -> dict[str, Any]:
+        incident = self.api.incidents.get(incident_id, operator)
+        agent = self.api.get_agent(incident.agent_id)
+        run_id = incident.detection.summary.link.run_id
+        records = self.api.evidence.history(agent.agent_id, limit=None)
+        linked = [
+            r
+            for r in records
+            if r.record_id == incident.detection.record_id
+            or (run_id and r.summary.link.run_id == run_id)
+        ]
+        if not any(r.record_id == incident.detection.record_id for r in linked):
+            linked.append(incident.detection)
+        timeline: list[dict[str, Any]] = [
+            dict(
+                at=e.at,
+                event=e.event,
+                operator_id=e.operator_id,
+                detail=e.detail,
+                source="incident",
+            )
+            for e in incident.events
+        ]
+        timeline += [
+            dict(
+                at=a.recorded_at,
+                event=a.event,
+                operator_id=a.operator_id,
+                detail=a.detail,
+                source="configuration",
+                action_id=a.action_id,
+            )
+            for a in self.api.config.audit(agent.agent_id)
+        ]
+        timeline += [
+            dict(
+                at=r.summary.link.observed_at,
+                event="evidence.observed",
+                operator_id=r.ingested_by,
+                detail=r.record_id,
+                source=r.summary.link.source,
+            )
+            for r in linked
+        ]
+        timeline.sort(key=lambda e: (as_utc(e["at"]), e["source"], e["event"]))
+        return dict(
+            incident=incident,
+            agent=agent,
+            posture=self.api.agent_posture(agent.agent_id),
+            evidence=linked,
+            timeline=timeline,
+            lens_integrity="not_verified",
+            lens_coverage="not_assessed",
+            correlation="Explicit same-run links within deployment; not proof of causality",
+            change_scope="All retained deployment configuration/bulk audit events",
+        )
