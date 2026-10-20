@@ -13,7 +13,7 @@ from agenticops_control_tower.evidence.store import as_utc
 from agenticops_control_tower.incidents import IncidentError, IncidentService
 from agenticops_control_tower.incidents.models import TimelineEvent
 from agenticops_control_tower.models import AgentRecord
-from agenticops_control_tower.models.evidence import EVIDENCE_SOURCES
+from agenticops_control_tower.models.evidence import EVIDENCE_SOURCES, EvidenceRecord
 from agenticops_control_tower.operations.models import Alert, DetectionPolicy
 
 if TYPE_CHECKING:
@@ -89,30 +89,11 @@ class OperationsService:
         if operator.role != "writer":
             raise IncidentError("Detection requires writer authority")
         now = as_utc(now or datetime.now(timezone.utc))
-        # Detect idempotently before taking the alert write transaction. A crash
-        # between these steps leaves an incident that the next scan can safely reuse.
-        incidents: dict[str, str] = {}
-        for agent in self.api.list_agents():
-            if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
-                continue
-            records = self.api.evidence.history(agent.agent_id, source="agenticlens", limit=1)
-            if records:
-                record = records[0]
-                summary = record.summary
-                age = (now - as_utc(summary.link.observed_at)).total_seconds()
-                if (
-                    0 <= age <= self.policy.stale_after_seconds
-                    and summary.availability == "available"
-                    and summary.link.artifact_type == "run"
-                    and summary.details.get("status") == "failed"
-                ):
-                    incidents[record.record_id] = self.api.incidents.detect(
-                        agent.agent_id, record.record_id, operator
-                    ).incident_id
         for agent in self.api.list_agents():
             if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
                 continue
             candidates: list[Alert] = []
+            failures: dict[str, EvidenceRecord] = {}
 
             def add(
                 rule: Any,
@@ -137,7 +118,6 @@ class OperationsService:
                         severity="critical" if rule == "lens.failed" else "warning",
                         message=message,
                         evidence_id=evidence_id,
-                        incident_id=incidents.get(evidence_id or ""),
                         correlation_key=sha256(
                             "\0".join(
                                 (agent.environment, source, run_id or agent.agent_id)
@@ -170,13 +150,20 @@ class OperationsService:
                 age = (now - as_utc(summary.link.observed_at)).total_seconds()
                 if age > self.policy.stale_after_seconds:
                     add("evidence.stale", source, "Latest producer evidence is stale")
-                elif age >= 0 and source == "agenticlens" and record.record_id in incidents:
+                elif (
+                    age >= 0
+                    and source == "agenticlens"
+                    and summary.availability == "available"
+                    and summary.link.artifact_type == "run"
+                    and summary.details.get("status") == "failed"
+                ):
+                    failures[record.record_id] = record
                     add(
                         "lens.failed",
                         source,
                         "Fresh native Lens failure; cause unconfirmed",
                         record.record_id,
-                        summary.link.run_id,
+                        summary.details.get("run_id") or summary.link.run_id,
                     )
             # Storage transactions never hold locks while reading other services.
             with self.api.incidents._transaction() as db:
@@ -201,6 +188,10 @@ class OperationsService:
                         self._save(db, previous)
                         self._audit(db, previous, "alert.cleared", operator, now)
                 for alert in candidates:
+                    if alert.rule == "lens.failed" and alert.evidence_id is not None:
+                        alert.incident_id = self.api.incidents._detect(
+                            db, failures[alert.evidence_id], operator
+                        ).incident_id
                     row = db.execute(
                         "SELECT body FROM tower_alerts WHERE id=?", (alert.alert_id,)
                     ).fetchone()
@@ -220,14 +211,17 @@ class OperationsService:
     def incident_view(self, incident_id: str, operator: Operator) -> dict[str, Any]:
         incident = self.api.incidents.get(incident_id, operator)
         agent = self.api.get_agent(incident.agent_id)
-        run_id = incident.detection.summary.link.run_id
-        records = self.api.evidence.history(agent.agent_id, limit=None)
-        linked = [
-            r
-            for r in records
-            if r.record_id == incident.detection.record_id
-            or (run_id and r.summary.link.run_id == run_id)
-        ]
+        native_run_id = incident.detection.summary.details.get("run_id")
+        run_id = (
+            native_run_id
+            if isinstance(native_run_id, str)
+            else incident.detection.summary.link.run_id
+        )
+        linked, evidence_truncated = (
+            self.api.evidence.run_history(agent.agent_id, run_id, limit=100)
+            if run_id
+            else ([], False)
+        )
         if not any(r.record_id == incident.detection.record_id for r in linked):
             linked.append(incident.detection)
         timeline: list[dict[str, Any]] = [
@@ -279,6 +273,8 @@ class OperationsService:
             agent=agent,
             posture=self.api.agent_posture(agent.agent_id),
             evidence=linked,
+            evidence_truncated=evidence_truncated,
+            evidence_limit=100,
             timeline=timeline,
             lens_integrity="not_verified",
             lens_coverage="not_assessed",

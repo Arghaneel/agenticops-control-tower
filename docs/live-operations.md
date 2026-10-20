@@ -32,8 +32,8 @@ Alerts deduplicate by deployment, environment, rule, source and (for failures)
 observation ID. Repeated scans preserve acknowledgement and first-seen time.
 Absent conditions clear alerts; cleared warning conditions can reopen with a new
 acknowledgement lifecycle. Append-only audit events preserve create, acknowledge,
-clear and reopen history. Older scans cannot regress a newer saved scan. Retrying
-a scan after an interrupted incident/alert write safely reuses the incident.
+clear and reopen history. Older scans cannot regress a newer saved scan. Incident and alert writes commit atomically with the scan watermark; interrupted
+transactions roll back together and can be retried safely.
 
 Correlation keys group same-source, explicitly same-run alerts across agents
 **within an environment**. A shared run ID is a correlation hint, not a causal
@@ -72,8 +72,11 @@ state, execution claims/receipts and recovery checks. All console requests remai
 GET-only; actions use the same authenticated API/CLI as before.
 
 `incident_view` joins the original detection (even if evidence was pruned),
-explicit same-run native evidence within that deployment, the incident's durable
+up to 100 recent same-run native evidence records within that deployment, the incident's durable
 events, retained deployment configuration/bulk audit, and alert lifecycle audit.
+The validated native detection run ID drives correlation even when optional
+link-level metadata was omitted. `evidence_truncated` explicitly reports omitted
+older records; the original detection is always retained in addition to the bound.
 Each timeline entry includes time, actor, source and event. Configuration and
 alert audit are deployment context and may include changes unrelated to the
 incident; `change_scope` labels this explicitly. Policy decisions remain native

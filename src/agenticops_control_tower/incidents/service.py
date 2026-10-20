@@ -122,6 +122,15 @@ class IncidentService:
     def detect(self, agent_id: str, evidence_id: str, operator: Operator) -> Incident:
         self._authorize(operator, agent_id, "writer")
         record = self._record(agent_id, evidence_id)
+        with self._transaction() as db:
+            return self._detect(db, record, operator)
+
+    def _detect(
+        self, db: sqlite3.Connection, record: EvidenceRecord, operator: Operator
+    ) -> Incident:
+        """Create from a trusted stored projection in the caller's atomic transaction."""
+        agent_id, evidence_id = record.summary.link.agent_id, record.record_id
+        self._authorize(operator, agent_id, "writer")
         summary = record.summary
         if (
             summary.link.source != "agenticlens"
@@ -130,16 +139,15 @@ class IncidentService:
             or summary.details.get("status") != "failed"
         ):
             raise IncidentError("Detection requires an available failed native Lens run")
-        with self._transaction() as db:
-            row = db.execute(
-                "SELECT body FROM tower_incidents WHERE detection_id=?", (evidence_id,)
-            ).fetchone()
-            if row:
-                return Incident.model_validate_json(row[0])
-            incident = Incident(incident_id=str(uuid4()), agent_id=agent_id, detection=record)
-            self._event(incident, "detected", operator, evidence_id)
-            self._save(db, incident)
-            return incident
+        row = db.execute(
+            "SELECT body FROM tower_incidents WHERE detection_id=?", (evidence_id,)
+        ).fetchone()
+        if row:
+            return Incident.model_validate_json(row[0])
+        incident = Incident(incident_id=str(uuid4()), agent_id=agent_id, detection=record)
+        self._event(incident, "detected", operator, evidence_id)
+        self._save(db, incident)
+        return incident
 
     def investigate(self, incident_id: str, operator: Operator) -> Incident:
         with self._transaction() as db:

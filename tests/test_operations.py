@@ -257,3 +257,76 @@ def test_detection_does_not_hold_database_write_lock_during_telemetry_reads(towe
     monkeypatch.setattr(api.evidence, "history", read_with_concurrent_push)
     api.operations.evaluate(WRITER)
     assert calls >= 2
+
+
+def test_older_scan_cannot_create_orphan_incident_after_newer_stale_scan(tower):
+    api, _ = tower
+    evidence(api.evidence)
+    now = datetime.now(timezone.utc)
+    api.operations.evaluate(WRITER, now=now + timedelta(seconds=301))
+    assert api.incidents.list(READER) == []
+    api.operations.evaluate(WRITER, now=now)
+    assert api.incidents.list(READER) == []
+    assert all(a.rule != "lens.failed" for a in api.operations.list(READER))
+
+
+def test_failed_scan_rolls_back_incident_and_alert_atomically(tower, monkeypatch):
+    api, _ = tower
+    evidence(api.evidence)
+
+    def fail(*args):
+        raise RuntimeError("simulated storage failure")
+
+    monkeypatch.setattr(api.operations, "_save", fail)
+    with pytest.raises(RuntimeError):
+        api.operations.evaluate(WRITER)
+    assert api.incidents.list(READER) == []
+    assert api.operations.list(READER) == []
+
+
+def test_incident_view_uses_native_detection_run_id(tower, monkeypatch):
+    api, _ = tower
+    ingest = api.evidence.ingest
+
+    def without_link(request, **kwargs):
+        request = request.model_copy(deep=True)
+        request.link.run_id = None
+        return ingest(request, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(api.evidence, "ingest", without_link)
+        record = evidence(api.evidence)
+    gate = evidence(api.evidence, "agentic-evals", "succeeded", "failure")
+    alert = next(a for a in api.operations.evaluate(WRITER) if a.rule == "lens.failed")
+    view = api.operations.incident_view(alert.incident_id, READER)
+    assert {r.record_id for r in view["evidence"]} == {record.record_id, gate.record_id}
+
+
+def test_incident_view_bounds_same_run_history_and_preserves_original_detection(tower):
+    api, _ = tower
+    record = evidence(api.evidence)
+    alert = api.operations.evaluate(WRITER)[0]
+    for index in range(105):
+        api.ingest_evidence(
+            EvidenceIngestRequest.model_validate(
+                dict(
+                    link=dict(
+                        agent_id="staging",
+                        source="agentic-sidecar",
+                        source_version="0.9.0",
+                        artifact_type="decision",
+                        artifact_ref=f"decision:{index}",
+                        run_id="failure",
+                        observed_at=datetime.now(timezone.utc).isoformat(),
+                    ),
+                    artifact=dict(status="BLOCK", risk="HIGH", reason="denied"),
+                )
+            )
+        )
+    view = api.operations.incident_view(alert.incident_id, READER)
+    assert view["evidence_truncated"] is True
+    assert view["evidence_limit"] == 100
+    assert len(view["evidence"]) == 101  # 100 recent records plus the retained original detection
+    assert record.record_id in {r.record_id for r in view["evidence"]}
+    with pytest.raises(ValueError):
+        api.evidence.run_history("staging", "failure", limit=0)
