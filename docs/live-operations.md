@@ -45,7 +45,7 @@ existing probe, fresh native Lens success and same-run passing Evals gate.
 ## Operator workflow
 
 ```bash
-export AGENTICOPS_API_TOKEN=writer-token  # or pass --token explicitly
+export AGENTICOPS_TOKEN=writer-token  # or pass --token explicitly
 agenticops-control-tower --token writer-token alerts evaluate
 agenticops-control-tower --token reader-token alerts list --active-only --environment staging
 agenticops-control-tower --token writer-token alerts acknowledge ALERT_ID
