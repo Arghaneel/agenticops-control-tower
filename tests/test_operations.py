@@ -224,3 +224,36 @@ def test_out_of_order_scans_do_not_regress_alert_state_and_audit_is_append_only(
     assert events.count("alert.acknowledged") == 1
     assert "alert.cleared" in events
     assert view["incident"].detection.record_id == record.record_id
+
+
+def test_standalone_example():
+    import runpy
+    from pathlib import Path
+
+    demo = runpy.run_path(str(Path(__file__).parents[1] / "examples/live_operations.py"))
+    result = demo["walkthrough"]()
+    assert result["alerts"] == 1
+    assert result["state"] == "open"
+    assert result["reported_health"] == "healthy"
+    assert "alert.acknowledged" in result["events"]
+
+
+def test_detection_does_not_hold_database_write_lock_during_telemetry_reads(tower, monkeypatch):
+    api, path = tower
+    evidence(api.evidence)
+    history = api.evidence.history
+    calls = 0
+
+    def read_with_concurrent_push(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        # A second SQLite writer must be able to commit while the scan reads.
+        with ThreadPoolExecutor(1) as pool:
+            pool.submit(
+                evidence, EvidenceStore(api._registry, path), run_id=f"concurrent-{calls}"
+            ).result(timeout=3)
+        return history(*args, **kwargs)
+
+    monkeypatch.setattr(api.evidence, "history", read_with_concurrent_push)
+    api.operations.evaluate(WRITER)
+    assert calls >= 2

@@ -109,10 +109,77 @@ class OperationsService:
                     incidents[record.record_id] = self.api.incidents.detect(
                         agent.agent_id, record.record_id, operator
                     ).incident_id
-        with self.api.incidents._transaction() as db:
-            for agent in self.api.list_agents():
-                if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
+        for agent in self.api.list_agents():
+            if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
+                continue
+            candidates: list[Alert] = []
+
+            def add(
+                rule: Any,
+                source: str,
+                message: str,
+                evidence_id: str | None = None,
+                run_id: str | None = None,
+                *,
+                agent: AgentRecord = agent,
+                candidates: list[Alert] = candidates,
+            ) -> None:
+                identity = "\0".join(
+                    (agent.agent_id, agent.environment, rule, source, evidence_id or "")
+                )
+                candidates.append(
+                    Alert(
+                        alert_id=sha256(identity.encode()).hexdigest(),
+                        agent_id=agent.agent_id,
+                        environment=agent.environment,
+                        rule=rule,
+                        source=source,
+                        severity="critical" if rule == "lens.failed" else "warning",
+                        message=message,
+                        evidence_id=evidence_id,
+                        incident_id=incidents.get(evidence_id or ""),
+                        correlation_key=sha256(
+                            "\0".join(
+                                (agent.environment, source, run_id or agent.agent_id)
+                            ).encode()
+                        ).hexdigest(),
+                        first_seen=now,
+                        last_seen=now,
+                    )
+                )
+
+            heartbeat = as_utc(agent.last_seen or agent.registered_at)
+            if now - heartbeat > timedelta(seconds=self.policy.heartbeat_after_seconds):
+                add(
+                    "heartbeat.stale",
+                    "registry",
+                    "Heartbeat overdue; reported health unchanged",
+                )
+            for source in EVIDENCE_SOURCES:
+                records = self.api.evidence.history(agent.agent_id, source=source, limit=1)
+                if not records:
+                    if source in agent.capabilities:
+                        add(
+                            "evidence.missing",
+                            source,
+                            "Installed capability has no pushed evidence",
+                        )
                     continue
+                record = records[0]
+                summary = record.summary
+                age = (now - as_utc(summary.link.observed_at)).total_seconds()
+                if age > self.policy.stale_after_seconds:
+                    add("evidence.stale", source, "Latest producer evidence is stale")
+                elif age >= 0 and source == "agenticlens" and record.record_id in incidents:
+                    add(
+                        "lens.failed",
+                        source,
+                        "Fresh native Lens failure; cause unconfirmed",
+                        record.record_id,
+                        summary.link.run_id,
+                    )
+            # Storage transactions never hold locks while reading other services.
+            with self.api.incidents._transaction() as db:
                 scan = db.execute(
                     "SELECT at FROM tower_detection_scans WHERE agent_id=?", (agent.agent_id,)
                 ).fetchone()
@@ -122,72 +189,6 @@ class OperationsService:
                     "INSERT OR REPLACE INTO tower_detection_scans VALUES (?, ?)",
                     (agent.agent_id, now.isoformat()),
                 )
-                candidates: list[Alert] = []
-
-                def add(
-                    rule: Any,
-                    source: str,
-                    message: str,
-                    evidence_id: str | None = None,
-                    run_id: str | None = None,
-                    *,
-                    agent: AgentRecord = agent,
-                    candidates: list[Alert] = candidates,
-                ) -> None:
-                    identity = "\0".join(
-                        (agent.agent_id, agent.environment, rule, source, evidence_id or "")
-                    )
-                    candidates.append(
-                        Alert(
-                            alert_id=sha256(identity.encode()).hexdigest(),
-                            agent_id=agent.agent_id,
-                            environment=agent.environment,
-                            rule=rule,
-                            source=source,
-                            severity="critical" if rule == "lens.failed" else "warning",
-                            message=message,
-                            evidence_id=evidence_id,
-                            incident_id=incidents.get(evidence_id or ""),
-                            correlation_key=sha256(
-                                "\0".join(
-                                    (agent.environment, source, run_id or agent.agent_id)
-                                ).encode()
-                            ).hexdigest(),
-                            first_seen=now,
-                            last_seen=now,
-                        )
-                    )
-
-                heartbeat = as_utc(agent.last_seen or agent.registered_at)
-                if now - heartbeat > timedelta(seconds=self.policy.heartbeat_after_seconds):
-                    add(
-                        "heartbeat.stale",
-                        "registry",
-                        "Heartbeat overdue; reported health unchanged",
-                    )
-                for source in EVIDENCE_SOURCES:
-                    records = self.api.evidence.history(agent.agent_id, source=source, limit=1)
-                    if not records:
-                        if source in agent.capabilities:
-                            add(
-                                "evidence.missing",
-                                source,
-                                "Installed capability has no pushed evidence",
-                            )
-                        continue
-                    record = records[0]
-                    summary = record.summary
-                    age = (now - as_utc(summary.link.observed_at)).total_seconds()
-                    if age > self.policy.stale_after_seconds:
-                        add("evidence.stale", source, "Latest producer evidence is stale")
-                    elif age >= 0 and source == "agenticlens" and record.record_id in incidents:
-                        add(
-                            "lens.failed",
-                            source,
-                            "Fresh native Lens failure; cause unconfirmed",
-                            record.record_id,
-                            summary.link.run_id,
-                        )
                 active = {a.alert_id for a in candidates}
                 for row in db.execute("SELECT body FROM tower_alerts").fetchall():
                     previous = Alert.model_validate_json(row[0])
