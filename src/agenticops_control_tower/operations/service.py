@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 from agenticops_control_tower.config.models import Operator
 from agenticops_control_tower.evidence.store import as_utc
 from agenticops_control_tower.incidents import IncidentError, IncidentService
+from agenticops_control_tower.incidents.models import TimelineEvent
 from agenticops_control_tower.models import AgentRecord
 from agenticops_control_tower.models.evidence import EVIDENCE_SOURCES
 from agenticops_control_tower.operations.models import Alert, DetectionPolicy
@@ -26,12 +27,32 @@ class OperationsService:
         # Share the incident transaction/connection so in-memory and durable modes agree.
         with self.api.incidents._transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS tower_alerts (id TEXT PRIMARY KEY, body TEXT)")
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS tower_detection_scans "
+                "(agent_id TEXT PRIMARY KEY, at TEXT NOT NULL)"
+            )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS tower_alert_audit "
+                "(seq INTEGER PRIMARY KEY, agent_id TEXT NOT NULL, body TEXT NOT NULL)"
+            )
 
     @staticmethod
     def _save(db: sqlite3.Connection, alert: Alert) -> None:
         db.execute(
             "INSERT OR REPLACE INTO tower_alerts VALUES (?, ?)",
             (alert.alert_id, alert.model_dump_json()),
+        )
+
+    @staticmethod
+    def _audit(
+        db: sqlite3.Connection, alert: Alert, event: str, operator: Operator, at: datetime
+    ) -> None:
+        record = TimelineEvent(
+            at=at, event=event, operator_id=operator.operator_id, detail=alert.alert_id
+        )
+        db.execute(
+            "INSERT INTO tower_alert_audit(agent_id, body) VALUES (?, ?)",
+            (alert.agent_id, record.model_dump_json()),
         )
 
     def list(
@@ -61,14 +82,15 @@ class OperationsService:
                 alert.acknowledged_by = operator.operator_id
                 alert.acknowledged_at = datetime.now(timezone.utc)
                 self._save(db, alert)
+                self._audit(db, alert, "alert.acknowledged", operator, alert.acknowledged_at)
             return alert
 
     def evaluate(self, operator: Operator, *, now: datetime | None = None) -> builtins.list[Alert]:
         if operator.role != "writer":
             raise IncidentError("Detection requires writer authority")
         now = as_utc(now or datetime.now(timezone.utc))
-        # Serialize scans across processes, including their input reads, to avoid an older
-        # scan clearing a newer observation. Incident detection uses a separate transaction.
+        # Detect idempotently before taking the alert write transaction. A crash
+        # between these steps leaves an incident that the next scan can safely reuse.
         incidents: dict[str, str] = {}
         for agent in self.api.list_agents():
             if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
@@ -91,6 +113,15 @@ class OperationsService:
             for agent in self.api.list_agents():
                 if operator.agent_ids is not None and agent.agent_id not in operator.agent_ids:
                     continue
+                scan = db.execute(
+                    "SELECT at FROM tower_detection_scans WHERE agent_id=?", (agent.agent_id,)
+                ).fetchone()
+                if scan and datetime.fromisoformat(scan[0]) > now:
+                    continue
+                db.execute(
+                    "INSERT OR REPLACE INTO tower_detection_scans VALUES (?, ?)",
+                    (agent.agent_id, now.isoformat()),
+                )
                 candidates: list[Alert] = []
 
                 def add(
@@ -167,17 +198,22 @@ class OperationsService:
                     ):
                         previous.cleared_at = now
                         self._save(db, previous)
+                        self._audit(db, previous, "alert.cleared", operator, now)
                 for alert in candidates:
                     row = db.execute(
                         "SELECT body FROM tower_alerts WHERE id=?", (alert.alert_id,)
                     ).fetchone()
+                    event = "alert.created"
                     if row:
                         previous = Alert.model_validate_json(row[0])
+                        event = "alert.reopened" if previous.cleared_at else ""
                         if previous.cleared_at is None:
                             alert.first_seen = previous.first_seen
                             alert.acknowledged_by = previous.acknowledged_by
                             alert.acknowledged_at = previous.acknowledged_at
                     self._save(db, alert)
+                    if event:
+                        self._audit(db, alert, event, operator, now)
         return self.list(operator)
 
     def incident_view(self, incident_id: str, operator: Operator) -> dict[str, Any]:
@@ -213,6 +249,18 @@ class OperationsService:
                 action_id=a.action_id,
             )
             for a in self.api.config.audit(agent.agent_id)
+        ]
+        with self.api.incidents._transaction() as db:
+            alert_events = [
+                TimelineEvent.model_validate_json(row[0])
+                for row in db.execute(
+                    "SELECT body FROM tower_alert_audit WHERE agent_id=? ORDER BY seq",
+                    (agent.agent_id,),
+                )
+            ]
+        timeline += [
+            dict(at=e.at, event=e.event, operator_id=e.operator_id, detail=e.detail, source="alert")
+            for e in alert_events
         ]
         timeline += [
             dict(

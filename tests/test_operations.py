@@ -187,3 +187,40 @@ def test_lifespan_polls_and_stops_cleanly(tower):
 def test_policy_bounds():
     with pytest.raises(ValueError):
         DetectionPolicy(stale_after_seconds=0)
+
+
+def test_cli_live_alerts_and_joined_view(tower, capsys):
+    import json
+
+    from agenticops_control_tower.cli.main import main
+
+    api, _ = tower
+    evidence(api.evidence)
+    client = TestClient(create_app(api, write_token="w"))
+    assert main(["--token", "w", "alerts", "evaluate"], client=client) == 0
+    alert = json.loads(capsys.readouterr().out)[0]
+    assert main(["--token", "w", "alerts", "list", "--active-only"], client=client) == 0
+    assert alert["alert_id"] in capsys.readouterr().out
+    assert main(["--token", "w", "alerts", "acknowledge", alert["alert_id"]], client=client) == 0
+    assert "http-writer" in capsys.readouterr().out
+    assert main(["--token", "w", "incidents", "view", alert["incident_id"]], client=client) == 0
+    assert "not_verified" in capsys.readouterr().out
+    with pytest.raises(SystemExit):
+        main(["--snapshot", "unused.json", "alerts", "list"])
+
+
+def test_out_of_order_scans_do_not_regress_alert_state_and_audit_is_append_only(tower):
+    api, _ = tower
+    record = evidence(api.evidence)
+    now = datetime.now(timezone.utc)
+    alert = api.operations.evaluate(WRITER, now=now)[0]
+    api.operations.acknowledge(alert.alert_id, WRITER)
+    api.operations.acknowledge(alert.alert_id, WRITER)
+    api.operations.evaluate(WRITER, now=now + timedelta(seconds=301))
+    api.operations.evaluate(WRITER, now=now)
+    assert next(a for a in api.operations.list(READER) if a.alert_id == alert.alert_id).cleared_at
+    view = api.operations.incident_view(alert.incident_id, READER)
+    events = [e["event"] for e in view["timeline"] if e["source"] == "alert"]
+    assert events.count("alert.acknowledged") == 1
+    assert "alert.cleared" in events
+    assert view["incident"].detection.record_id == record.record_id
