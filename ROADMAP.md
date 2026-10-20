@@ -62,7 +62,7 @@ unsupported explanation as an exact RCA.
 v0.1 and v0.2 share a tested Python control model, optional SQLite registry,
 authenticated HTTP API and operator CLI. The read-only console ships in v0.3; controlled desired configuration ships in
 v0.4; ecosystem evidence posture ships in v0.5. Pull-based remote collection,
-production runtime adapters and broader incident views remain planned.
+production runtime adapters remain planned; live detection and incident console views ship in v0.8.0.
 
 ## Implementation Evidence and Operational Limits
 

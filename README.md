@@ -164,8 +164,8 @@ Diagnoses cite evidence and distinguish confirmed causes from hypotheses.
 Tower owns incident coordination; the sibling packages retain their engines.
 
 The first complete loop ships in 0.6.0 for the deterministic staging runtime.
-The roadmap adds broader live incident views in v0.8 and
-reusable automated runbooks in v0.9. See [the command-center roadmap](ROADMAP.md#product-vision-ai-native-operations-command-center).
+Live detection, alerts and incident views ship in 0.8.0;
+reusable automated runbooks remain v0.9 work. See [the command-center roadmap](ROADMAP.md#product-vision-ai-native-operations-command-center).
 
 ## Quickstart
 
