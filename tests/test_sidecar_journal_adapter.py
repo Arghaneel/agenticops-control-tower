@@ -50,3 +50,19 @@ def test_malformed_decision_events_are_skipped() -> None:
     assert [entry.decision["decision_id"] for entry in decisions] == ["d4"]
     assert sidecar_journal_decisions(json.dumps({"events": "bad"})) == []
     assert sidecar_journal_decisions("42") == []
+
+
+def test_v09_authority_journal_is_compatible_and_redacted_summaries_are_not_native():
+    from pathlib import Path
+
+    native = json.loads((Path(__file__).parent / "fixtures/sidecar-v09-authority.json").read_text())
+    decisions = sidecar_journal_decisions(json.dumps(native["events"]))
+    assert len(decisions) == 1
+    assert decisions[0].decision == native["correlated"][0]["decision"]
+    assert decisions[0].decision["status"] == "BLOCK"
+    assert "revoked" in decisions[0].decision["reason"]
+    event = next(e for e in native["events"] if e["kind"] == "decision")
+    authority = event["payload"]["context"]["metadata"]["sidecar.authority"]
+    assert authority["agent_id"] == "refund-agent"
+    assert authority["grant_id"] and authority["parent_intent_id"]
+    assert sidecar_journal_decisions(json.dumps(native["redacted"])) == []

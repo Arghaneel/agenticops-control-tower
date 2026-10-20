@@ -686,3 +686,9 @@ incident summary are host-side MCP views; they do not create Tower incidents, an
 Tower does not ingest the MCP-local `mcp.unified-report.v1` export. No Tower change
 or release is needed.
 See [the compatibility guide](docs/mcp-0.4-unified-workflows.md).
+
+## Sidecar 0.9.0 interoperability
+
+Task-authority/delegation and reader-safe summaries are available in Sidecar.
+See [compatibility and ownership boundaries](docs/sidecar-0.9.md). Existing
+native decisions/correlation stay compatible; no new normative schema is claimed.
