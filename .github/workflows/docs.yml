@@ -51,11 +51,12 @@ jobs:
           cp site.css site/site.css
           cp site.js site/site.js
           cp og.png site/og.png
+          cp -r img site/img
           touch site/.nojekyll
 
       - name: Check site layout
         run: |
-          for f in site/index.html site/site.css site/site.js site/og.png \
+          for f in site/index.html site/site.css site/site.js site/og.png site/img/dal-logo.png \
                    site/docs/index.html site/usecases/index.html site/.nojekyll; do
             test -f "$f" || { echo "missing $f"; exit 1; }
           done

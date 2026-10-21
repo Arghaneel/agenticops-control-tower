@@ -21,8 +21,15 @@ sibling-package tests against local checkouts.
 ## Working on this documentation site
 
 The docs (`docs/`), the use cases (`usecases/`) and the product page
-(`index.html`, `site.css`, `site.js`, `og.png`) are built and published together
-by `.github/workflows/docs.yml`.
+(`index.html`, `site.css`, `site.js`, `og.png`, `img/`) are built and published
+together by `.github/workflows/docs.yml`.
+
+The product page reuses the DeepAgentLabs website's design: `site.css` and
+`site.js` are copies of the stylesheets and scripts in
+[deepagentlabs.github.io](https://github.com/DeepAgentLabs/deepagentlabs.github.io)
+(`assets/css/`, `assets/js/`), and the header and footer match its pages. When the
+website's navigation or styles change, copy the changes here too. The screenshots
+in `img/` are of the 0.8.0 console with sample data.
 
 ```bash
 uv sync --extra docs
