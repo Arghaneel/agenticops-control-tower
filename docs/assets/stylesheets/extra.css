@@ -1,0 +1,23 @@
+/* AgenticOps Control Tower docs: DeepAgentLabs lime accent, matching the
+   product page (site.css) and deepagentlabs.io. Material redefines its tokens
+   on [data-md-color-scheme], so the overrides are scoped to those selectors. */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #0f1b1e;
+  --md-primary-fg-color--light: #172a2e;
+  --md-primary-fg-color--dark: #0b1416;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: #4d7c0f;
+  --md-typeset-a-color: #3d6110;
+}
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #0f1b1e;
+  --md-primary-fg-color--light: #172a2e;
+  --md-primary-fg-color--dark: #0b1416;
+  --md-primary-bg-color: #e6eeec;
+  --md-accent-fg-color: #b7f343;
+  --md-typeset-a-color: #c6f56e;
+  --md-default-bg-color: #0b1416;
+  --md-code-bg-color: #132327;
+}
+.md-header, .md-tabs { border-bottom: 1px solid rgba(183, 243, 67, 0.25); }
+.md-typeset table:not([class]) { font-size: 0.72rem; }

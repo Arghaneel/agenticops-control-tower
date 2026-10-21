@@ -5,6 +5,10 @@
 > AgenticLens observes. Agentic Evals evaluates. Agentic Sidecar supervises. Agentic Chaos tests. Agentic
 > MCP connects. Control Tower operates.
 
+**Website:** [product page](https://deepagentlabs.io/agenticops-control-tower/) ·
+[documentation](https://deepagentlabs.io/agenticops-control-tower/docs/) ·
+[use cases](https://deepagentlabs.io/agenticops-control-tower/usecases/)
+
 ## Status
 
 **Current version: 0.8.0. Phase 8 adds live detection, durable alerts, joined audit timelines and incident console views.** The registry,

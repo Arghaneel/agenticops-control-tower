@@ -102,7 +102,7 @@ not been validated.
 ## Example HTTPS reverse proxy on a VM
 
 Run Control Tower bound to `127.0.0.1:8000`. Install/configure Nginx separately
-and adapt [the example configuration](../examples/hosting/nginx.conf) with your
+and adapt [the example configuration](https://github.com/DeepAgentLabs/agenticops-control-tower/blob/main/examples/hosting/nginx.conf) with your
 hostname and existing certificate paths. It redirects HTTP to HTTPS and proxies
 all application paths to the local service. Expose ports 80/443 and keep 8000
 private. On a platform with managed HTTPS ingress, its proxy replaces this step.
@@ -140,7 +140,7 @@ client variables are not automatically copied from your cloud server. Setting
 | Writes return 403 | Use the writer value for registration/heartbeats |
 | Inventory disappears after restart | Same SQLite file on a persistent volume; same service instance |
 | Console loads but is empty | Agents have been registered with this deployment |
-| Evidence says unavailable | Expected in v0.3: the service does not collect or persist artifacts |
+| Evidence shows missing or unavailable | Nothing has been pushed for that producer and deployment (Tower never fetches evidence), or the pushed artifact could not be read; see [evidence posture](evidence-posture.md) |
 
 See [customer-managed authentication](authentication.md) and
-[the runnable examples](../examples/README.md).
+[the runnable examples](examples.md).

@@ -1,0 +1,101 @@
+site_name: AgenticOps Control Tower Documentation
+site_description: Unified control plane and operations console for the DeepAgentLabs ecosystem.
+site_url: https://deepagentlabs.io/agenticops-control-tower/docs/
+repo_url: https://github.com/DeepAgentLabs/agenticops-control-tower
+repo_name: DeepAgentLabs/agenticops-control-tower
+edit_uri: edit/main/docs/
+docs_dir: docs
+
+theme:
+  name: material
+  logo: assets/images/deepagentlabs-mark.png
+  favicon: assets/images/deepagentlabs-mark.png
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.tabs.link
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+
+# A page missing from nav fails the strict build.
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Architecture: architecture.md
+  - Features: features.md
+  - Configuration:
+      - Server settings: settings.md
+      - Controlled configuration: configuration.md
+  - Guides:
+      - Authentication: authentication.md
+      - Hosting the console: hosting.md
+      - Evidence posture: evidence-posture.md
+      - Incident recovery: incident-recovery.md
+      - MCP connector: mcp-connector.md
+      - Fleet operations: fleet-operations.md
+      - Live operations: live-operations.md
+  - API reference: api-reference.md
+  - CLI reference: cli-reference.md
+  - Integrations: integrations.md
+  - Ecosystem compatibility:
+      - Ecosystem alignment: ecosystem-alignment.md
+      - Tower 0.8 compatibility: tower-0.8-compatibility.md
+      - AIOS v0.6: aios-v0.6.md
+      - Evals report contract: evals-report-contract.md
+      - Evals 0.8 CLI: evals-0.8-cli.md
+      - Evals 0.9 judge reliability: evals-0.9-judge-reliability.md
+      - Lens 0.10 routing: lens-0.10-routing.md
+      - Chaos 0.7: chaos-0.7.md
+      - Chaos 0.8: chaos-0.8.md
+      - Sidecar 0.8: sidecar-v0.8.md
+      - Sidecar 0.9: sidecar-0.9.md
+      - MCP 0.4 unified workflows: mcp-0.4-unified-workflows.md
+  - Examples: examples.md
+  - Use cases: https://deepagentlabs.io/agenticops-control-tower/usecases/
+  - Troubleshooting: troubleshooting.md
+  - Limitations: limitations.md
+  - Contributing: contributing.md
+  - Roadmap: roadmap.md

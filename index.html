@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgenticOps Control Tower · DeepAgentLabs</title>
+  <meta name="description" content="Open-source control plane for AI agent fleets: inventory, health, ecosystem evidence posture, live alerts and approval-gated recovery. Part of the DeepAgentLabs ecosystem.">
+  <meta name="theme-color" content="#0b1416">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AgenticOps Control Tower">
+  <meta property="og:description" content="One control plane for your AI agents: who is running, what they run, what the evidence says, and what to do next.">
+  <meta property="og:url" content="https://deepagentlabs.io/agenticops-control-tower/">
+  <meta property="og:image" content="https://deepagentlabs.io/agenticops-control-tower/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://deepagentlabs.io/agenticops-control-tower/og.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b1416'/%3E%3Cpath d='M16 6v20M8 12l8-6 8 6' stroke='%23b7f343' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="nav shell" aria-label="Primary">
+      <a class="brand" href="./" aria-label="AgenticOps Control Tower home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8"/><path d="M16 6v20M8 12l8-6 8 6"/></svg>
+        <span>Control Tower</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+        <span class="sr-only">Menu</span><i></i><i></i><i></i>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="#features">Features</a>
+        <a href="#workflow">How it works</a>
+        <a href="#ecosystem">Ecosystem</a>
+        <a href="docs/">Docs</a>
+        <a href="usecases/">Use cases</a>
+        <a href="https://deepagentlabs.io/">DeepAgentLabs</a>
+        <a href="https://github.com/DeepAgentLabs/agenticops-control-tower">GitHub</a>
+        <a class="button button-small button-primary" href="https://controltower.deepagentlabs.io/#/home" target="_blank" rel="noopener noreferrer">Open Control Tower <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="pulse" aria-hidden="true"></span>PRE-ALPHA · 0.8.0 ON MAIN · MIT</p>
+        <h1 id="hero-title">One control plane for your <span>AI agents</span>.</h1>
+        <p class="hero-lead">AgenticOps Control Tower keeps an inventory of every agent you run, the packages each one carries and the health it reports. It collects evidence from AgenticLens, Agentic Evals, Agentic Sidecar and Agentic Chaos, raises alerts when a run fails or evidence goes stale, and gates configuration changes and recovery behind a human approval.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="docs/getting-started/">Get started</a>
+          <a class="button button-ghost" href="usecases/">Try a use case</a>
+        </div>
+        <button class="copy-command" type="button" data-copy="git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git" aria-label="Copy clone command">
+          <code><span aria-hidden="true">$ </span>git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git</code>
+          <span class="copy-state" aria-live="polite">Copy</span>
+        </button>
+        <dl class="hero-proof">
+          <div><dt>Source version</dt><dd>0.8.0</dd></div>
+          <div><dt>On PyPI</dt><dd>0.2.0</dd></div>
+          <div><dt>Python</dt><dd>3.10+</dd></div>
+          <div><dt>Base deps</dt><dd>3</dd></div>
+        </dl>
+      </div>
+
+      <figure class="hero-visual" aria-label="Real output of the status command against the bundled sample fleet">
+        <div class="visual-topbar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>examples/sample_fleet_snapshot.json</span><em>OFFLINE</em></div>
+        <pre class="terminal"><code><span class="t-prompt">$</span> agenticops-control-tower \
+    --snapshot examples/sample_fleet_snapshot.json status
+{
+  <span class="t-key">"total_agents"</span>: 2,
+  <span class="t-key">"healthy_agents"</span>: <span class="t-ok">1</span>,
+  <span class="t-key">"degraded_agents"</span>: <span class="t-warn">1</span>,
+  <span class="t-key">"unhealthy_agents"</span>: 0,
+  <span class="t-key">"unknown_agents"</span>: 0,
+  <span class="t-key">"capability_count"</span>: 3,
+  <span class="t-key">"status_buckets"</span>: {
+    <span class="t-key">"healthy"</span>: [ <span class="t-ok">"payment-agent"</span> ],
+    <span class="t-key">"degraded"</span>: [ <span class="t-warn">"support-agent"</span> ],
+    ...</code></pre>
+        <figcaption>Real output against 0.8.0, shortened and with lists collapsed. No server or token needed.</figcaption>
+      </figure>
+    </section>
+
+    <section class="strip" aria-label="Works with the DeepAgentLabs ecosystem">
+      <div class="shell strip-inner">
+        <span class="strip-label">Reads native evidence from</span>
+        <ul>
+          <li>AgenticLens</li><li>Agentic Evals</li><li>Agentic Sidecar</li><li>Agentic Chaos</li><li>Deep Agentic Core MCP</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section shell" id="problem" aria-labelledby="problem-title">
+      <p class="kicker">THE PROBLEM</p>
+      <h2 id="problem-title">Agents multiply faster than anyone can track them.</h2>
+      <div class="problem-grid">
+        <article><h3>Where is everything running?</h3><p>Agents ship as Lambdas, containers and Kubernetes jobs across teams and environments, each with its own versions of tracing, evaluation and guard packages.</p></article>
+        <article><h3>Which signal do I trust?</h3><p>Traces, eval gates, guard decisions and chaos reports live in separate tools. Nobody sees the posture of one deployment across all of them.</p></article>
+        <article><h3>Who approved that fix?</h3><p>Configuration changes and recoveries happen out of band, with no preview, no second operator and no record of what was verified afterwards.</p></article>
+      </div>
+    </section>
+
+    <section class="section shell" id="features" aria-labelledby="features-title">
+      <p class="kicker">CAPABILITIES</p>
+      <div class="section-head">
+        <h2 id="features-title">What 0.8.0 does today.</h2>
+        <p>Every card is implemented on the main branch. <strong class="tag tag-stable">Stable</strong> features shipped in 0.2–0.3; <strong class="tag tag-exp">Experimental</strong> ones (0.4–0.8) may still change before 1.0.</p>
+      </div>
+      <div class="capability-grid">
+        <article class="card">
+          <span class="tag tag-stable">Stable · 0.2</span>
+          <h3>Agent registry and discovery</h3>
+          <p>Register agents with deployment metadata, accept heartbeats, and query the fleet by environment, health, or missing and outdated packages.</p>
+          <a href="docs/features/#agent-registry-and-heartbeats">Registry docs</a>
+        </article>
+        <article class="card">
+          <span class="tag tag-stable">Stable · 0.2–0.3</span>
+          <h3>API, CLI, snapshots and console</h3>
+          <p>An HTTP API with reader and writer tokens, SQLite persistence, a CLI that also reads offline snapshots, and a read-only web console at <code>/console/</code>.</p>
+          <a href="docs/cli-reference/">CLI reference</a>
+        </article>
+        <article class="card">
+          <span class="tag tag-exp">Experimental · 0.5</span>
+          <h3>Ecosystem evidence posture</h3>
+          <p>Push native Lens, Evals, Sidecar and Chaos artifacts. Tower reports each producer as fresh, stale, missing or unavailable, without recomputing their verdicts.</p>
+          <a href="docs/evidence-posture/">Evidence guide</a>
+        </article>
+        <article class="card">
+          <span class="tag tag-exp">Experimental · 0.8</span>
+          <h3>Live detection and alerts</h3>
+          <p>A scan every 30 seconds turns failed Lens runs, overdue heartbeats and stale or missing evidence into deduplicated alerts, with an incident view and audit timeline.</p>
+          <a href="docs/live-operations/">Live operations</a>
+        </article>
+        <article class="card">
+          <span class="tag tag-exp">Experimental · 0.4 &amp; 0.7</span>
+          <h3>Controlled configuration and bulk actions</h3>
+          <p>Declare desired settings, preview the change, have a second operator approve, then execute across one agent or a filtered fleet with per-target results.</p>
+          <a href="docs/configuration/">Configuration guide</a>
+        </article>
+        <article class="card">
+          <span class="tag tag-exp">Experimental · 0.6</span>
+          <h3>Approval-gated recovery</h3>
+          <p>Investigate an incident through an MCP host, preview a bounded recovery, approve it with a separate token, execute on staging and verify the result.</p>
+          <a href="docs/incident-recovery/">Recovery guide</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section shell" id="workflow" aria-labelledby="workflow-title">
+      <p class="kicker">HOW IT WORKS</p>
+      <div class="section-head">
+        <h2 id="workflow-title">From heartbeat to verified recovery.</h2>
+        <p>Health is what agents report. Evidence is what the ecosystem produced. Tower keeps both side by side and never lets one silently overwrite the other.</p>
+      </div>
+      <ol class="flow">
+        <li><span class="flow-num">01</span><h3>Register</h3><p>Each agent registers its deployment, environment and installed packages.</p></li>
+        <li><span class="flow-num">02</span><h3>Report</h3><p>Agents send heartbeats; producers push native evidence artifacts.</p></li>
+        <li><span class="flow-num">03</span><h3>Detect</h3><p>Rules raise deduplicated alerts and open an incident view.</p></li>
+        <li><span class="flow-num">04</span><h3>Approve</h3><p>A preview is approved by a second operator with its own token.</p></li>
+        <li><span class="flow-num">05</span><h3>Verify</h3><p>The action runs, is verified, and lands in the audit trail.</p></li>
+      </ol>
+      <p class="note">Recovery execution covers one deterministic staging runtime today. Reusable runbooks are planned for 0.9. See <a href="docs/limitations/">limitations</a> and the <a href="docs/roadmap/">roadmap</a>.</p>
+    </section>
+
+    <section class="section shell" id="ecosystem" aria-labelledby="ecosystem-title">
+      <p class="kicker">ECOSYSTEM</p>
+      <div class="section-head">
+        <h2 id="ecosystem-title">The operator view of DeepAgentLabs.</h2>
+        <p>Each sibling package keeps its own logic. Tower reads their native artifacts, attributes them to a deployment and shows them together. None of them is required to run Tower.</p>
+      </div>
+      <div class="eco-grid">
+        <a class="eco" href="https://deepagentlabs.io/agenticlens/"><strong>AgenticLens</strong><span>Trace runs; failed runs raise <code>lens.failed</code>.</span></a>
+        <a class="eco" href="https://github.com/DeepAgentLabs/agentic-evals"><strong>Agentic Evals</strong><span>Eval reports and release-gate results in posture.</span></a>
+        <a class="eco" href="https://deepagentlabs.io/agentic-sidecar/"><strong>Agentic Sidecar</strong><span>Guard decisions and required escalations in posture.</span></a>
+        <a class="eco" href="https://deepagentlabs.io/agentic-chaos/"><strong>Agentic Chaos</strong><span>Chaos experiment reports in posture.</span></a>
+        <a class="eco" href="https://deepagentlabs.io/deep-agenticcore-mcp/"><strong>Deep Agentic Core MCP</strong><span>Investigate incidents from an MCP host.</span></a>
+      </div>
+      <p class="note">Versions tested together are listed in <a href="docs/tower-0.8-compatibility/">Tower 0.8 compatibility</a>.</p>
+    </section>
+
+    <section class="section shell split" id="quickstart" aria-labelledby="quickstart-title">
+      <div>
+        <p class="kicker">QUICK START</p>
+        <h2 id="quickstart-title">See a fleet in under a minute.</h2>
+        <p>Install from the repository to get 0.8.0. The sample snapshot needs no server, token or account.</p>
+        <ul class="checks">
+          <li>Base install needs only <code>pydantic</code>, <code>packaging</code> and <code>jsonschema</code>.</li>
+          <li>Add the <code>api</code> extra for the server, server-mode CLI and console.</li>
+          <li><code>pip install agenticops-control-tower</code> currently installs <strong>0.2.0</strong>, which predates snapshots, tokens and the console.</li>
+        </ul>
+        <div class="hero-actions">
+          <a class="button button-primary" href="docs/getting-started/">Full getting started</a>
+          <a class="button button-ghost" href="usecases/fleet-health-snapshot/">Fleet snapshot use case</a>
+        </div>
+      </div>
+      <div class="terminal-card">
+        <div class="visual-topbar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>bash</span><button class="copy-mini" type="button" data-copy-target="quickstart-code">Copy</button></div>
+<pre class="terminal" id="quickstart-code"><code>git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git
+cd agenticops-control-tower
+python -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install ".[api]"
+
+agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json status
+agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json capabilities list
+agenticops-control-tower --snapshot examples/sample_fleet_snapshot.json posture</code></pre>
+      </div>
+    </section>
+
+    <section class="section shell" id="resources" aria-labelledby="resources-title">
+      <p class="kicker">RESOURCES</p>
+      <h2 id="resources-title">Go deeper.</h2>
+      <div class="resource-grid">
+        <a class="resource" href="docs/"><strong>Documentation</strong><span>Architecture, configuration, API and CLI reference.</span></a>
+        <a class="resource" href="usecases/"><strong>Use cases</strong><span>Three reproducible walkthroughs with real output.</span></a>
+        <a class="resource" href="https://github.com/DeepAgentLabs/agenticops-control-tower"><strong>Source on GitHub</strong><span>Code, issues and the authoritative roadmap.</span></a>
+        <a class="resource" href="https://pypi.org/project/agenticops-control-tower/"><strong>PyPI</strong><span>Release 0.2.0. Newer versions install from source.</span></a>
+        <a class="resource" href="docs/examples/"><strong>Examples</strong><span>Runnable scripts and sample payloads.</span></a>
+        <a class="resource" href="https://controltower.deepagentlabs.io/#/home" target="_blank" rel="noopener noreferrer"><strong>Control Tower console ↗</strong><span>Open the Control Tower web app.</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <p><a href="https://deepagentlabs.io/">DeepAgentLabs</a> · AgenticOps Control Tower · <a href="https://github.com/DeepAgentLabs/agenticops-control-tower/blob/main/LICENSE">MIT License</a></p>
+      <p><a href="docs/">Docs</a> · <a href="usecases/">Use cases</a> · <a href="docs/roadmap/">Roadmap</a> · <a href="docs/contributing/">Contributing</a> · <a href="https://github.com/DeepAgentLabs/agenticops-control-tower/issues">Issues</a></p>
+    </div>
+  </footer>
+
+  <script src="site.js" defer></script>
+</body>
+</html>
