@@ -20,28 +20,22 @@ sibling-package tests against local checkouts.
 
 ## Working on this documentation site
 
-The docs (`docs/`), the use cases (`usecases/`) and the product page
-(`index.html`, `site.css`, `site.js`, `og.png`, `img/`) are built and published
-together by `.github/workflows/docs.yml`.
+The docs (`docs/`), use cases (`usecases/`) and product page are owned here.
+The [main website](https://github.com/DeepAgentLabs/deepagentlabs.github.io)
+publishes them at `/control-tower/` using its shared documentation builder.
+The repository Docs workflow validates the same output and uploads a preview.
+See [publishing](publishing.md) for triggers and the canonical URLs.
 
-The product page reuses the DeepAgentLabs website's design: `site.css` and
-`site.js` are copies of the stylesheets and scripts in
-[deepagentlabs.github.io](https://github.com/DeepAgentLabs/deepagentlabs.github.io)
-(`assets/css/`, `assets/js/`), and the header and footer match its pages. When the
-website's navigation or styles change, copy the changes here too. The screenshots
-in `img/` are of the 0.8.0 console with sample data.
+From a workspace with this repository and `deepagentlabs.github.io` as siblings:
 
 ```bash
-uv sync --extra docs
-uv run mkdocs serve                                  # docs at http://127.0.0.1:8000/
-uv run mkdocs build --strict --site-dir site/docs    # what CI runs
-uv run mkdocs build --strict -f mkdocs.usecases.yml --site-dir site/usecases
-python -m http.server 8000                           # product page, from the repo root
+uv run --no-project --with-requirements ../deepagentlabs.github.io/scripts/docs-requirements.txt python ../deepagentlabs.github.io/scripts/build_docs.py --project agenticops-control-tower --repo . --output site/docs
+uv run --no-project --with-requirements ../deepagentlabs.github.io/scripts/docs-requirements.txt python ../deepagentlabs.github.io/scripts/build_docs.py --project agenticops-control-tower --section usecases --repo . --output site/usecases
+python ../deepagentlabs.github.io/scripts/check_docs_site.py site
 ```
 
-Every page must be listed in `nav`; the strict build fails otherwise. Use
-relative links in the product page (`href="docs/"`, never `/docs/`), because the
-site is served from `deepagentlabs.io/agenticops-control-tower/`.
+The product page uses relative asset and documentation links so it works at the
+canonical product prefix. Keep the screenshots labeled as sample data.
 
 ## Accuracy rules
 

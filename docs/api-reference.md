@@ -51,7 +51,7 @@ Errors: `401` missing or invalid token, `403` wrong role, `404` unknown agent,
 | `GET /agents/{agent_id}/config/{capability}` | read | Ownership, desired values and revision. |
 | `GET /agents/{agent_id}/audit` | read | Configuration audit trail. |
 | `POST /actions/preview` | operator (writer) | Create an immutable preview. |
-| `GET /actions/{action_id}` | operator | Read a stored proposal. |
+| `GET /actions/{action_id}` | read | Read a stored proposal. |
 | `POST /actions/{action_id}/approval` | operator (approver) | `{"approved": true}` or `false`. |
 | `POST /actions/{action_id}/revoke` | operator (approver) | Revoke a pending or approved proposal. |
 | `POST /actions/{action_id}/execute` | operator (writer) | Execute an approved, unexpired action. |
@@ -65,7 +65,7 @@ Errors: `401` missing or invalid token, `403` wrong role, `404` unknown agent,
 | `POST /alerts/evaluate` | operator (writer) | Run a detection scan now. |
 | `POST /alerts/{alert_id}/acknowledge` | operator (writer) | Acknowledge an alert. |
 | `GET /incidents`, `GET /incidents/{id}`, `GET /incidents/{id}/view` | operator | Read incidents; `view` is the joined timeline. |
-| `POST /incidents/detect`, `/investigate`, `/preview`, `/approval`, `/revoke`, `/execute`, `/verify`, `/control/{action}`, `/reconcile` | operator | Approved staging recovery; see [incident recovery](incident-recovery.md). |
+| `POST /incidents/detect`, `POST /incidents/{id}/investigate`, `/preview`, `/approval`, `/revoke`, `/execute`, `/verify`, `/control/{action}`, `/reconcile` | operator | Approved staging recovery; see [incident recovery](incident-recovery.md). |
 
 ### Console
 

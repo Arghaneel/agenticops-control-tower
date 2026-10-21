@@ -1,6 +1,6 @@
 site_name: AgenticOps Control Tower Documentation
 site_description: Unified control plane and operations console for the DeepAgentLabs ecosystem.
-site_url: https://deepagentlabs.io/agenticops-control-tower/docs/
+site_url: https://deepagentlabs.io/control-tower/docs/
 repo_url: https://github.com/DeepAgentLabs/agenticops-control-tower
 repo_name: DeepAgentLabs/agenticops-control-tower
 edit_uri: edit/main/docs/
@@ -94,8 +94,9 @@ nav:
       - Sidecar 0.9: sidecar-0.9.md
       - MCP 0.4 unified workflows: mcp-0.4-unified-workflows.md
   - Examples: examples.md
-  - Use cases: https://deepagentlabs.io/agenticops-control-tower/usecases/
+  - Use cases: https://deepagentlabs.io/control-tower/usecases/
   - Troubleshooting: troubleshooting.md
   - Limitations: limitations.md
   - Contributing: contributing.md
+  - Publishing: publishing.md
   - Roadmap: roadmap.md

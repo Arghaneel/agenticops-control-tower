@@ -56,7 +56,7 @@ api = [
 ]
 # Documentation site (docs/, usecases/): `uv sync --extra docs`.
 docs = [
-  "mkdocs-material>=9.5",
+  "mkdocs-material==9.7.6",
 ]
 dev = [
   "pytest>=8.0",

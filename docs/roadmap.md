@@ -9,13 +9,13 @@ is **planned** and does not work today.
 
 | Version | Theme | Status |
 | --- | --- | --- |
-| 0.1–0.2 | Registry, discovery, HTTP API, CLI, status, snapshots, SQLite, tokens | Implemented (0.2.0 on PyPI) |
+| 0.1–0.2 | Registry, discovery, HTTP API, CLI, status, snapshots, SQLite, tokens | Implemented |
 | 0.3 | Read-only AgenticOps Console | Implemented |
 | 0.4 | Controlled configuration and approvals | Implemented |
 | 0.5 | Ecosystem evidence ingestion and posture | Implemented |
 | 0.6 | MCP investigation and approved staging recovery | Implemented |
 | 0.7 | Multi-agent operations and bulk actions | Implemented |
-| 0.8 | Live detection, alerts, audit trails and incident views | Implemented (current) |
+| 0.8 | Live detection, alerts, audit trails and incident views | Implemented (0.8.0 on PyPI) |
 | 0.9 | Automated runbooks and recovery workflows | **Planned** |
 | 1.0 | Stable control plane and published capability contract | **Planned** |
 

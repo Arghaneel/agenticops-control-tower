@@ -9,7 +9,7 @@ the joined incident timeline, all with the Python API and no network.
 | **For** | Operators wiring AgenticLens results into incident response |
 | **Difficulty** | Intermediate |
 | **Time** | ~15 minutes |
-| **Capabilities** | [Live detection, alerts and incident views](https://deepagentlabs.io/agenticops-control-tower/docs/features/#live-detection-alerts-and-incident-views), [Ecosystem evidence posture](https://deepagentlabs.io/agenticops-control-tower/docs/features/#ecosystem-evidence-posture), [Agent registry](https://deepagentlabs.io/agenticops-control-tower/docs/features/#agent-registry-and-heartbeats) |
+| **Capabilities** | [Live detection, alerts and incident views](https://deepagentlabs.io/control-tower/docs/features/#live-detection-alerts-and-incident-views), [Ecosystem evidence posture](https://deepagentlabs.io/control-tower/docs/features/#ecosystem-evidence-posture), [Agent registry](https://deepagentlabs.io/control-tower/docs/features/#agent-registry-and-heartbeats) |
 | **Status** | Experimental (added in 0.8.0) |
 
 ## The problem
@@ -42,8 +42,8 @@ health the agent reports and never runs recovery on its own.
 ## Prerequisites
 
 - Python 3.10 or newer.
-- Control Tower **0.8.0**, installed from the repository (live detection is not
-  in PyPI 0.2.0):
+- Control Tower **0.8.0**, installed from the repository for this walkthrough
+  (the same version is also available on PyPI):
 
     ```bash
     git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git
@@ -202,7 +202,7 @@ deactivate && rm -rf .venv
   push, and the next scan raises `evidence.stale` or `evidence.missing` warnings.
 - **Resolve the incident:** the approved recovery workflow (investigate, preview,
   approve, execute, verify) is in
-  [Incident recovery](https://deepagentlabs.io/agenticops-control-tower/docs/incident-recovery/).
+  [Incident recovery](https://deepagentlabs.io/control-tower/docs/incident-recovery/).
 - The repository's shorter version is `examples/live_operations.py`.
 
 ## Tested with

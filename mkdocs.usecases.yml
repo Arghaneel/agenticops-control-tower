@@ -1,6 +1,6 @@
 INHERIT: mkdocs.yml
 site_name: AgenticOps Control Tower Use Cases
-site_url: https://deepagentlabs.io/agenticops-control-tower/usecases/
+site_url: https://deepagentlabs.io/control-tower/usecases/
 edit_uri: edit/main/usecases/
 docs_dir: usecases
 
@@ -9,5 +9,5 @@ nav:
   - Find unhealthy agents and capability gaps: fleet-health-snapshot.md
   - Failed AgenticLens run to incident timeline: lens-failure-to-incident.md
   - One posture view for sibling results: ecosystem-evidence-posture.md
-  - Back to docs: https://deepagentlabs.io/agenticops-control-tower/docs/
-  - Back to Control Tower: https://deepagentlabs.io/agenticops-control-tower/
+  - Back to docs: https://deepagentlabs.io/control-tower/docs/
+  - Back to Control Tower: https://deepagentlabs.io/control-tower/

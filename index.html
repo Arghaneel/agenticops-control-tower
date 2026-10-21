@@ -9,13 +9,13 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Control Tower · DeepAgentLabs">
   <meta property="og:description" content="Every agent, one place: inventory, health, evidence, alerts and approvals for your AI agents.">
-  <meta property="og:url" content="https://deepagentlabs.io/agenticops-control-tower/">
-  <meta property="og:image" content="https://deepagentlabs.io/agenticops-control-tower/og.png">
+  <meta property="og:url" content="https://deepagentlabs.io/control-tower/">
+  <meta property="og:image" content="https://deepagentlabs.io/control-tower/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://deepagentlabs.io/agenticops-control-tower/og.png">
-  <link rel="canonical" href="https://deepagentlabs.io/agenticops-control-tower/">
+  <meta name="twitter:image" content="https://deepagentlabs.io/control-tower/og.png">
+  <link rel="canonical" href="https://deepagentlabs.io/control-tower/">
   <link rel="icon" type="image/png" href="img/dal-logo.png">
   <script>document.documentElement.classList.add("pp-js")</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -144,7 +144,7 @@
         </div>
         <code class="tl-pip pp-pip">git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git</code>
         <ul class="pp-facts" aria-label="Key facts">
-          <li>Free and open source (MIT)</li><li>Self-hosted: data stays on your server</li><li>0.8.0 on GitHub · PyPI has 0.2.0 · pre-alpha</li><li>Python 3.10+</li>
+          <li>Free and open source (MIT)</li><li>Self-hosted: data stays on your server</li><li>0.8.0 on PyPI · pre-alpha</li><li>Python 3.10+</li>
         </ul>
       </div>
 
@@ -324,7 +324,7 @@
       <div class="pp-head pp-rv">
         <p class="section-label">How it works</p>
         <h2>Up and running in <em>four steps.</em></h2>
-        <p class="pp-sub">0.8.0 installs from the repository until it reaches PyPI. Steps 3 and 4 need the <code>api</code> extra, which the install below includes.</p>
+        <p class="pp-sub">0.8.0 is available on PyPI. The repository includes the sample files used below. Steps 3 and 4 need the <code>api</code> extra, which the install below includes.</p>
       </div>
       <ol class="pp-steps pp-rv-kids">
         <li><span>1</span><h3>Install</h3><p>Clone the repository and install it with the <code>api</code> extra for the server and console.</p><code class="pp-cmd">git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git &amp;&amp; cd agenticops-control-tower &amp;&amp; pip install ".[api]"</code></li>
@@ -394,7 +394,7 @@
       <div class="pp-status pp-status-4 pp-rv-kids">
         <div><p class="pp-status-title"><i class="ok"></i>Stable (0.2–0.3)</p><ul><li>Registry, discovery and fleet health</li><li>HTTP API, CLI and offline snapshots</li><li>SQLite storage and tokens</li><li>Read-only console</li></ul></div>
         <div><p class="pp-status-title"><i class="warn"></i>Experimental (0.4–0.8)</p><ul><li>Approved configuration and bulk actions</li><li>Ecosystem evidence posture</li><li>Approved staging recovery</li><li>Live alerts and incident views</li></ul></div>
-        <div><p class="pp-status-title"><i class="beta"></i>Install</p><ul><li>0.8.0 from the GitHub repository</li><li>PyPI still has 0.2.0, without the newer features</li></ul></div>
+        <div><p class="pp-status-title"><i class="beta"></i>Install</p><ul><li>0.8.0 from the GitHub repository</li><li>0.8.0 is also available on PyPI</li></ul></div>
         <div><p class="pp-status-title"><i class="unk"></i>Planned</p><ul><li>0.9: versioned recovery runbooks</li><li>1.0: stable capability contract</li><li>Per-user identities</li><li>Pull-based evidence collection</li></ul></div>
       </div>
     </section>
@@ -417,7 +417,7 @@
         <div class="pp-faq pp-rv-kids">
           <details><summary>Is Control Tower free?</summary><p>Yes. It's open source under the MIT license, like every DeepAgentLabs package.</p></details>
           <details><summary>Does my data leave my machine?</summary><p>No. Control Tower runs on your own machine or server, and agents and tools push data to it. It doesn't call DeepAgentLabs or fetch anything from your producers.</p></details>
-          <details><summary>Why does pip install give me an older version?</summary><p>PyPI has 0.2.0, which predates snapshots, tokens, the console and everything newer. Install 0.8.0 from the repository until it's released: see <a href="docs/getting-started/">getting started</a>.</p></details>
+          <details><summary>How do I install the documented version?</summary><p>Install the published version with <code>pip install "agenticops-control-tower[api]==0.8.0"</code>, and clone the repository for example files: see <a href="docs/getting-started/">getting started</a>.</p></details>
           <details><summary>Does it fix agents on its own?</summary><p>No. Detection only raises alerts and opens incidents. Every change and recovery needs a preview and a human approval, and recovery today covers one staging runtime. Reusable runbooks are planned for 0.9.</p></details>
           <details><summary>Is there an AI model inside?</summary><p>No model is bundled. To investigate an incident with AI, connect a local Agentic MCP server to your own MCP host; Tower supplies the evidence.</p></details>
           <details><summary>Where do I ask questions or report bugs?</summary><p>Open an issue on <a href="https://github.com/DeepAgentLabs/agenticops-control-tower/issues" target="_blank" rel="noopener noreferrer">GitHub</a>, or ask on <a href="https://discord.gg/fEqPFWgcDG" target="_blank" rel="noopener noreferrer">Discord</a>.</p></details>

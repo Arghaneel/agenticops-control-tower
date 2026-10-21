@@ -4,7 +4,7 @@
 
 | Symptom | Cause and fix |
 | --- | --- |
-| `agenticops-control-tower: error: argument command: invalid choice` for `--snapshot`, `posture`, `alerts` or `incidents` | You have PyPI **0.2.0**, which predates these commands. Check with `python -c "import agenticops_control_tower as t; print(t.__version__)"` and [install from the repository](getting-started.md#install). |
+| `agenticops-control-tower: error: argument command: invalid choice` for `--snapshot`, `posture`, `alerts` or `incidents` | You may have an older installation (for example **0.2.0**), which predates these commands. Check with `python -c "import agenticops_control_tower as t; print(t.__version__)"` and [upgrade to 0.8.0](getting-started.md#install). |
 | `This command talks to the Control Tower HTTP API and needs httpx` | Server-mode CLI commands need the `api` extra: install `".[api]"`. Offline `--snapshot` reads do not. |
 | `serve` fails with `ModuleNotFoundError: No module named 'fastapi'` (or asks for `uvicorn`) | Install the `api` extra. |
 | `ValueError: Approval token must differ from reader and writer tokens` at startup | Generate a separate value for `AGENTICOPS_APPROVAL_TOKEN`. |

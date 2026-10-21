@@ -6,7 +6,7 @@ starts the server with tokens and opens the console.
 ## Prerequisites
 
 - Python 3.10 or newer (3.10–3.13 are tested in CI).
-- Git, to install from the repository until 0.8.0 is on PyPI.
+- Git for the sample files in the repository; 0.8.0 itself is available on PyPI.
 - Optional: [uv](https://docs.astral.sh/uv/), which the repository uses for
   development (`make install` runs `uv sync --extra dev`).
 - No DeepAgentLabs account, API key or sibling package is needed.
@@ -35,15 +35,14 @@ CLI and the console.
     # prefix the commands below with `uv run`
     ```
 
-=== "PyPI (0.2.0 only)"
+=== "PyPI (0.8.0)"
 
     ```bash
-    python -m pip install "agenticops-control-tower[api]"
+    python -m pip install "agenticops-control-tower[api]==0.8.0"
     ```
 
-    This installs 0.2.0: registry, discovery, the HTTP API and the `serve`,
-    `agents` and `capabilities` CLI commands. The snapshot CLI, tokens, SQLite,
-    console and everything newer are not in it.
+    This includes the snapshot CLI, tokens, SQLite, console, evidence posture
+    and live detection. Clone the repository for the example JSON files used below.
 
 Check the installed version:
 
@@ -143,4 +142,4 @@ Refresh the console to see `payment-agent`. Interactive API docs are at
 - Feed in Lens, Evals, Sidecar and Chaos results:
   [Evidence posture](evidence-posture.md).
 - Walk through a complete scenario:
-  [Use cases](https://deepagentlabs.io/agenticops-control-tower/usecases/).
+  [Use cases](https://deepagentlabs.io/control-tower/usecases/).

@@ -9,7 +9,7 @@ with the native outcomes counted, without Control Tower re-judging any of them.
 | **For** | Teams running several DeepAgentLabs packages who want one place to see their results per deployment |
 | **Difficulty** | Intermediate |
 | **Time** | ~15 minutes |
-| **Capabilities** | [Ecosystem evidence posture](https://deepagentlabs.io/agenticops-control-tower/docs/features/#ecosystem-evidence-posture), [Integrations](https://deepagentlabs.io/agenticops-control-tower/docs/integrations/) |
+| **Capabilities** | [Ecosystem evidence posture](https://deepagentlabs.io/control-tower/docs/features/#ecosystem-evidence-posture), [Integrations](https://deepagentlabs.io/control-tower/docs/integrations/) |
 | **Status** | Experimental (added in 0.5.0) |
 
 ## The problem
@@ -192,7 +192,7 @@ deactivate && rm -rf .venv
   pushes every decision in a Sidecar journal export.
 - **Let failures raise alerts:** fresh failed Lens runs feed live detection; see the
   [AgenticLens failure use case](lens-failure-to-incident.md).
-- Field-by-field rules: [Ecosystem alignment](https://deepagentlabs.io/agenticops-control-tower/docs/ecosystem-alignment/).
+- Field-by-field rules: [Ecosystem alignment](https://deepagentlabs.io/control-tower/docs/ecosystem-alignment/).
 
 ## Tested with
 

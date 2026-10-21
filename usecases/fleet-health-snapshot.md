@@ -9,7 +9,7 @@ drifted. No server, token or network is needed.
 | **For** | Platform and on-call engineers who want a quick inventory check |
 | **Difficulty** | Beginner |
 | **Time** | ~5 minutes |
-| **Capabilities** | [Fleet health and filters](https://deepagentlabs.io/agenticops-control-tower/docs/features/#fleet-health-and-filters), [Capability discovery](https://deepagentlabs.io/agenticops-control-tower/docs/features/#capability-discovery-and-version-inventory), [Offline snapshots](https://deepagentlabs.io/agenticops-control-tower/docs/features/#http-api-cli-and-offline-snapshots) |
+| **Capabilities** | [Fleet health and filters](https://deepagentlabs.io/control-tower/docs/features/#fleet-health-and-filters), [Capability discovery](https://deepagentlabs.io/control-tower/docs/features/#capability-discovery-and-version-inventory), [Offline snapshots](https://deepagentlabs.io/control-tower/docs/features/#http-api-cli-and-offline-snapshots) |
 | **Status** | Stable |
 
 ## The problem
@@ -37,8 +37,8 @@ answers read commands directly. Nothing is written anywhere.
 ## Prerequisites
 
 - Python 3.10 or newer.
-- Control Tower **0.2.1 or newer**, installed from the repository (the snapshot
-  CLI is not in PyPI 0.2.0):
+- Control Tower **0.2.1 or newer**, installed from the repository for this walkthrough. The tested
+  0.8.0 version is also available on PyPI:
 
     ```bash
     git clone https://github.com/DeepAgentLabs/agenticops-control-tower.git
@@ -306,7 +306,7 @@ deactivate && rm -rf .venv
   `triage-bot` as `outdated`. On a server, use `GET /versions`.
 - **Go live:** run `agenticops-control-tower serve` and have agents register and send
   heartbeats; the same commands then work without `--snapshot`. See
-  [Getting started](https://deepagentlabs.io/agenticops-control-tower/docs/getting-started/).
+  [Getting started](https://deepagentlabs.io/control-tower/docs/getting-started/).
 
 ## Tested with
 

@@ -59,4 +59,4 @@ agentic-chaos stale {"experiments": 0, "completed": 0, "incomplete": 0, "fault_e
 ```
 
 For step-by-step walkthroughs built on these, see the
-[use cases](https://deepagentlabs.io/agenticops-control-tower/usecases/).
+[use cases](https://deepagentlabs.io/control-tower/usecases/).

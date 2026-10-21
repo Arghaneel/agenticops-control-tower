@@ -9,11 +9,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: docs-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -21,31 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
+      - name: Check out shared documentation theme
+        uses: actions/checkout@v4
         with:
-          enable-cache: true
-
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Configure Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v6
-        with:
-          enablement: true
-
-      - name: Install docs dependencies
-        run: uv sync --extra docs --python 3.12
-
-      - name: Build docs
-        run: uv run mkdocs build --strict --site-dir site/docs
-
-      - name: Build use cases
-        run: uv run mkdocs build --strict -f mkdocs.usecases.yml --site-dir site/usecases
-
-      - name: Add product website
+          repository: DeepAgentLabs/deepagentlabs.github.io
+          ref: main
+          path: _docs-theme
+      - uses: astral-sh/setup-uv@v7
+      - name: Build shared documentation
+        run: uv run --no-project --with-requirements _docs-theme/scripts/docs-requirements.txt python _docs-theme/scripts/build_docs.py --project agenticops-control-tower --repo "$GITHUB_WORKSPACE" --output "$GITHUB_WORKSPACE/site/docs"
+      - name: Build shared use cases
+        run: uv run --no-project --with-requirements _docs-theme/scripts/docs-requirements.txt python _docs-theme/scripts/build_docs.py --project agenticops-control-tower --section usecases --repo "$GITHUB_WORKSPACE" --output "$GITHUB_WORKSPACE/site/usecases"
+      - name: Stage product preview
         run: |
           cp index.html site/index.html
           cp site.css site/site.css
@@ -53,31 +38,18 @@ jobs:
           cp og.png site/og.png
           cp -r img site/img
           touch site/.nojekyll
-
-      - name: Check site layout
+      - name: Check rendered documentation
+        run: python3 _docs-theme/scripts/check_docs_site.py site
+      - name: Check product layout
         run: |
-          for f in site/index.html site/site.css site/site.js site/og.png site/img/dal-logo.png \
-                   site/docs/index.html site/usecases/index.html site/.nojekyll; do
+          for f in site/index.html site/site.css site/site.js site/og.png site/img/dal-logo.png site/docs/index.html site/usecases/index.html; do
             test -f "$f" || { echo "missing $f"; exit 1; }
           done
-          if grep -nE '(href|src)="/[^/]' site/index.html; then
-            echo "product page must use relative links"; exit 1
-          fi
-
-      - name: Upload artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-artifact@v4
         with:
+          name: control-tower-website-preview
           path: site
 
-  deploy:
-    if: github.event_name != 'pull_request'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+# deepagentlabs.github.io publishes the canonical /control-tower/ product,
+# documentation and use cases together. This workflow only validates previews;
+# it does not create a second Pages deployment at the repository-name URL.

@@ -5,9 +5,9 @@
 > AgenticLens observes. Agentic Evals evaluates. Agentic Sidecar supervises. Agentic Chaos tests. Agentic
 > MCP connects. Control Tower operates.
 
-**Website:** [product page](https://deepagentlabs.io/agenticops-control-tower/) ·
-[documentation](https://deepagentlabs.io/agenticops-control-tower/docs/) ·
-[use cases](https://deepagentlabs.io/agenticops-control-tower/usecases/)
+**Website:** [product page](https://deepagentlabs.io/control-tower/) ·
+[documentation](https://deepagentlabs.io/control-tower/docs/) ·
+[use cases](https://deepagentlabs.io/control-tower/usecases/)
 
 ## Status
 

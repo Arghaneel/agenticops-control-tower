@@ -6,8 +6,8 @@ and the feature guides.
 
 ## Release and maturity
 
-- The package is **pre-alpha**. Only **0.2.0** is on PyPI; 0.2.1–0.8.0 must be
-  installed from the repository.
+- The package is **pre-alpha**. **0.8.0** is published on PyPI; repository
+  checkouts are needed for walkthroughs that read bundled example files.
 - No 1.0 compatibility contract yet. Experimental features (0.4–0.8) may change.
 
 ## Identity and access
