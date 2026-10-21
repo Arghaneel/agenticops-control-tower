@@ -32,8 +32,8 @@ Previously accepted summary-only objects are not complete native reports.
 Send the complete `EvaluationReport.model_dump(mode="json")`, including `cases`
 and the required summary `average_latency_ms`. Extra fields can be retained by
 the producer even though Tower stores only its operational projection.
-Use the [complete report example](../examples/evidence/evals_report.json) and
-[gate example](../examples/evidence/evals_gate.json), or run the existing
+Use the [complete report example](https://github.com/DeepAgentLabs/agenticops-control-tower/blob/main/examples/evidence/evals_report.json) and
+[gate example](https://github.com/DeepAgentLabs/agenticops-control-tower/blob/main/examples/evidence/evals_gate.json), or run the existing
 `examples/incident_recovery.py` producer walkthrough.
 
 The optional `agentic-evals` extra now requires `>=0.7.2,<1`; no producer package

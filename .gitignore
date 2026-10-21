@@ -15,3 +15,6 @@ build/
 # Local registry state
 *.sqlite
 *.sqlite-journal
+
+# Built documentation site
+site/

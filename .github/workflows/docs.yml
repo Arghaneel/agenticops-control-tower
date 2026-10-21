@@ -1,0 +1,55 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out shared documentation theme
+        uses: actions/checkout@v4
+        with:
+          repository: DeepAgentLabs/deepagentlabs.github.io
+          ref: main
+          path: _docs-theme
+      - uses: astral-sh/setup-uv@v7
+      - name: Build shared documentation
+        run: uv run --no-project --with-requirements _docs-theme/scripts/docs-requirements.txt python _docs-theme/scripts/build_docs.py --project agenticops-control-tower --repo "$GITHUB_WORKSPACE" --output "$GITHUB_WORKSPACE/site/docs"
+      - name: Build shared use cases
+        run: uv run --no-project --with-requirements _docs-theme/scripts/docs-requirements.txt python _docs-theme/scripts/build_docs.py --project agenticops-control-tower --section usecases --repo "$GITHUB_WORKSPACE" --output "$GITHUB_WORKSPACE/site/usecases"
+      - name: Stage product preview
+        run: |
+          cp index.html site/index.html
+          cp site.css site/site.css
+          cp site.js site/site.js
+          cp og.png site/og.png
+          cp -r img site/img
+          touch site/.nojekyll
+      - name: Check rendered documentation
+        run: python3 _docs-theme/scripts/check_docs_site.py site
+      - name: Check product layout
+        run: |
+          for f in site/index.html site/site.css site/site.js site/og.png site/img/dal-logo.png site/docs/index.html site/usecases/index.html; do
+            test -f "$f" || { echo "missing $f"; exit 1; }
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: control-tower-website-preview
+          path: site
+
+# deepagentlabs.github.io publishes the canonical /control-tower/ product,
+# documentation and use cases together. This workflow only validates previews;
+# it does not create a second Pages deployment at the repository-name URL.
