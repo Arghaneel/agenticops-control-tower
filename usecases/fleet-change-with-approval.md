@@ -24,24 +24,9 @@ off.
 
 ## Architecture
 
-<figure class="fleet-flow" data-fleet-flow aria-labelledby="fleet-flow-title">
-  <div class="fleet-flow-header">
-    <div><span class="fleet-eyebrow">BULK FLEET OPERATION / TWO-PERSON RULE</span><h3 id="fleet-flow-title">One change. Many agents. A second pair of eyes.</h3></div>
-    <span class="fleet-sim-label">Browser-only illustration</span>
-  </div>
-  <div class="fleet-controls"><div><button type="button" data-fleet-play hidden>Pause animation</button><button type="button" data-fleet-replay hidden>Replay self-approval</button></div><span data-fleet-playback>Illustrative result · self-approval rejected</span></div>
-  <div class="fleet-progress" aria-hidden="true"><span></span></div>
-  <div class="fleet-rule"><span>APPROVAL RULE</span><code>proposer ≠ approver · targets frozen at preview</code><small>Approval covers the reviewed list only. Later agents never join.</small></div>
-  <div class="fleet-map">
-    <ol class="fleet-stages">
-      <li class="fleet-stage fleet-blue" data-fleet-stage="0"><div class="fleet-stage-top"><span>01 / PREVIEW</span><span class="fleet-check" aria-label="Complete">✓</span></div><i class="fleet-icon" aria-hidden="true">⌁</i><h4>Propose the change</h4><code>bulk.preview()</code><p>By <strong>alice</strong> · staging + agenticlens</p><b class="fleet-amount">3 agents</b><small data-fleet-stage-status="0">PREVIEW SAVED</small></li>
-      <li class="fleet-stage fleet-purple" data-fleet-stage="1"><div class="fleet-stage-top"><span>02 / FROZEN TARGETS</span><span class="fleet-check" aria-label="Complete">✓</span></div><i class="fleet-icon" aria-hidden="true">◇</i><h4>Freeze the list</h4><code>checkout · refund · triage</code><p>Late joiner <strong>search-agent</strong></p><b class="fleet-comparison">not added</b><small data-fleet-stage-status="1">LIST LOCKED</small></li>
-      <li class="fleet-stage fleet-red" data-fleet-stage="2"><div class="fleet-stage-top"><span>03 / APPROVAL</span><span class="fleet-check" aria-label="Complete">✓</span></div><i class="fleet-icon" aria-hidden="true">⊘</i><h4 data-fleet-verdict>REJECTED</h4><code>bulk.decide()</code><p data-fleet-reason>Alice proposed this change, so she cannot approve it.</p><b class="fleet-decision" data-fleet-signer>By: alice</b><small data-fleet-stage-status="2">SELF-APPROVAL DENIED</small></li>
-      <li class="fleet-stage fleet-amber active" data-fleet-stage="3"><div class="fleet-stage-top"><span>04 / EXECUTE</span><span class="fleet-check" aria-label="Complete">✓</span></div><i class="fleet-icon" aria-hidden="true">▣</i><h4 data-fleet-exec-title>Nothing changed</h4><code data-fleet-exec-code>execute refused</code><p data-fleet-exec-detail>Without a valid approval, execute is refused for every target.</p><b class="fleet-decision" data-fleet-exec-count>0 changed</b><small data-fleet-stage-status="3">NOT EXECUTED</small></li>
-    </ol>
-  </div>
-  <div class="fleet-result" role="status" aria-live="off"><div><span class="fleet-eyebrow" data-fleet-phase>04 / EXECUTE</span><h4 data-fleet-result>Nothing moves without a second person.</h4><p data-fleet-detail>The batch stays pending, so execute is refused and no agent setting changes.</p></div><div class="fleet-metrics"><div><b data-fleet-changed>0</b><span>Agents changed</span></div><div><b>0</b><span>Production agents touched</span></div></div></div>
-  <figcaption>Animated illustration of the walkthrough below. Alice's self-approval is rejected; Bob's approval updates the three frozen staging agents. No real Tower server or agent is called.</figcaption>
+<figure class="ct-sim" data-ct-sim="fleet-change" aria-label="Interactive illustration">
+  <p class="ct-sim-fallback" style="padding:16px 22px;margin:0">Alice previews one change for three staging agents; a later agent does not join; Alice's self-approval is rejected; Bob approves; three agents change and production is untouched.</p>
+  <figcaption>Interactive illustration of the walkthrough below. Choose who approves at step 3. Agents, results and audit events match <em>Expected output</em>; nothing is called.</figcaption>
 </figure>
 
 The selector is turned into an explicit, sorted list of agents at preview time.

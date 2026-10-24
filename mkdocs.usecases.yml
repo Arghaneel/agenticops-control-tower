@@ -6,9 +6,9 @@ docs_dir: usecases
 
 extra_css:
   - assets/stylesheets/extra.css
-  - assets/stylesheets/fleet-flow.css
+  - assets/stylesheets/ct-sim.css
 extra_javascript:
-  - assets/scripts/fleet-flow.js
+  - assets/scripts/ct-sim.js
 
 nav:
   - Overview: index.md
