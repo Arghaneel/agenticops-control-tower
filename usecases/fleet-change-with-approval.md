@@ -157,7 +157,7 @@ for agent_id in ("checkout-agent", "search-agent", "checkout-agent-prod"):
 
 # 8. Read the audit trail.
 for event in api.bulk.get(result.bulk_id, alice).events:
-    print("audit:", event.event, event.operator_id, event.agent_id or "")
+    print("audit:", " ".join(filter(None, [event.event, event.operator_id, event.agent_id])))
 ```
 
 ## Expected output
@@ -173,13 +173,13 @@ result: triage-agent succeeded
 config: checkout-agent {'enhanced_tracing': True}
 config: search-agent {}
 config: checkout-agent-prod {}
-audit: bulk.previewed alice 
-audit: bulk.approved bob 
-audit: bulk.claimed alice 
+audit: bulk.previewed alice
+audit: bulk.approved bob
+audit: bulk.claimed alice
 audit: target.succeeded alice checkout-agent
 audit: target.succeeded alice refund-agent
 audit: target.succeeded alice triage-agent
-audit: bulk.completed alice 
+audit: bulk.completed alice
 ```
 
 ## Verify it worked
