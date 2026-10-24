@@ -4,6 +4,12 @@ site_url: https://deepagentlabs.io/control-tower/usecases/
 edit_uri: edit/main/usecases/
 docs_dir: usecases
 
+extra_css:
+  - assets/stylesheets/extra.css
+  - assets/stylesheets/fleet-flow.css
+extra_javascript:
+  - assets/scripts/fleet-flow.js
+
 nav:
   - Overview: index.md
   - Find unhealthy agents and capability gaps: fleet-health-snapshot.md
