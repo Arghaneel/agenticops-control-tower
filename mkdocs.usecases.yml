@@ -9,5 +9,6 @@ nav:
   - Find unhealthy agents and capability gaps: fleet-health-snapshot.md
   - Failed AgenticLens run to incident timeline: lens-failure-to-incident.md
   - One posture view for sibling results: ecosystem-evidence-posture.md
+  - Fleet change with a second approver: fleet-change-with-approval.md
   - Back to docs: https://deepagentlabs.io/control-tower/docs/
   - Back to Control Tower: https://deepagentlabs.io/control-tower/
