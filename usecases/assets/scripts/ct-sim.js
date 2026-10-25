@@ -22,7 +22,6 @@
   const dotPill = (text, tone = "") => h("span", { class: `ct-pill ${tone}` }, h("i", { class: "ct-dot" }), text);
   const setKids = (el, ...kids) => { el.replaceChildren(...kids.flat().filter(Boolean)); };
   const logLine = (html, isNew) => { const li = h("li", { class: isNew ? "is-new" : "" }); li.innerHTML = html; return li; };
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   /* ---------- engine ---------- */
   function mount(root, sc) {
@@ -63,7 +62,11 @@
 
     root.replaceChildren(head, rail, progress, stage, say, controls, metrics);
     if (caption) root.append(caption);
-    const refs = sc.build(stage, { h, pill, dotPill, setKids, logLine, esc });
+    const refs = sc.build(stage, { h, pill, dotPill, setKids, logLine });
+    refs.setMetric = (j, v) => {
+      const b = metricEls[j].firstChild; b.textContent = String(v);
+      metricEls[j].classList.remove("ct-bump"); void metricEls[j].offsetWidth; metricEls[j].classList.add("ct-bump");
+    };
 
     let idx = 0;
     let playing = !reduce.matches;
@@ -100,7 +103,6 @@
       const prev = idx; idx = i;
       if (manual) playing = false;
       const step = sc.steps[i];
-      sc.render(refs, i, prev, step);
       railBtns.forEach((b, j) => {
         b.classList.toggle("done", j < i);
         if (j === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
@@ -129,14 +131,11 @@
         metricEls[j].classList.remove("ct-bump");
         if (changed && prev !== -1) { void metricEls[j].offsetWidth; metricEls[j].classList.add("ct-bump"); }
       });
+      sc.render(refs, i, prev, step);
       back.disabled = i === 0;
       next.disabled = i === sc.steps.length - 1;
       schedule();
     }
-    sc.metricSetter = (j, v) => {
-      const b = metricEls[j].firstChild; b.textContent = String(v);
-      metricEls[j].classList.remove("ct-bump"); void metricEls[j].offsetWidth; metricEls[j].classList.add("ct-bump");
-    };
 
     root.addEventListener("keydown", (e) => {
       if (e.target.closest("input, textarea")) return;
@@ -203,11 +202,13 @@
           h("div", { class: "ct-tiles" }, t.prod.el)));
       stage.append(h("div", { class: "ct-fc-grid" }, board, h("div", {}, batch, toast)),
         h("div", { class: "ct-log" }, h("div", { class: "ct-log-title", text: "Audit trail · api.bulk.get(...).events" }), logList));
-      return { t, r, batch, toast, logList, shown: 0 };
+      return { t, r, batch, toast, logList, shown: 0, flashes: [] };
     },
     render(x, i, prev, step) {
       const s = step.s;
       const staging = ["checkout", "refund", "triage"];
+      x.flashes.forEach(clearTimeout);
+      x.flashes = [];
       staging.forEach((k, n) => {
         const { el, tags } = x.t[k];
         el.className = "ct-tile" + (s.batch && !s.done ? " is-hit" : "");
@@ -215,7 +216,7 @@
         if (s.done) kids.push(pill("tracing on", "lime"), pill("succeeded", "ok"));
         else { kids.push(pill("tracing off")); if (s.batch) kids.push(pill("in batch", "lime")); }
         setKids(tags, kids);
-        if (s.done && !(prev >= 5)) setTimeout(() => { el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash"); }, n * 260);
+        if (s.done && !(prev >= 5)) x.flashes.push(setTimeout(() => { el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash"); }, n * 260));
       });
       const se = x.t.search;
       se.el.className = "ct-tile is-ghost" + (s.late ? "" : " is-hidden") + (s.late && !(prev >= 2) ? " is-new" : "");
@@ -255,18 +256,18 @@
     steps: [
       { label: "Your fleet", title: "Write the fleet down once.", text: "my-fleet.json holds three registrations and their latest heartbeats. Control Tower reads it directly: no server, token or network.", code: "my-fleet.json  # 3 registrations + 3 heartbeats", metrics: [3, "–", 0], s: { f: null } },
       { label: "status", title: "1 healthy, 1 degraded, 1 unhealthy.", text: "status rolls the reported health into buckets and shows capability coverage: AgenticLens on all three agents, Agentic Sidecar on two.", code: "agenticops-control-tower --snapshot my-fleet.json status", metrics: [3, 3, 0], s: { f: "status" } },
-      { label: "--unhealthy", title: "Which agent is down? research-bot.", text: "One filter returns the only agent reporting unhealthy. It last checked in at 08:41, eighteen minutes before the snapshot.", code: "agenticops-control-tower --snapshot my-fleet.json agents list --unhealthy", metrics: [3, 1, 0], s: { f: "unhealthy" } },
+      { label: "--unhealthy", title: "Which agent is down? research-bot.", text: "One filter returns the only agent reporting unhealthy. It last checked in at 08:41, nineteen minutes before the snapshot.", code: "agenticops-control-tower --snapshot my-fleet.json agents list --unhealthy", metrics: [3, 1, 0], s: { f: "unhealthy" } },
       { label: "missing Sidecar", title: "Which staging agent has no guardrail? triage-bot.", text: "Filters combine with AND: environment staging and missing agentic-sidecar. checkout-agent is in production, so it is filtered out.", code: "agenticops-control-tower --snapshot my-fleet.json agents list --environment staging --missing-capability agentic-sidecar", metrics: [3, 1, 0], s: { f: "sidecar" } },
       { label: "version drift", title: "AgenticLens runs two versions.", text: "capabilities list shows 0.10.0 and 0.9.0 in use. triage-bot is the one still on 0.9.0.", code: "agenticops-control-tower --snapshot my-fleet.json capabilities list", metrics: [3, 1, 0], s: { f: "drift" } },
       { label: "Act", title: "Two agents need attention first.", text: "research-bot is down. triage-bot is degraded, has no Sidecar and runs an older AgenticLens. checkout-agent is fine.", code: "# research-bot: investigate  ·  triage-bot: add Sidecar, upgrade AgenticLens", metrics: [3, 2, 0], s: { f: "act" } },
     ],
     build(stage, { h }) {
-      const bar = h("div", { class: "ct-bar" }, h("i", { style: "background:#7be3a4" }), h("i", { style: "background:#ffc56b" }), h("i", { style: "background:#ff8a8a" }));
+      const bar = h("div", { class: "ct-bar" }, h("i", { style: "background:var(--ct-ok)" }), h("i", { style: "background:var(--ct-warn)" }), h("i", { style: "background:var(--ct-bad)" }));
       const legend = h("div", { class: "ct-fh-legend" },
-        h("span", {}, h("i", { style: "background:#7be3a4" }), "healthy 1"),
-        h("span", {}, h("i", { style: "background:#ffc56b" }), "degraded 1"),
-        h("span", {}, h("i", { style: "background:#ff8a8a" }), "unhealthy 1"),
-        h("span", {}, h("i", { style: "background:#26414a" }), "unknown 0"));
+        h("span", {}, h("i", { style: "background:var(--ct-ok)" }), "healthy 1"),
+        h("span", {}, h("i", { style: "background:var(--ct-warn)" }), "degraded 1"),
+        h("span", {}, h("i", { style: "background:var(--ct-bad)" }), "unhealthy 1"),
+        h("span", {}, h("i", { style: "background:var(--ct-line)" }), "unknown 0"));
       const health = h("div", { class: "ct-card" }, h("div", { class: "ct-card-label", text: "Reported health" }), h("div", { style: "margin-top:10px" }, bar), legend);
       const tiles = agentsFH.map((a) => {
         const tags = h("div", { class: "ct-tags" });
@@ -309,7 +310,7 @@
       { label: "Run fails", title: "AgenticLens reports a failed run.", text: "run-41 failed 30 seconds ago, inside the 300-second freshness window. It is pushed to Tower as evidence.", code: 'push_lens_run("run-41", "failed", now - timedelta(seconds=30))', metrics: [0, 0, 0, "none"], s: { run: "fail", scans: 0, alert: null, inc: null, tl: 1 } },
       { label: "Scan", title: "One critical alert. One open incident.", text: "The detection scan (every 30 s on a server) raises lens.failed at critical severity and links it to a new incident. Reported health stays healthy.", code: "api.operations.evaluate(operator)", metrics: [1, 1, 1, "open"], s: { run: "fail", scans: 1, alert: "active", inc: "open", tl: 3 } },
       { label: "Scan again", title: "Scanning again adds nothing.", text: "Same failure, same alert: alerts are deduplicated, so on-call is paged once, not every 30 seconds. Try it yourself.", code: 'api.operations.evaluate(operator)  # alerts after rescan: 1', metrics: [2, 1, 1, "open"], s: { run: "fail", scans: 2, alert: "active", inc: "open", tl: 3, dedup: true },
-        choices: { prompt: "Try it", options: [{ label: "↻ Scan again", act: (x) => { x.extraScans = (x.extraScans || 0) + 1; lensIncident.metricSetter(0, 2 + x.extraScans); x.scanEl.textContent = `scans: ${2 + x.extraScans}`; x.toast.hidden = false; x.toast.textContent = `Scan ${2 + x.extraScans}: still 1 alert. No duplicate.`; x.toast.style.animation = "none"; void x.toast.offsetWidth; x.toast.style.animation = ""; } }] } },
+        choices: { prompt: "Try it", options: [{ label: "↻ Scan again", act: (x) => { x.extraScans = (x.extraScans || 0) + 1; x.setMetric(0, 2 + x.extraScans); x.scanEl.textContent = `scans: ${2 + x.extraScans}`; x.toast.hidden = false; x.toast.textContent = `Scan ${2 + x.extraScans}: still 1 alert. No duplicate.`; x.toast.style.animation = "none"; void x.toast.offsetWidth; x.toast.style.animation = ""; } }] } },
       { label: "Acknowledge", title: "On-call takes ownership.", text: "Acknowledging records who picked it up. It is now part of the incident timeline.", code: "api.operations.acknowledge(alert.alert_id, operator)", metrics: [2, 1, 1, "open"], s: { run: "fail", scans: 2, alert: "ack", inc: "open", tl: 4 } },
       { label: "Run recovers", title: "The alert clears. The incident stays open.", text: "run-42 succeeds and the next scan clears the alert. Clearing an alert never resolves an incident: recovery still needs the approved verification workflow.", code: 'push_lens_run("run-42", "succeeded", now); api.operations.evaluate(operator)', metrics: [3, 1, 0, "open"], dwell: 4600, s: { run: "ok", scans: 3, alert: "cleared", inc: "open", tl: 4, final: true } },
     ],
@@ -332,13 +333,16 @@
     },
     render(x, i, prev, step) {
       const s = step.s;
-      x.extraScans = 0;
+      // Rescans from "Scan again" stay counted on later steps; going back before it starts over.
+      if (i < 3) x.extraScans = 0;
+      const scans = s.scans + (x.extraScans || 0);
+      if (scans !== s.scans) x.setMetric(0, scans);
       x.runVal.textContent = s.run === "fail" ? "run-41 · failed" : s.run === "ok" ? "run-42 · succeeded" : "no runs yet";
       x.runVal.style.color = s.run === "fail" ? "var(--ct-bad)" : s.run === "ok" ? "var(--ct-ok)" : "";
       x.runSub.textContent = s.run === "fail" ? "observed 30 s ago · pushed as evidence" : s.run === "ok" ? "newer run · pushed as evidence" : "waiting for evidence";
       x.run.classList.toggle("is-bad", s.run === "fail" && i === 1);
       x.run.classList.toggle("is-hit", s.run === "ok");
-      x.scanEl.textContent = `scans: ${s.scans}`;
+      x.scanEl.textContent = `scans: ${scans}`;
       x.health.v.textContent = "healthy";
       setKids(x.health.tags, pill("reported by the agent", "ok"));
       x.health.el.classList.toggle("is-hit", !!s.final);
