@@ -253,7 +253,8 @@ body {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
 }
 /* Italic line immediately after an image acts as a caption */
-.md-typeset p > em:only-child { color: var(--as-muted); font-size: 0.82em; }
+.md-typeset p > img + em,
+.md-typeset p > img + br + em { color: var(--as-muted); font-size: 0.82em; }
 
 /* ------------------------------------------------------------------ */
 /* Blockquotes, admonitions, marks, "back to top"                      */
