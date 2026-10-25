@@ -27,6 +27,22 @@ fixed.
   <figcaption>Interactive illustration of the walkthrough below. The alert, incident and timeline match <em>Expected output</em>; the Scan again button is simulated in your browser.</figcaption>
 </figure>
 
+??? note "Static diagram"
+
+    ```mermaid
+    sequenceDiagram
+        participant Lens as AgenticLens run (failed)
+        participant Tower as Control Tower
+        participant Op as On-call operator
+        Lens->>Tower: push native run (ingest_evidence)
+        Tower->>Tower: scan (every 30 s on a server)
+        Tower-->>Op: critical alert lens.failed + open incident
+        Op->>Tower: acknowledge alert
+        Op->>Tower: incident view (timeline)
+        Lens->>Tower: newer successful run
+        Tower->>Tower: scan clears the alert, incident stays open
+    ```
+
 Detection reads only evidence that was pushed to Tower. It never changes the
 health the agent reports and never runs recovery on its own.
 
