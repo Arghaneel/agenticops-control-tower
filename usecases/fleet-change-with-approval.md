@@ -210,4 +210,4 @@ deactivate && rm -rf .venv
 
 ## Tested with
 
-- agenticops-control-tower 0.8.0 (source, commit `4e7d711`), Python 3.13.17, Linux, base dependencies only, verified 2026-10-24. The script was run with the package on `PYTHONPATH`; the server-based variation was not run.
+- agenticops-control-tower 0.8.0 installed with `python -m pip install .` as in [Prerequisites](#prerequisites), Python 3.13.15, Linux, base dependencies only, verified 2026-10-25. The output matched [Expected output](#expected-output) exactly; the server-based variation was not run.
